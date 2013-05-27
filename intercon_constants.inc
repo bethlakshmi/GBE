@@ -77,7 +77,7 @@ define (SELECTEVENTS_ENABLED, 1);
 // Con identifiers
 
 define (CON_ID, '2014');
-define (CON_NAME, 'Great Burlesque Expo ' . CON_ID);
+define (CON_NAME, 'The Great Burlesque Expo ' . CON_ID);
 define (CON_NUMBER, '8th');
 define (CON_DOMAIN, 'burlesque-expo.com');
 define (CON_MAX, 600);
