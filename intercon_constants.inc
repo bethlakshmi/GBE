@@ -140,18 +140,18 @@ define (EMAIL_WEBMASTER, 'webmaster@' . CON_DOMAIN);
 
 // Con dates
 
-define (FRI_TEXT, 'Friday, 8-Feb-2014');
-define (SAT_TEXT, 'Saturday, 9-Feb-2014');
-define (SUN_TEXT, 'Sunday, 10-Feb-2014');
+define (FRI_TEXT, 'Friday, 7-Feb-2014');
+define (SAT_TEXT, 'Saturday, 8-Feb-2014');
+define (SUN_TEXT, 'Sunday, 9-Feb-2014');
 
-define (THR_DATE, '7-Feb-2014');
-define (FRI_DATE, '8-Feb-2014');
+define (THR_DATE, '6-Feb-2014');
+define (FRI_DATE, '7-Feb-2014');
 
 // Deadlines - Format is YYYY-MM-DD
 
-define (REGISTRATION_CLOSE, '2014-02-7');
+define (REGISTRATION_CLOSE, '2014-02-6');
 define (CON_OVER, '2014-02-10');
-define (SHIRT_CLOSE, '2014-02-7');
+define (SHIRT_CLOSE, '2014-02-6');
 define (BIO_CLOSE, '2014-01-15');
 
 // Information about the next convention for people who can't sign up for this one
