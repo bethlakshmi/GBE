@@ -12,7 +12,7 @@ for the first time.  There's a different procedure if you're setting up the
 subsequent year of a convention that ran on Intercode last year, which allows
 you to keep the plugs and mailing lists from last year.
 
-1) Create a new MySQL database and initialize it by running schema.sql.
+1) Create a new MySQL database and initialize it by running setup/schema.sql.  
 
 2) Create an initial admin user for yourself:
    INSERT INTO Users (EMail, HashedPassword, FirstName, LastName, Nickname, 
