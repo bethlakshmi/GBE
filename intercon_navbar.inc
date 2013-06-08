@@ -232,7 +232,7 @@ function navbar_end() {
 function build_larps_subnavbar() {
   $larpSection = new SubNavBar("Events at <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
   if (can_show_schedule()) {
-    $larpSection->push(NavBarItem::newAction("Con Schedule", "Schedule.php"));    
+    $larpSection->push(NavBarItem::newAction("Class Schedule", "Schedule.php"));    
     if (user_has_priv(PRIV_CON_COM))
       $larpSection->push(NavBarItem::newAction("Schedule with Counts", "Schedule.php", SCHEDULE_WITH_COUNTS));            
   }
@@ -290,7 +290,7 @@ function build_bids_subnavbar() {
   
   if (user_has_priv (PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON)) {  
     $bidsSection->push(NavBarItem::newAction("BidCom Feedback Summary", "Bids.php", BID_FEEDBACK_SUMMARY));
-    if (user_has_priv(PRIV_GM_LIAISON))
+  if (user_has_priv(PRIV_GM_LIAISON))
       $bidsSection->push(NavBarItem::newStatic("Bid Commmittee Responsibilities", "BidCommittee"));
   }
   

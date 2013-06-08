@@ -53,9 +53,10 @@ define (SELECTEVENTS_ENABLED, 1);
 // Defining the program file prefix enables the links on the ConCom menu
 // which allow users to download the program booklet sections.  The second
 // constant enables the entries on the Ops menu for the .PUB files
+//BETTY - error in pub prefix, does not work on local site.
 
-//define (PROGRAM_PDF_PREFIX, '02-15-');
-//define (PROGRAM_PUB_PREFIX, '02-15-');
+define (PROGRAM_PDF_PREFIX, '02-15-2014');
+//define (PROGRAM_PUB_PREFIX, '02-15-2014');
 
 // Con identifiers
 
@@ -164,9 +165,9 @@ define (COLOR_MENU_PRIV_FG, "#ca9a00");
 define (COLOR_MENU_PRIV_BG, "#FADB5E");
 
 //These are for the NavMenu
-define (NAV_SHOW_COST, 0);
+define (NAV_SHOW_COST, 1);
 define (NAV_SHOW_FLYER, 0);
-define (NAV_SHOW_LINKS, 0);
+define (NAV_SHOW_LINKS, 1);
 
 // 1 (true) if we're accepting bids, 0 if we're not
 

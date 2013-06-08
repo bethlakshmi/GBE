@@ -291,11 +291,11 @@ define (MAX_TRACKS, 15);
 // Minimum and maximum times for con days
 
 define (FRI_MIN, 12);    // 12 noon
-define (FRI_MAX, 31);    // 7AM
-define (SAT_MIN, 8);     // 8AM
-define (SAT_MAX, 31);    // 7AM
-define (SUN_MIN, 8);     // 8AM
-define (SUN_MAX, 16);    // 4PM
+define (FRI_MAX, 24);    // 7AM
+define (SAT_MIN, 7);     // 8AM
+define (SAT_MAX, 24);    // 7AM
+define (SUN_MIN, 7);     // 8AM
+define (SUN_MAX, 24);    // 4PM
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
 define (SESSION_LOGIN_USER_ID, 'LoginUserId_' . CON_ID);

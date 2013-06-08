@@ -1569,7 +1569,7 @@ function show_unpaid_messages()
 	    CON_NAME);
     echo "time. We can not accept payment for the convention\n";
     echo "on the website.</p>\n";
-    printf ("<p>Please contact the <a href=%s>Con&nbsp;Chair</a> if you\n",
+    printf ("<p>Please contact the <a href=%s>office</a> if you\n",
 	    mailto_url(EMAIL_CON_CHAIR, 'Registration question'));
     printf ("still want to pay and attend %s.</p>\n", CON_NAME);
     return false;
