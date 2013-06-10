@@ -569,11 +569,14 @@ function show_bid ()
   // show_text ('Combat Resolution', $bid_row['CombatResolution']);
   show_text ('Space Requirements', $bid_row['SpaceRequirements']);
 
-  show_section ('Game Restrictions');
+  show_section ('Restrictions');
 
-  show_text ('Offensive', $bid_row['Offensive']);
+  if ($gametype != 'Class') {
+    show_text ('Offensive', $bid_row['Offensive']);
+    show_text ('Age Restrictions', $bid_row['AgeRestrictions']);
+  }
+  
   show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
-  show_text ('Age Restrictions', $bid_row['AgeRestrictions']);
 
   show_section ('Scheduling Information');
 
@@ -608,9 +611,9 @@ function show_bid ()
 
   show_text ('Hours', $bid_row['Hours']);
   show_text ('Multiple Runs', $bid_row['MultipleRuns']);
-  show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
+  // show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
   show_text ('Other Constraints', $bid_row['SchedulingConstraints']);
-  show_text ('Other Game Details', $bid_row['OtherDetails']);
+  show_text ('Other Details', $bid_row['OtherDetails']);
 
   show_section ('Advertising Information');
 
@@ -693,7 +696,7 @@ function display_choose_form ()
   echo ("<p>Please choose what type of content you'd like to present at ". CON_NAME );
   echo (".</p>\n");
   
-  echo "<form method=\"POST\" action=\"Bids.php\">\n";
+  echo "<form method=\"GET\" action=\"Bids.php\">\n";
   
   echo "<TABLE BORDER=0>\n";
   form_add_sequence ();
@@ -734,25 +737,57 @@ function display_bid_form ($first_try)
   else
     $BidId = intval (trim ($_REQUEST['BidId']));
   
+  if (array_key_exists ('GameType', $_REQUEST))
+      $gametype=$_REQUEST['GameType'];
+  else
+      $gametype = $BID_TYPES[0];
 
+  echo "<h2>2013 {$gametype} Application</h2>";
+  echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
+  echo ".  </big><br /><br />";
+  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
+  echo "<br /><br />";
+
+  if ($gametype == 'Class') 
+  {
+	  echo "This form is for submitting <i>Lectures</i> and <i>Workshops</i>.  ";
+	  echo "If you want to sit on a <i>Panel</i>, please ";
+	  echo "<a href=\"Bids.php?GameType=Panel&Seq=9&action=50\">click here</a>.";
+	  echo "<br /><br />";
+	  echo "A <i>Lecture</i> is a class taught by one or two people in which the ";
+	  echo "information flows primarily from the instructor(s) to the students.";  
+	  echo "They can be intellectual or physical.  An example of a lecture might be ";
+	  echo "\"The History of Burlesque\", \"Taxes for Performers\", \"Chair Dance Basics\",";
+	  echo " or \"Designing a Costume\".<br /><br />";
+	  echo "A <i>Workshop</i> is a hands-on, practical, class, usually two-hours long.";
+	  echo "Participants in workshops learn a skill or craft that is taught through ";
+	  echo "doing.  Workshops often have a materials fee associated with them.  ";
+	  echo "Examples of a workshop might be \"Making a Tiny Little Top Hat\" or ";
+	  echo "\"How to Decorate a Bra\".<br />";
+	  echo "<br />";
+	  echo "<hr /><br />";
+//	  echo "This form will allow you to submit up to five (5) class suggestions.  ";
+//	  echo "If you want to submit more than five, please contact the teacher ";
+//	  echo "coordinator, ";
+//	  echo "<a href=" . EMAIL_BID_CHAIR . ">" . NAME_BID_CHAIR . "</a>.";
+//	  echo "<br /><br />";
+  }
 
   // Output the note about comps, so nobody can say that they didn't
   // see it
-
-
   if (BID_SHOW_COMPS)
   {
 	  echo "<div style=\"border-style: solid; border-color: red; padding: 1ex; margin-bottom: 2ex\">\n";
 	  echo "<b>Important Note:</b><br>\n";
-	  echo "The policy of the " . CON_NAME . " is to thank teachers and other \n";
-	  echo "volunteers with discounted attendance for the event.  Our discounts\n";
-	  echo "take into consideration all of the classes, panels, performances and \n";
-	  echo "volunteer time that participants contribute to the event.  After \n";
-	  echo "classes and other submissions are approved and posted, teachers can \n";
-	  echo "expect to receive information about how to purchase \n";
-	  echo CON_NAME . " tickets with their discounts.</p><p>" . CON_NAME . " runs on a very tight budget. We'd like\n";
-	  echo " to comp every teacher, but it is not financially possible.\n";
-	  echo "</p>\n";
+	  echo "The policy of the " . CON_NAME . " has changed this year. \n";
+	  echo "This year, time spent assisting the expo during run time as a teacher, \n";
+	  echo "panelist, perfomer, or other volunteer will be taken into consideration \n";
+	  echo "for 2015 discounts.  After the " . CON_SHORT_NAME . " has concluded, you ";
+	  echo "can expect to hear the about 2015 discounts as part of our thank yous. \n";
+	  echo "If you are coming to the " . CON_SHORT_NAME . " purely to teach, \n";
+	  echo "please inform the teacher coordinator, ";
+	  echo "<a href=\"mailto:" . EMAIL_BID_CHAIR . "\">" . NAME_BID_CHAIR . "</a>.";
+	  echo " via email and we will arrange a pass for you.\n</p>\n";
 	  echo "</div>\n";
   }
 
@@ -824,10 +859,7 @@ function display_bid_form ($first_try)
 
   }
 
-  if (! array_key_exists ('GameType', $_POST))
-      $gametype = $BID_TYPES[0];
-  else
-      $gametype = $_POST['GameType'];
+
 
   // Show the header - varies depending on update/submit and the nature of the submission
   if (0 == $BidId)
@@ -924,7 +956,7 @@ function display_bid_form ($first_try)
 
     if ($gametype == 'Class')
     {
-	$CLASSTYPES = array('Movement Class','Lecture Class','Workshop');
+	    $CLASSTYPES = array('Movement','Lecture','Workshop');
         $choice = $_POST['GameSystem'];
 
         echo "  <tr>\n";
@@ -1147,7 +1179,7 @@ function display_bid_form ($first_try)
   
   form_section ('Restrictions');
 
-  echo "  <TR>\n";
+/*  echo "  <TR>\n";
   echo "    <TD COLSPAN=2>\n";
   echo "     ".CON_NAME." appeals to a diverse group of participants of all \n";
   echo "     ethnicities, belief systems, sexual preferences, physical\n";
@@ -1161,7 +1193,7 @@ function display_bid_form ($first_try)
   $text = "Are there any components of your {$thingstring} that might offend or upset\n";
   $text .= "some group of attendees?  For example, adult themes, potentially\n";
   $text .= "offensive story arcs, etc.  If so, please explain.";
-  form_textarea ($text, 'Offensive', 5);
+  form_textarea ($text, 'Offensive', 5); */
 
   if ($gametype == 'LARP' || $gametype == 'Other' || $gametype == 'Class')
   {
@@ -1269,18 +1301,20 @@ function display_bid_form ($first_try)
     $text .= "example, are you proposing another class, panel, or performance? \n";
     form_textarea ($text, 'SchedulingConstraints', 5);
   }
+  
 
   if ($gametype == 'Class')
   {
-    $text = "Space Requirements: The \n" . $CON_NAME;
-    //$text .= "example, are you a GM for another game?  Any times your game\n";
-    $text .= "example, are you proposing another class, panel, or performance? \n";
-    form_textarea ($text, 'SchedulingConstraints', 5);
-
-
+  echo "in loop";
+    global $ROOM_TYPES;
+    $text = "Space Requirements: \n";
+    $choice = $_POST['SpaceRequirements'];
+    echo "<TR><TD><BR> \n ";
+    form_single_select($text, 'SpaceRequirements', $ROOM_TYPES,$choice);
+    echo "<BR><BR></TD></TR>";
   }
 
-  form_textarea ('Space Requirements', 'SpaceRequirements', 2);
+/*  form_textarea ('Space Requirements', 'SpaceRequirements', 2); */
   
   form_yn ("Are you willing to hold this {$thingstring} more than once at this convention?",
 	   'MultipleRuns');

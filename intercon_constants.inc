@@ -88,8 +88,8 @@ define (ADDR_SEND_CHECKS, '123 Fake St<br>Fake, MA 90210');
 define (NAME_ADVERTISING, '');
 define (EMAIL_ADVERTISING, '');
 
-define (NAME_BID_CHAIR, 'Scandal');
-define (EMAIL_BID_CHAIR, 'test@test.com');
+define (NAME_BID_CHAIR, 'Scandal from Bohemia');
+define (EMAIL_BID_CHAIR, 'Teachers12@Burlesque-Expo.com');
 
 define (NAME_CON_SUITE, 'NONE');
 define (EMAIL_CON_SUITE, 'none@test.com');
@@ -128,6 +128,7 @@ define (FRI_TEXT, 'Friday, 7-Feb-2014');
 define (SAT_TEXT, 'Saturday, 8-Feb-2014');
 define (SUN_TEXT, 'Sunday, 9-Feb-2014');
 
+define (DATE_RANGE, 'February 7-9, 2014');
 define (THR_DATE, '6-Feb-2014');
 define (FRI_DATE, '7-Feb-2014');
 
@@ -151,6 +152,12 @@ define (SHIRT_NAME, CON_NAME . " Men's Polo");
 define (SHIRT_2_NAME, CON_NAME . ' Babydoll');
 
 define (BIO_DUE_DATE, "December&nbsp;25,&nbsp;2009");
+
+// Locations
+define (HOTEL_NAME, "The Hyatt Regency Hotel");
+define (CON_CITY, "Cambridge, MA");
+global $ROOM_TYPES;
+$ROOM_TYPES =  array( "No Preference", "Movement", "Lecture", "Workshop" );
 
 // Theme colors
 
@@ -199,20 +206,18 @@ $CON_DAYS = array('Saturday', 'Sunday');
 //These must match the text values in the BidTimes table slot field.
 global $BID_SLOTS;
 $BID_SLOTS = array();
-$BID_SLOTS['Friday'] = array('Afternoon', 'Evening', 'After Midnight');
-$BID_SLOTS['Saturday'] = array('Morning', 'Afternoon');
-$BID_SLOTS['Sunday'] = array('Morning', 'Afternoon');
+$BID_SLOTS['Friday'] = array('Early Afternoon', 'Late Afternoon', 'Evening', 'After Midnight');
+$BID_SLOTS['Saturday'] = array('Morning', 'Early Afternoon', 'Late Afternoon');
+$BID_SLOTS['Sunday'] = array('Morning', 'Early Afternoon', 'Late Afternoon');
 
-//$BID_SLOTS['Saturday'] = array('Morning', 'Afternoon', 'Evening', 'After Midnight');
-//$BID_SLOTS['Sunday'] = array('Morning', 'Afternoon', 'Evening', 'After Midnight');
-$BID_SLOTS['Monday'] = array('Morning', 'Afternoon');
-$BID_SLOTS['All'] = array('Morning', 'Afternoon'); //all possible bid slots.
-//$BID_SLOTS['All'] = array('Morning', 'Afternoon', 'Evening', 'After Midnight'); //all possible bid slots.
+
+$BID_SLOTS['All'] = array('Morning', 'Early Afternoon', 'Late Afternoon'); //all possible bid slots.
 
 global $BID_SLOT_ABBREV;
 $BID_SLOT_ABBREV = array();
 $BID_SLOT_ABBREV['Morning'] = 'AM';
-$BID_SLOT_ABBREV['Afternoon'] = 'PM';
+$BID_SLOT_ABBREV['Early Afternoon'] = 'Early PM';
+$BID_SLOT_ABBREV['Late Afternoon'] = 'Late PM';
 $BID_SLOT_ABBREV['Evening'] = 'Eve';
 $BID_SLOT_ABBREV['After Midnight'] = 'Late';
 $BID_SLOT_ABBREV['Lunch'] = 'Lunch';
@@ -223,7 +228,7 @@ define(ALLOW_EVENT_FEES, 1);  //set to 1 to allow additional fees for events.
 
 //Types of bids; only use the ones you will accept.
 global $BID_TYPES;
-$BID_TYPES = array('LARP', 'Class', 'Panel', 'Performance');
+$BID_TYPES = array('Class', 'Panel', 'Performance');
 //$BID_TYPES = array('LARP');
 
 

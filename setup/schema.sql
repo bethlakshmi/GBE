@@ -273,7 +273,7 @@ CREATE TABLE `BidTimes` (
   `BidTimeId` int(10) unsigned NOT NULL auto_increment,
   `BidId` int(10) unsigned NOT NULL,
   `Day` enum('Monday','Tuesday','Wednesday','Thursday','Friday', 'Saturday', 'Sunday') NOT NULL,
-  `Slot` enum('Morning', 'Lunch', 'Afternoon', 'Dinner', 'Evening', 'After Midnight' ) NOT NULL,
+  `Slot` enum('Morning', 'Lunch', 'Early Afternoon', 'Late Afternoon', 'Dinner', 'Evening', 'After Midnight' ) NOT NULL,
   `Pref` char(1) NOT NULL default '',
   PRIMARY KEY  (`BidTimeId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
