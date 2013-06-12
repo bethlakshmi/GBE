@@ -119,3 +119,11 @@ This will make the price of everything 5 cents so you can try it out
 without having to spend too much money.  (It will also put a red banner on
 each page of the site saying that it's in development mode, and direct all
 convention email to you rather than the user it was supposed to go to.)
+
+-----
+
+Edit by M. Cockrum.
+
+"Hello World" Test.
+
+
