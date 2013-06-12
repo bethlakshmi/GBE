@@ -1177,7 +1177,8 @@ function display_bid_form ($first_try)
   
   form_textarea ('Other Event Details', 'OtherDetails', 5);
   
-  form_section ('Restrictions');
+  if ($gametype != 'Panel')
+      form_section ('Restrictions');
 
 /*  echo "  <TR>\n";
   echo "    <TD COLSPAN=2>\n";
