@@ -370,7 +370,8 @@ function build_schedule_subnavbar() {
   $scheduleSection = new SubNavBar("Scheduling");
   $scheduleSection->push(NavBarItem::newAction('Manage Schedule', 'ListGames.php'));
   $scheduleSection->push(NavBarItem::newAction('Schedule Ops', 'ListGames.php', LIST_ADD_OPS));
-  $scheduleSection->push(NavBarItem::newAction('Schedule ConSuite', 'ListGames.php', LIST_ADD_CONSUITE));
+  // Disabled ConSuite add in listgames.php
+  // $scheduleSection->push(NavBarItem::newAction('Schedule ConSuite', 'ListGames.php', LIST_ADD_CONSUITE));
 //    $scheduleSection->push(NavBarItem::newAction('Add a Parallel Run', 'ListGames.php', LIST_TO_ADD_PARALLEL_RUN));
   $scheduleSection->push(NavBarItem::newAction('Add Special Event', 'SpecialEvents.php'));
   $scheduleSection->push(NavBarItem::newAction('Manage Special Events', 'SpecialEvents.php', SPECIAL_EVENT_LIST));

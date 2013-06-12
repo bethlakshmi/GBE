@@ -67,9 +67,11 @@ switch ($action)
    add_ops();
    break;
  
- case LIST_ADD_CONSUITE:
-   add_consuite();
-   break;
+ // this is just crazy.  We don't need a con suite - this option automatically adds
+ // an ongoing consuite for all open hours.
+ //case LIST_ADD_CONSUITE:
+ //  add_consuite();
+ //  break;
 
  default:
    echo "Unknown action code: $action\n";
