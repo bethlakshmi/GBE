@@ -2804,7 +2804,7 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
   }
 
   if ('' == $reply_to)
-    $reply_to = sprintf ('Intercon Webmaster<%s>', EMAIL_WEBMASTER);
+    $reply_to = sprintf (CON_SHORT_NAME.' Webmaster<%s>', EMAIL_WEBMASTER);
 
   $headers = array("From" => sprintf("Intercon Webmaster<%s>", EMAIL_WEBMASTER),
     "To" => $to,

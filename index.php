@@ -2752,8 +2752,8 @@ function process_password_request ()
   // Send the user his password
 
   if (! intercon_mail ($EMail,
-		       'Your Intercon account',
-		       "The password to your Intercon account has been reset to a " .
+		       'Your '.CON_SHORT_NAME.' account',
+		       "The password to your ".CON_NAME." account has been reset to a " .
                        "random string.  The new password is $NewPassword."))
     return display_error ('Attempt to send mail failed');
  
