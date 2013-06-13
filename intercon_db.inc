@@ -2806,7 +2806,7 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
   if ('' == $reply_to)
     $reply_to = sprintf (CON_SHORT_NAME.' Webmaster<%s>', EMAIL_WEBMASTER);
 
-  $headers = array("From" => sprintf(CON_SHORT_NAME.' Webmaster<%s>", EMAIL_WEBMASTER),
+  $headers = array("From" => sprintf(CON_SHORT_NAME." Webmaster<%s>", EMAIL_WEBMASTER),
     "To" => $to,
     "Subject" => $subject,
     "Reply-To" => $reply_to,
