@@ -30,44 +30,92 @@ switch ($action)
     display_choose_form (TRUE);
     break;
 
+  // There are two cases for every function - one 
+  // covers convention submissions, one covers performances (acts)
   case BID_GAME:
     display_bid_form (TRUE);
     break;
 
+  case BID_ACT:
+    display_bid_form (TRUE);
+    break;
+    
+  // Pair to process form  
   case BID_PROCESS_FORM:
     if (! process_bid_form ())
       display_bid_form (FALSE);
     else
       display_bid_etc ();
     break;
+    
+  case BID_PROCESS_ACTS:
+    if (! process_bid_form ())
+      display_bid_form (FALSE);
+    else
+      display_bid_etc ();
+    break;  
 
+  // pair to review 
   case BID_REVIEW_BIDS:
     display_bids_for_review ();
     break;
 
+  case BID_REVIEW_ACTS:
+    display_bids_for_review ();
+    break;
+    
+  // pair to change status
   case BID_CHANGE_STATUS:
     change_bid_status ();
     break;
 
+  case BID_ACT_CHANGE_STATUS:
+    change_bid_status ();
+    break;
+    
+  // pair to process the status change
   case BID_PROCESS_STATUS_CHANGE:
     if (! process_status_change ())
       change_bid_status ();
     else
       display_bids_for_review ();
     break;
+    
+  case BID_PROCESS_ACT_STATUS_CHANGE:
+    if (! process_status_change ())
+      change_bid_status ();
+    else
+      display_bids_for_review ();
+    break;
 
+  // pair to show 
   case BID_SHOW_BID:
     show_bid ();
     break;
 
+  case BID_SHOW_ACT:
+    show_bid ();
+    break;
+    
+  // pair for feedback summary
   case BID_FEEDBACK_SUMMARY:
     show_bid_feedback_summary();
     break;
 
+  case BID_FEEDBACK_ACT_SUMMARY:
+    show_bid_feedback_summary();
+    break;
+    
+  // pair for feedback by item
   case BID_FEEDBACK_BY_GAME:
     update_feedback_by_game ();
     break;
 
+  case BID_FEEDBACK_BY_ACT:
+    update_feedback_by_game ();
+    break;
+
+  // pair for feedback by item processing
   case BID_PROCESS_FEEDBACK_BY_GAME:
     if (! process_feedback_by_game ())
       update_feedback_by_game ();
@@ -75,6 +123,14 @@ switch ($action)
       show_bid_feedback_summary ();
     break;
 
+  case BID_PROCESS_FEEDBACK_BY_ACT:
+    if (! process_feedback_by_game ())
+      update_feedback_by_game ();
+    else
+      show_bid_feedback_summary ();
+    break;
+
+  // 
   case BID_FEEDBACK_BY_ENTRY:
     show_bid_feedback_entry_form();
     break;
