@@ -696,7 +696,7 @@ function display_bid_form ($first_try)
   if (array_key_exists ('GameType', $_REQUEST))
       $gametype=$_REQUEST['GameType'];
   else
-      $gametype = $BID_TYPES[0];
+      $gametype = 'Performance';
 
   echo "<h2>2013 {$gametype} Application</h2>";
   echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
