@@ -1,7 +1,7 @@
 <?php
 include ("intercon_db.inc");
 
-$submitFilter = ' AND Bids.GameType != \'Performance\'';
+$submitFilter = ' AND Bids.GameType = \'Performance\'';
 
 // Connect to the database
 
@@ -107,52 +107,6 @@ switch ($action)
 
 html_end ();
 
-/*
- * form_players_entry
- *
- * Display an entry that lets the user select the min, max and preferred
- * numbers of players
- */
-
-function form_players_entry ($gender, $showword)
-{
-  $min = 'MinPlayers' . $gender;
-  $max = 'MaxPlayers' . $gender;
-  $pref = 'PrefPlayers' . $gender;
-
-  if (array_key_exists ($min, $_POST))
-    $min_value = $_POST[$min];
-  else
-    $min_value = '0';
-
-  if (array_key_exists ($max, $_POST))
-    $max_value = $_POST[$max];
-  else
-    $max_value = '0';
-
-  if (array_key_exists ($pref, $_POST))
-    $pref_value = $_POST[$pref];
-  else
-    $pref_value = '0';
-
-  print ("  <TR>\n");
-  if ($showword)
-    print ("    <TD ALIGN=RIGHT>$gender Size:</TD>\n");
-  else
-    print ("    <TD ALIGN=RIGHT>Size:</TD>\n");   
-  print ("    <TD ALIGN=LEFT>\n");
-  printf ("      Min:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
-	  $min,
-	  $min_value);
-  printf ("      Preferred:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
-	 $pref,
-	 $pref_value);
-  printf ("      Max:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">\n",
-	  $max,
-	  $max_value);
-  print ("    </TD>\n");
-  print ("  </tr>\n");
-}
 
 /*
  * form_combat
@@ -419,8 +373,8 @@ function show_bid ()
   // Only bid committe members, the bid chair and the GM Liaison may access
   // this page
 
-  if ((! user_has_priv (PRIV_BID_COM)) &&
-      (! user_has_priv (PRIV_BID_CHAIR)) &&
+  if ((! user_has_priv (PRIV_SHOW_COM)) &&
+      (! user_has_priv (PRIV_SHOW_CHAIR)) &&
       (! user_has_priv (PRIV_GM_LIAISON)))
     return display_access_error ();
 
@@ -491,10 +445,10 @@ function show_bid ()
 
   // Bid chair & GM Liaison can edit bids
 
-  if (user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_GM_LIAISON))
+  if (user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv (PRIV_GM_LIAISON))
   {
     echo "    <TD>\n";
-    printf ('      [<A HREF=Bids.php?action=%d&BidId=%d>Edit Bid</A>]',
+    printf ('      [<A HREF=Acts.php?action=%d&BidId=%d>Edit Bid</A>]',
 	    BID_GAME,
 	    $BidId);
     echo "    </TD>\n";
@@ -698,7 +652,7 @@ function display_choose_form ()
   echo ("<p>Please choose what type of content you'd like to present at ". CON_NAME );
   echo (".</p>\n");
   
-  echo "<form method=\"GET\" action=\"Bids.php\">\n";
+  echo "<form method=\"GET\" action=\"Acts.php\">\n";
   
   echo "<TABLE BORDER=0>\n";
   form_add_sequence ();
@@ -754,7 +708,7 @@ function display_bid_form ($first_try)
   {
 	  echo "This form is for submitting <i>Lectures</i> and <i>Workshops</i>.  ";
 	  echo "If you want to sit on a <i>Panel</i>, please ";
-	  echo "<a href=\"Bids.php?GameType=Panel&Seq=9&action=50\">click here</a>.";
+	  echo "<a href=\"Acts.php?GameType=Panel&Seq=9&action=50\">click here</a>.";
 	  echo "<br /><br />";
 	  echo "A <i>Lecture</i> is a class taught by one or two people in which the ";
 	  echo "information flows primarily from the instructor(s) to the students.";  
@@ -852,7 +806,7 @@ function display_bid_form ($first_try)
     // Only the Bid Chair, GM Liaison or the bidder can update this bid
 
     $can_update =
-      user_has_priv (PRIV_BID_CHAIR) ||
+      user_has_priv (PRIV_SHOW_CHAIR) ||
       user_has_priv (PRIV_GM_LIAISON) ||
       ($_SESSION[SESSION_LOGIN_USER_ID] == $_POST['UserId']);
 
@@ -875,7 +829,7 @@ function display_bid_form ($first_try)
     display_header ('Update information for <I>' . $_POST['Title'] . '</I>');
 
 
-  echo "<form method=\"POST\" action=\"Bids.php\">\n";
+  echo "<form method=\"POST\" action=\"Acts.php\">\n";
   form_add_sequence ();
   form_hidden_value ('action', BID_PROCESS_FORM);
   form_hidden_value ('BidId', $BidId);
@@ -990,44 +944,16 @@ function display_bid_form ($first_try)
         $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
     form_textarea ($text, 'ShortBlurb', 4, TRUE, TRUE);
     
-    if ($gametype == 'Class')
-    {
-        form_section ('Class Size');
-        echo "  <tr>\n";
-        echo "    <td colspan=2>\n";
-        echo "Enter the minimum, preferred and maximum number of participants for\n";
-        echo "your {$thingstring}.<br><br><ul>\n";
-        echo "<li><i>Minimum</i> - The minimum number of people required for your\n";
-        echo "{$thingstring}.  This guideline helps the convention meet both teacher \n";
-        echo "expectations and class size needs. \n";
-        echo "If you're not sure, make the minimum 1.<br></li>\n";
-        echo "<li><i>Preferred</i> - The ideal number of participants for your\n";
-        echo " {$thingstring}.  If you're not sure, make this the same number\n";
-        echo "as the Maximum.<br></li>\n";
-        echo "<li><i>Maximum</i> - The maximum number of people that the {$thingstring} can\n";
-        echo "accomodate.<p></li></ul>\n";
-
-        form_players_entry ('Neutral',false);
-        form_hidden_value ('MinPlayersMale', 0);            
-        form_hidden_value ('MaxPlayersMale', 0);            
-        form_hidden_value ('PrefPlayersMale', 0);
-        form_hidden_value ('MinPlayersFemale', 0);            
-        form_hidden_value ('MaxPlayersFemale', 0);            
-        form_hidden_value ('PrefPlayersFemale', 0);
-        
-    }
-    else
-    {
-        form_hidden_value ('MinPlayersMale', 0);            
-        form_hidden_value ('MaxPlayersMale', 0);            
-        form_hidden_value ('PrefPlayersMale', 0);
-        form_hidden_value ('MinPlayersFemale', 0);            
-        form_hidden_value ('MaxPlayersFemale', 0);            
-        form_hidden_value ('PrefPlayersFemale', 0);
-        form_hidden_value ('MinPlayersNeutral', 0);            
-        form_hidden_value ('MaxPlayersNeutral', 0);            
-        form_hidden_value ('PrefPlayersNeutral', 0);
-    }
+    form_hidden_value ('MinPlayersMale', 0);            
+    form_hidden_value ('MaxPlayersMale', 0);            
+    form_hidden_value ('PrefPlayersMale', 0);
+    form_hidden_value ('MinPlayersFemale', 0);            
+    form_hidden_value ('MaxPlayersFemale', 0);            
+    form_hidden_value ('PrefPlayersFemale', 0);
+    form_hidden_value ('MinPlayersNeutral', 0);            
+    form_hidden_value ('MaxPlayersNeutral', 0);            
+    form_hidden_value ('PrefPlayersNeutral', 0);
+    
   }
 
     if ($gametype == 'Other')
@@ -1670,7 +1596,7 @@ function process_bid_form ()
   }
 
   $msg .= ' and is waiting for your review at ';
-  $msg .= sprintf ('http://interactiveliterature.org/%s/Bids.php' .
+  $msg .= sprintf ('http://interactiveliterature.org/%s/Acts.php' .
 		   '?action=%d&BidId=%d',
 		   CON_ID,
 		   BID_SHOW_BID,
@@ -1703,18 +1629,21 @@ function table_value ($value)
  * Display the bids for review
  */
 
-function display_bids_for_review ()
+function display_bids_for_review ($isAct)
 {
-
+  // Depends on whether the pages is accessed as an Act or as a Conference Bid
+  $reviewTopic = "Act";
   global $submitFilter;
 
-  // Only bid committe members, the bid chair and the GM Liaison may access
-  // this page
-
-  if ((! user_has_priv (PRIV_BID_COM)) &&
-      (! user_has_priv (PRIV_BID_CHAIR)) &&
+  // access is denied you aren't the chair, a committee member or the liason.
+  // there are now 2 committees - one for the conference (aka bid) and one for acts/shows
+  // the text displayed for each type of review is controlled by $reviewType
+  // and a sql filter is added to restrict submissions to only what is applicable to 
+  // this page.
+  if ((! user_has_priv (PRIV_SHOW_COM)) &&
+      (! user_has_priv (PRIV_SHOW_CHAIR)) &&
       (! user_has_priv (PRIV_GM_LIAISON)))
-    return display_access_error ();
+        return display_access_error ();
 
   $order = 'Status, Title';
   $desc = 'Status';
@@ -1767,11 +1696,11 @@ function display_bids_for_review ()
   if (0 == mysql_num_rows ($result))
     display_error ('There are no bids to review');
 
-  display_header ('Content Submitted for ' . CON_NAME . ' by ' . $desc);
+  display_header ($reviewTopic . ' Submitted for ' . CON_NAME . ' by ' . $desc);
 
   echo "Click on the item's title to view the details<br>\n";
   echo "Click on the submitter to send mail\n";
-  if (user_has_priv (PRIV_BID_CHAIR))
+  if (user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv (PRIV_SHOW_CHAIR))
     echo "<br>Click on the status to change the status\n";
   echo "<p>\n";
 
@@ -1786,29 +1715,23 @@ function display_bids_for_review ()
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=Game\">Title</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Game\">" . $reviewTopic . "</th>\n",
 	  BID_REVIEW_BIDS);
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=Submitter\">Submitter</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Submitter\">Submitter</th>\n",
 	  BID_REVIEW_BIDS);
-  echo "    <TH COLSPAN=3>Size</TH>\n";
-  echo "    <TH ROWSPAN=3>Hours</TH>\n";
+  echo "    <TH ROWSPAN=3>Time<br>mm.ss</TH>\n";
   echo "    <TH COLSPAN={$numslots}>Preferred Slots</TH>\n";
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=Status\">Status</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Status\">Status</th>\n",
 	  BID_REVIEW_BIDS);
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=LastUpdated\">LastUpdated</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=LastUpdated\">LastUpdated</th>\n",
 	  BID_REVIEW_BIDS);
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=Created\">Created</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Created\">Created</th>\n",
 	  BID_REVIEW_BIDS);
   echo "  </tr>\n";
-
-  echo "  <TR VALIGN=BOTTOM>\n";
-  echo "    <TH ROWSPAN=2>Min</TH>\n";
-  echo "    <TH ROWSPAN=2>Pref</TH>\n";
-  echo "    <TH ROWSPAN=2>Max</TH>\n";
 
   foreach ($CON_DAYS as $day)
 	echo "    <TH COLSPAN='".count($BID_SLOTS[$day])."'>".substr($day,0,3)."</TH>\n";
@@ -1915,13 +1838,13 @@ function display_bids_for_review ()
     // Liaison can see bid.
 
     $game_link = true;
-    $priv = user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_GM_LIAISON);
+    $priv = user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv (PRIV_GM_LIAISON);
 
     if (('Pending' == $row->Status) && (! $priv))
       $game_link = false;
 
     if ($game_link)
-      $title = sprintf ("<A HREF=Bids.php?action=%d&BidId=%d>$row->Title</A>",
+      $title = sprintf ("<A HREF=Acts.php?action=%d&BidId=%d>$row->Title</A>",
 	      BID_SHOW_BID,
 	      $row->BidId);
     else
@@ -1929,9 +1852,7 @@ function display_bids_for_review ()
     echo "    <TD ALIGN=LEFT>$title</TD>\n";
 
     echo "    <TD ALIGN=LEFT><A HREF=mailto:$row->EMail>$name</A></TD>\n";
-    printf ("    <TD><A NAME=BidId%d>$row->Min</A></TD>\n", $row->BidId);
-    echo "    <TD>$row->Pref</TD>\n";
-    echo "    <TD>$row->Max</TD>\n";
+
     echo "    <TD>$row->Hours</TD>\n";
 
 	global $CON_DAYS;
@@ -1943,8 +1864,8 @@ function display_bids_for_review ()
   			echo "    <TD>" . table_value ($bidtimes[$key]) . "</TD>\n";
   	    }
 
-    if (user_has_priv (PRIV_BID_CHAIR))
-      printf ("    <TD><A HREF=Bids.php?action=%d&BidId=%d>$row->Status</A></TD>\n",
+    if (user_has_priv (PRIV_SHOW_CHAIR))
+      printf ("    <TD><A HREF=Acts.php?action=%d&BidId=%d>$row->Status</A></TD>\n",
 	      BID_CHANGE_STATUS,
 	      $row->BidId);
     else
@@ -1963,14 +1884,14 @@ function display_bids_for_review ()
   echo "  <TR VALIGN=TOP>\n";
   echo "    <TD BGCOLOR=#FFFFCC>Pending</TD>\n";
   echo "    <TD>\n";
-  echo "      A newly submitted item.  The Conference Coordinator is working\n";
+  echo "      A newly submitted item.  The Performance Coordinator is working\n";
   echo "      with the submitter to make sure that it is complete\n";
   echo "    </TD>\n";
   echo "  </tr>\n";
   echo "  <TR VALIGN=TOP>\n";
   echo "    <TD BGCOLOR=#DDDDFF>Under Review</TD>\n";
   echo "    <TD>\n";
-  echo "      An item that is available for review by the Conference Committee\n";
+  echo "      An item that is available for review by the Performance Committee\n";
   echo "    </TD>\n";
   echo "  </tr>\n";
   echo "  <TR VALIGN=TOP>\n";
@@ -2007,7 +1928,7 @@ function change_bid_status ()
 {
   // Only the bid chair has privilege to access this page
 
-  if (! user_has_priv (PRIV_BID_COM))
+  if (! user_has_priv (PRIV_SHOW_COM))
     return display_access_error ();
 
   // Extract the BidId
@@ -2033,7 +1954,7 @@ function change_bid_status ()
 
   display_header ("Change status for <I>$row->Title</I>");
 
-  echo "<form method=\"POST\" action=\"Bids.php\">\n";
+  echo "<form method=\"POST\" action=\"Acts.php\">\n";
   form_add_sequence ();
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
 	  BID_PROCESS_STATUS_CHANGE);
@@ -2097,7 +2018,7 @@ function process_status_change ()
 {
   // Only the bid chair has privilege to access this page
 
-  if (! user_has_priv (PRIV_BID_COM))
+  if (! user_has_priv (PRIV_SHOW_COM))
     return display_access_error ();
 
   // Check for a sequence error
@@ -2237,20 +2158,21 @@ function process_status_change ()
 
 function show_bid_feedback_summary()
 {
-  global $submitFilter;
 
+  global $submitFilter;
 
   // Only bid committe members, the bid chair and the GM Liaison may access
   // this page
 
-  if ((! user_has_priv (PRIV_BID_COM)) &&
-      (! user_has_priv (PRIV_BID_CHAIR)) &&
+  if ((! user_has_priv (PRIV_SHOW_COM)) &&
+      (! user_has_priv (PRIV_SHOW_CHAIR)) &&
       (! user_has_priv (PRIV_GM_LIAISON)))
     return display_access_error ();
 
-  display_header ('Conference Committee Feedback');
-  echo "<p>Click on a title to update all entries for that bid<br>\n";
-  echo "Click on a conference committee member to update all entries under discussion\n";
+
+  display_header ('Show Committee Feedback');
+  echo "<p>Click on a title to update all entries for that act<br>\n";
+  echo "Click on a Performance Committee member to update all entries under discussion\n";
   echo "for the member<br>\n";
   echo "Click on a vote to update just the entry for that member</p>\n";
 
@@ -2288,6 +2210,7 @@ function show_bid_feedback_summary()
   $sql .= '  FROM BidStatus, Bids';
   $sql .= '  WHERE Bids.BidId=BidStatus.BidId';
   $sql .= $submitFilter;
+
   $sql .= '  ORDER BY BidStatus.Consensus, Bids.Title';
 
   $result = mysql_query ($sql);
@@ -2299,7 +2222,7 @@ function show_bid_feedback_summary()
 
   $prefix = '';
   $suffix = '';
-  if (user_has_priv (PRIV_BID_CHAIR))
+  if (user_has_priv (PRIV_SHOW_CHAIR))
     $suffix = '</a>';
 
   echo "<table border=\"1\">\n";
@@ -2308,9 +2231,9 @@ function show_bid_feedback_summary()
   echo "    <th>Status / Updated</th>\n";
   foreach ($committee as $key => $value)
   {
-    if (user_has_priv (PRIV_BID_CHAIR))
+    if (user_has_priv (PRIV_SHOW_CHAIR))
     {
-      $prefix = sprintf ('<a href="Bids.php?action=%d&UserId=%d">',
+      $prefix = sprintf ('<a href="Acts.php?action=%d&UserId=%d">',
 			 BID_FEEDBACK_BY_CONCOM,
 			 $committee_users[$key]);
 
@@ -2327,14 +2250,14 @@ function show_bid_feedback_summary()
 
     $prefix = '';
     $suffix = '';
-    if (user_has_priv (PRIV_BID_CHAIR))
+    if (user_has_priv (PRIV_SHOW_CHAIR))
       $suffix = '</a>';
 
     foreach ($committee as $key => $value)
     {
-      if (user_has_priv (PRIV_BID_CHAIR))
+      if (user_has_priv (PRIV_SHOW_CHAIR))
       {
-	$prefix = sprintf ('<a href="Bids.php?action=%dBid&BidStatusId=%d&UserId=%d">',
+	$prefix = sprintf ('<a href="Acts.php?action=%dBid&BidStatusId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $row->BidStatusId,
 			   $committee_users[$key]);
@@ -2358,14 +2281,14 @@ function show_bid_feedback_summary()
 
     $prefix = '';
     $suffix = '';
-    if (user_has_priv (PRIV_BID_CHAIR))
+    if (user_has_priv (PRIV_SHOW_CHAIR))
       $suffix = '</a>';
     while ($committee_row = mysql_fetch_object ($committee_result))
     {
 
       $name = trim ("$committee_row->FirstName $committee_row->LastName");
-      if (user_has_priv (PRIV_BID_CHAIR))
-	$prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
+      if (user_has_priv (PRIV_SHOW_CHAIR))
+	$prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
 			   $committee_row->UserId);
@@ -2377,8 +2300,8 @@ function show_bid_feedback_summary()
     // If this is the bid chairman the feedback information can be edited
 
     $title = $row->Title;
-    if (user_has_priv (PRIV_BID_CHAIR))
-      $title = sprintf ('<a href="Bids.php?action=%d&BidStatusId=%d">%s</a>',
+    if (user_has_priv (PRIV_SHOW_CHAIR))
+      $title = sprintf ('<a href="Acts.php?action=%d&BidStatusId=%d">%s</a>',
 			BID_FEEDBACK_BY_GAME,
 			$row->BidStatusId,
 			$title);
@@ -2426,7 +2349,7 @@ function show_bid_feedback_summary()
   echo "  <tr valign=\"top\">\n";
   echo "    <td bgcolor=\"#DDDDFF\">Discuss It</td>\n";
   echo "    <td>\n";
-  echo "      An entry that is available for review by the Class Coordinator\n";
+  echo "      An entry that is available for review by the Class Coordinator or Performance Committee\n";
   echo "    </td>\n";
   echo "  </tr>\n";
   echo "  <tr valign=\"top\">\n";
@@ -2762,7 +2685,7 @@ function update_feedback_by_game ()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! user_has_priv (PRIV_SHOW_CHAIR))
     return display_access_error ();
 
   $BidStatusId = intval ($_REQUEST['BidStatusId']);
@@ -2869,7 +2792,7 @@ function update_feedback_by_game ()
     }
   }
 
-  printf ("<form method=\"POST\" action=\"Bids.php#BidStatusId%d\">\n",
+  printf ("<form method=\"POST\" action=\"Acts.php#BidStatusId%d\">\n",
 	  $BidStatusId);
   form_add_sequence ();
   form_hidden_value ('action', BID_PROCESS_FEEDBACK_BY_GAME);
@@ -2928,7 +2851,7 @@ function process_feedback_by_game ()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! user_has_priv (PRIV_SHOW_CHAIR))
     return display_access_error ();
 
   // Check for a sequence error
@@ -2996,8 +2919,8 @@ function show_bid_feedback_entry_form()
 {
   // Only the bid chair may access this page
 
-  if ((! user_has_priv (PRIV_BID_COM)) &&
-      (! user_has_priv (PRIV_BID_CHAIR)) &&
+  if ((! user_has_priv (PRIV_SHOW_COM)) &&
+      (! user_has_priv (PRIV_SHOW_CHAIR)) &&
       (! user_has_priv (PRIV_GM_LIAISON)))
     return display_access_error ();
 
@@ -3088,7 +3011,7 @@ function show_bid_feedback_entry_form()
 
   display_header ("Feedback for $name on <i>$Title</i>");
 
-  echo "<form method=\"POST\" action=\"Bids.php\">\n";
+  echo "<form method=\"POST\" action=\"Acts.php\">\n";
   form_add_sequence ();
   form_hidden_value ('action', BID_FEEDBACK_PROCESS_ENTRY);
   form_hidden_value ('FeedbackId', $FeedbackId);
@@ -3112,7 +3035,7 @@ function process_feedback_for_entry()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! user_has_priv (PRIV_SHOW_CHAIR))
     return display_access_error ();
 
   // Check for a sequence error
@@ -3153,7 +3076,7 @@ function show_bid_feedback_by_user_form()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! user_has_priv (PRIV_SHOW_CHAIR))
     return display_access_error ();
 
   // Make sure we've got a UserId
@@ -3257,7 +3180,7 @@ function show_bid_feedback_by_user_form()
 
   $BidCount = intval($_POST['BidCount']);
 
-  echo "<form method=\"POST\" action=\"Bids.php\">\n";
+  echo "<form method=\"POST\" action=\"Acts.php\">\n";
   form_add_sequence ();
   form_hidden_value ('action', BID_FEEDBACK_PROCESS_BY_CONCOM);
   form_hidden_value ('UserId', $UserId);
@@ -3292,7 +3215,7 @@ function process_feedback_for_user()
 
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! user_has_priv (PRIV_SHOW_CHAIR))
     return display_access_error ();
 
   // Make sure we've got a UserId

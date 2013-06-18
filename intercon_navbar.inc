@@ -306,12 +306,12 @@ function build_acts_subnavbar() {
   $bidsSection = new SubNavBar("Shows", true);
   
   if (user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
-    $bidsSection->push(NavBarItem::newAction("Status of Acts", "Bids.php", BID_REVIEW_ACTS));
+    $bidsSection->push(NavBarItem::newAction("Status of Acts", "Acts.php", BID_REVIEW_BIDS));
   
   if (user_has_priv (PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON)) {  
-    $bidsSection->push(NavBarItem::newAction("Act Feedback Summary", "Bids.php", BID_FEEDBACK_ACT_SUMMARY));
+    $bidsSection->push(NavBarItem::newAction("Act Feedback Summary", "Acts.php", BID_FEEDBACK_SUMMARY));
     if (user_has_priv(PRIV_GM_LIAISON))
-      $bidsSection->push(NavBarItem::newStatic("Show Commmittee Responsibilities", "BidCommittee"));
+      $bidsSection->push(NavBarItem::newStatic("Show Commmittee Responsibilities", "ShowCommittee"));
   }
   
   if (user_has_priv (PRIV_SCHEDULING))

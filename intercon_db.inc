@@ -148,7 +148,7 @@ define (SPECIAL_EVENT_FORM, 40);
 define (SPECIAL_EVENT_ADD, 41);
 define (SPECIAL_EVENT_LIST, 42);
 
-// Action values in Bids.php
+// Action values in Bids.php & Action.php
 
 define (BID_GAME, 50);
 define (BID_PROCESS_FORM, 51);
@@ -161,28 +161,11 @@ define (BID_FEEDBACK_BY_GAME, 57);
 define (BID_PROCESS_FEEDBACK_BY_GAME, 58);
 define (BID_FEEDBACK_SUMMARY, 59);
 
-//Adding another section for performance submission - called "act" for short
-define (BID_ACT, 70);
-define (BID_PROCESS_ACTS, 71);
-define (BID_REVIEW_ACTS, 72);
-define (BID_ACT_CHANGE_STATUS, 73);
-define (BID_PROCESS_ACT_STATUS_CHANGE, 74);
-define (BID_SHOW_ACT, 75);
-define (BID_FEEDBACK_BY_ACT, 77);
-define (BID_PROCESS_FEEDBACK_BY_ACT, 78);
-define (BID_FEEDBACK_ACT_SUMMARY, 79);
-
-
 define (BID_FEEDBACK_BY_ENTRY, 200);
 define (BID_FEEDBACK_PROCESS_ENTRY, 201);
 define (BID_FEEDBACK_BY_CONCOM, 202);
 define (BID_FEEDBACK_PROCESS_BY_CONCOM, 203);
 
-// same deal - performance section
-define (BID_FEEDBACK_BY_ACT, 220);
-define (BID_FEEDBACK_PROCESS_ACT, 221);
-define (BID_FEEDBACK_BY_CONCOM_ACT, 222);
-define (BID_FEEDBACK_PROCESS_BY_CONCOM_ACT, 223);
 
 // Action values in ListGames.php
 
