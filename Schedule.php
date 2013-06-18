@@ -1,4 +1,4 @@
-<?
+<?php
 define (SIGNUP_FAIL, 0);
 define (SIGNUP_OK, 1);
 define (SIGNUP_CONFIRM, 2);

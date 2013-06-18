@@ -1,4 +1,4 @@
-<?
+<?php
 define (SORT_BY_HOST, 0);
 define (SORT_BY_REFS, 1);
 define (SORT_BY_LAST_REF_DATE, 2);

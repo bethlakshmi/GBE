@@ -1,4 +1,4 @@
-<?
+<?php
 // Based on PayPal's IPN sample listener
 // https://cms.paypal.com/cms_content/US/en_US/files/developer/IPN_PHP_41.txt
 

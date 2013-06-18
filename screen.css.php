@@ -1,4 +1,4 @@
-<? 
+<?php
 require ('intercon_db.inc');
 header("Content-type: text/css");
 ?>

@@ -1,4 +1,4 @@
-<?
+<?php
 echo "<html>\n";
 echo "<head>\n";
 echo "<title>Graph test</title>\n";

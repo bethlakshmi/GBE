@@ -1,4 +1,4 @@
-<?
+<?php
 include ("intercon_db.inc");
 
 // If the user's not logged in, send him to the entrypoint

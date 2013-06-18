@@ -1,4 +1,4 @@
-<?
+<?php
 define (MAIL_LIST_NONE, 0);
 define (MAIL_LIST_ALL, 1);
 define (MAIL_LIST_ATTENDEES, 2);

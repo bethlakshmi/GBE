@@ -1,4 +1,4 @@
-<?
+<?php
 define (LIST_BY_GAME, 1);
 define (LIST_BY_RUNID, 2);
 define (LIST_BY_TIME, 3);

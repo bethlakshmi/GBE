@@ -1,4 +1,4 @@
-<?
+<?php
 
 include ("intercon_db.inc");
 include ("intercon_schedule.inc");
