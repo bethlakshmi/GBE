@@ -1,0 +1,12 @@
+Add a Role to the GBE Site:
+
+For STAFF roles:
+note:  STAFF roles are controlled with constants and a privileges connected to the user table.  The Admin (or registrar?) can set the privilege in the Attendees area.  This is NOT the same type of privilges/roles as users who volunteer for something bio-requiring - like teachers, performers, special guests or vendors.  Those are seen more as regular attendees with a little extra capability.
+
+Roles as a whole are additive, there are no exclusionary rules (i.e. there's no limit - if you want all the roles, you can have 'em) - if you have A, B and C - you will get all capabilities for A + B + C.
+
+- add a privilege setting to intercon_constants.inc - a constant global variable mapping a string to a role name
+- add the string as an accepted value for the User table, the PRIV column, in schema.sql
+- update index.php with a checkbox, so you can register users with this role
+- update intercon_navbar.inc to control menu fields unique to this role
+- go to particular content pages to open up page by page/action by action access control and content for this role.
