@@ -35,7 +35,7 @@ define (POLL_ENABLED, 0);
 
 // Set to 0 to disable the Thursday Thing
 
-define (THURSDAY_ENABLED, 1);
+define (THURSDAY_ENABLED, 0);
 
 // Set to 0 to disable the Dead Dog
 
