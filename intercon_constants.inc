@@ -174,7 +174,7 @@ define (COLOR_MENU_PRIV_BG, "#FADB5E");
 //These are for the NavMenu
 define (NAV_SHOW_COST, 1);
 define (NAV_SHOW_FLYER, 0);
-define (NAV_SHOW_LINKS, 1);
+define (NAV_SHOW_LINKS, 0);
 
 // 1 (true) if we're accepting bids, 0 if we're not
 
