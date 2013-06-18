@@ -1,4 +1,4 @@
-<?
+<?php
 
 require ('db_constants.inc');
 

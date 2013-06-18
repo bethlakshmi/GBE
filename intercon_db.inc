@@ -1,7 +1,12 @@
-<?
+<?php
 if (strstr($_SERVER["SERVER_NAME"], "interactiveliterature.org")) {
     session_set_cookie_params(0, '/', '.interactiveliterature.org');
 }
+
+// Turn off PHP notices for all these define statements.  PHP for Win throws a Notice when you don't 
+// quote the global constants below.  Will turn on/off as needed.
+
+error_reporting(0);
 
 ini_set( 
   'include_path', 
@@ -12,7 +17,9 @@ $pear_user_config = '/home/neiladmin/.pearrc';
 
 require ('intercon_constants.inc');
 require ('intercon_navbar.inc');
-require ('Mail.php');
+
+// File not found in repository or FTP.... 
+// require ('Mail.php');
 
 define (SHOW_TSHIRTS, 1);
 define (TSHIRT_DOLLARS, 20);
