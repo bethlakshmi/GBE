@@ -16,6 +16,7 @@ ini_set(
 $pear_user_config = '/home/neiladmin/.pearrc';
 
 require ('intercon_constants.inc');
+require ('db_constants.inc');
 require ('intercon_navbar.inc');
 
 // File not found in repository or FTP.... 
@@ -49,6 +50,8 @@ define (PRIV_VENDORS, 'Vendors');
 define (PRIV_DONORS, 'Donors');
 define (PRIV_PRECON_BID_CHAIR, 'PreConBidChair');
 define (PRIV_PRECON_SCHEDULING, 'PreConScheduling');
+define (PRIV_SHOW_COM, 'ShowCom');
+define (PRIV_SHOW_CHAIR, 'ShowChair');
 
 // Mail privileges
 
@@ -324,6 +327,10 @@ define (SUN_MIN, 7);     // 8AM
 define (SUN_MAX, 24);    // 4PM
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
+define (SESSION_LOGIN_USER_TEACHER, 'LoginUserTeach_' . CON_ID);
+define (SESSION_LOGIN_USER_PERFORMER, 'LoginUserPerf_' . CON_ID);
+define (SESSION_LOGIN_USER_SPECIAL, 'LoginUserSpecial_' . CON_ID);
+define (SESSION_LOGIN_USER_VENDOR, 'LoginUserVendor_' . CON_ID);
 define (SESSION_LOGIN_USER_ID, 'LoginUserId_' . CON_ID);
 define (SESSION_LOGIN_USER_PRIVS, 'LoginUserPrivs_' . CON_ID);
 define (SESSION_REFERRER_ID, 'ReferrerId_' . CON_ID);

@@ -304,10 +304,11 @@ function build_bids_subnavbar() {
 
 function build_acts_subnavbar() {
   $bidsSection = new SubNavBar("Shows", true);
-  if (user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
+  
+  if (user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
     $bidsSection->push(NavBarItem::newAction("Status of Acts", "Bids.php", BID_REVIEW_ACTS));
   
-  if (user_has_priv (PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON)) {  
+  if (user_has_priv (PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON)) {  
     $bidsSection->push(NavBarItem::newAction("Act Feedback Summary", "Bids.php", BID_FEEDBACK_ACT_SUMMARY));
     if (user_has_priv(PRIV_GM_LIAISON))
       $bidsSection->push(NavBarItem::newStatic("Show Commmittee Responsibilities", "BidCommittee"));
@@ -452,7 +453,7 @@ function display_main_navbar() {
   $navbar->push(build_larps_subnavbar());
   if (accepting_bids() || user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
     $navbar->push(build_bids_subnavbar());
-  if (accepting_bids() || user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
+  if (accepting_bids() || user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
     $navbar->push(build_acts_subnavbar());
   if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());

@@ -830,7 +830,7 @@ CREATE TABLE `Users` (
   `PaymentAmount` int(11) NOT NULL DEFAULT '0',
   `TShirt` enum('No','S','M','L','XL','XXL') NOT NULL DEFAULT 'No',
   `PreferredContact` enum('EMail','DayPhone','EvePhone') DEFAULT NULL,
-  `Priv` set('BidCom','Staff','Admin','BidChair','GMLiaison','MailToGMs','MailToAttendees','MailToAll','MailToVendors','Registrar','Outreach','ConCom','Scheduling','MailToUnpaid','MailToAlumni','PreConBidChair','PreConScheduling') NOT NULL DEFAULT '',
+  `Priv` set('BidCom','Staff','Admin','BidChair','GMLiaison','MailToGMs','MailToAttendees','MailToAll','MailToVendors','Registrar','Outreach','ConCom','Scheduling','MailToUnpaid','MailToAlumni','PreConBidChair','PreConScheduling','ShowCom','ShowChair') NOT NULL DEFAULT '',
   `CanSignup` enum('Alumni','Unpaid','Paid','Comp','Marketing','Vendor','Rollover') NOT NULL DEFAULT 'Unpaid',
   `CanSignupModifiedId` int(10) unsigned NOT NULL DEFAULT '0',
   `CompEventId` int(10) unsigned NOT NULL DEFAULT '0',

@@ -2296,6 +2296,8 @@ function display_user_form_for_others ()
   echo "          <td>\n";
   priv_checkbox ($privs, PRIV_SCHEDULING, 'Scheduling');
   priv_checkbox ($privs, PRIV_STAFF,      'Website Staff');
+  priv_checkbox ($privs, PRIV_SHOW_COM,    'Show Committee');
+  priv_checkbox ($privs, PRIV_SHOW_CHAIR,  'Show Comm. Chair');
   echo "          </td>\n";
   echo "        </tr>\n";
   echo "      </table>\n";
