@@ -1771,7 +1771,7 @@ function select_user ($header,
 
     // Add spacer between names starting with different letters
 
-    if ($ch != strtoupper($row->LastName{0}))
+    if ((!empty($row->LastName{0})) && ($ch != strtoupper($row->LastName{0})))
     {
       $ch = strtoupper ($row->LastName{0});
       echo "  <TR BGCOLOR=\"#CCCCFF\"><TD COLSPAN=4><A NAME=$ch>$ch</A></TD></TR>\n";
