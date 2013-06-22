@@ -147,7 +147,7 @@ function display_bid_intro ($area)
   else if ($area == "Show")
   {
   		$dest = "Acts.php";
-        echo "<a href=$dest?GameType=Act&Seq=41&action=50><img src=submitAct.gif alt=\"Submit Act\" border=0></a>\n";
+        echo "<a href=$dest?GameType=Performance&Seq=41&action=50><img src=submitAct.gif alt=\"Submit Act\" border=0></a>\n";
   }
   else
     echo "<a href=$dest><img src=IWantToBid.gif width=115 height=27 alt=\"I Want To BID!\" border=0></a>\n";
