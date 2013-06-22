@@ -297,7 +297,8 @@ function build_bids_subnavbar() {
   if (user_has_priv (PRIV_SCHEDULING))
     $bidsSection->push(NavBarItem::newAction('Manage Bid Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
-  //$bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
+  // Having this commented out was breaking my side in the navbar. -MDB
+  $bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
     
   return $bidsSection;
 }
@@ -317,7 +318,8 @@ function build_acts_subnavbar() {
   if (user_has_priv (PRIV_SCHEDULING))
     $bidsSection->push(NavBarItem::newAction('Manage Act Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
-  //$bidsSection->push(NavBarItem::newAction("Bid an Act!", "biddingAGame.php"));
+  // Having this commented out was breaking my side in the navbar. -MDB
+  $bidsSection->push(NavBarItem::newAction("Bid an Act!", "biddingAGame.php"));
     
   return $bidsSection;
 }
@@ -475,11 +477,6 @@ function display_main_navbar() {
     $navbar->push(build_acts_subnavbar());
   if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());
-  if (THURSDAY_ENABLED)
-    $navbar->push(build_precon_subnavbar());
-  if (DEAD_DOG_ENABLED)
-    $navbar->push(build_dead_dog_subnavbar());
-  if (SHOW_TSHIRTS)
   if (is_logged_in() || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_shirts_subnavbar());
   if (user_has_priv(PRIV_CON_COM))
