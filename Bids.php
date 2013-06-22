@@ -249,79 +249,7 @@ function form_bid_consensus ($key, $display='')
   echo "  </tr>   \n";
 }
 
-/*
- * schedule_table_entry
- *
- * Display a drop-down list to allow the user to select whether he''s
- * willing to run his game in this time slot
- */
 
-function schedule_table_entry ($key)
-{
-  //  echo "          <TD><INPUT TYPE=TEXT NAME=$key SIZE=1 MAXLENGTH=1 VALUE=\"$_POST[$key]\"></TD>\n";
-
-  $mykey = str_replace ( ' ' , '_' , $key );
-
-  if (! isset ($_POST[$mykey]))
-    $value = '';
-  else
-  {
-    $value = trim ($_POST[$mykey]);
-    if (1 == get_magic_quotes_gpc())
-      $value = stripslashes ($value);
-  }
-
-  $dont_care = '';
-  $one = '';
-  $two = '';
-  $three = '';
-  $no = '';
-
-  switch ($value)
-  {
-    case '':  $dont_care = 'selected'; break;
-    case '1': $one       = 'selected'; break;
-    case '2': $two       = 'selected'; break;
-    case '3': $three     = 'selected'; break;
-    case 'X': $no        = 'selected'; break;
-  }
-
-  echo "          <TD>\n";
-  echo "            <SELECT NAME=$mykey SIZE=1>\n";
-  echo "              <option value=\"\" $dont_care>Don't Care&nbsp;</option>\n";
-  echo "              <option value=1 $one>1st Choice&nbsp;</option>\n";
-  echo "              <option value=2 $two>2nd Choice&nbsp;</option>\n";
-  echo "              <option value=3 $three>3rd Choice&nbsp;</option>\n";
-  echo "              <option value=X $no>Prefer Not&nbsp;</option>\n";
-  echo "            </SELECT>\n";
-  echo "          </TD>\n";
-}
-
-function validate_schedule_table_entry ($key, $display)
-{
-  $key = str_replace ( ' ' , '_' , $key );
-  $value = trim ($_POST[$key]);
-
-  switch ($value)
-  {
-    case '':
-    case '1':      // 1, 2, 3 and X are all valid
-    case '2':
-    case '3':
-    case 'X':
-      return TRUE;
-
-    case ' ':
-      $_POST[$key] = '';
-      return TRUE;
-
-    case 'x':
-      $_POST[$key] = 'X';
-      return TRUE;
-  }
-
-  return display_error ("Invalid value \"$value\" for $display scheduling entry.  Valid values are 1, 2, 3 and X");
-}
 
 /*
  * show_text
@@ -582,7 +510,7 @@ function show_bid ()
 
   show_section ('Scheduling Information');
 
-  global $CON_DAYS;
+  global $CLASS_DAYS;
   global $BID_SLOTS;
   global $BID_SLOT_ABBREV;
 
@@ -591,16 +519,16 @@ function show_bid ()
   echo "    <TD>\n";
   echo "      <TABLE BORDER=1>\n";
   echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	echo "          <TD COLSPAN=".count($BID_SLOTS[$day]).">{$day}</TD>\n";
   echo "        </tr>\n";
   echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot)
   		echo "          <TD>".$BID_SLOT_ABBREV[$slot]."</TD>\n";
   echo "        </tr>\n";
   echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot)
   		if (isset($bid_pref_slots[$day.$slot]))
   			show_table_entry ($bid_pref_slots[$day.$slot]);
@@ -631,55 +559,6 @@ function show_bid ()
   echo "<P>\n";
 }
 
-/*
- * form_text_one_col
- *
- * Add a text input field to a 2 column form, but do it in a single column
- */
-
-function form_text_one_col ($size, $display, $key='', $maxsize=0, $required=FALSE)
-{
-  // If not specified, fill in default values
-
-  if ('' == $key)
-    $key = $display;
-
-  if (0 == $maxsize)
-    $maxsize = $size;
-
-  if ("" != $display)
-    $display .= ":";
-
-  // If this is a required field, make sure it has a leading '*'
-
-  if ($required)
-    $display = '<FONT COLOR=RED>*</FONT>&nbsp;' . $display;
-
-  // If magic quotes are on, strip off the slashes
-
-  if (! array_key_exists ($key, $_POST))
-    $text = '';
-  else
-  {
-    if (1 == get_magic_quotes_gpc())
-      $text = stripslashes ($_POST[$key]);
-    else
-      $text = $_POST[$key];
-  }
-
-  // Spit out the HTML
-
-  echo "  <TR>\n";
-  echo "    <TD COLSPAN=2>\n";
-  echo "      &nbsp;<BR>$display<BR>\n";
-  printf ("    <INPUT TYPE=TEXT NAME=%s SIZE=%d MAXLENGTH=%d VALUE=\"%s\">\n",
-	  $key,
-	  $size,
-	  $maxsize,
-	  $text);
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-}
 
 /**
  * display_choose_form
@@ -1247,14 +1126,14 @@ function display_bid_form ($first_try)
     echo "    </TD>\n";
     echo "  </TR>\n";
   
-    global $CON_DAYS;
+    global $CLASS_DAYS;
     global $CLASS_DAYS;
     global $BID_SLOTS;
 
-    if ($gameype == 'Class' || $gametype == 'Panel') 
+    if ($gametype == 'Class' || $gametype == 'Panel') 
       $DAYS = $CLASS_DAYS;
     else
-      $DAYS = $CON_DAYS;
+      $DAYS = $CLASS_DAYS;
 
 
     echo "  <TR>\n";
@@ -1263,12 +1142,12 @@ function display_bid_form ($first_try)
     echo "        <TR VALIGN=BOTTOM>\n";
     echo "          <TH></TH>\n";
     foreach ($DAYS as $day)
-  	echo "          <TH>{$day}</TH>\n";
+  	  echo "          <TH>{$day}</TH>\n";
     echo "        </tr>\n";
     foreach ($BID_SLOTS['All'] as $main_slot) {
 	  echo "        <TR ALIGN=CENTER>\n";
 	  echo "          <TH>{$main_slot}</TH>\n";
-	  foreach ($CON_DAYS as $day)
+	  foreach ($DAYS as $day)
 	  	if (in_array($main_slot,$BID_SLOTS[$day]))
 	  		schedule_table_entry ("{$day}_{$main_slot}");
 		else
@@ -1462,9 +1341,9 @@ function process_bid_form ()
   $form_ok &= validate_string ('Premise');
 
   // Scheduling Information
-  global $CON_DAYS;
+  global $CLASS_DAYS;
   global $BID_SLOTS;
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot)
   		$form_ok &= validate_schedule_table_entry ("{$day}_{$slot}", "{$day} {$slot}");
 
@@ -1595,9 +1474,9 @@ function process_bid_form ()
   if (! $result)
     return display_mysql_error ("Delete from BidTimes failed");
 
-  global $CON_DAYS;
+  global $CLASS_DAYS;
   global $BID_SLOTS;
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot) {
 	  $sql = "INSERT into BidTimes (BidId, Day, Slot, Pref) values (";
 	  $sql .= "{$BidId}, ";
@@ -1775,12 +1654,12 @@ function display_bids_for_review ()
     echo "<br>Click on the status to change the status\n";
   echo "<p>\n";
 
-  global $CON_DAYS;
+  global $CLASS_DAYS;
   global $BID_SLOTS;
   global $BID_SLOT_ABBREV;
 
   $numslots = 0;
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
 	$numslots += count($BID_SLOTS[$day]);
 
   echo "<table border=\"1\">\n";
@@ -1810,12 +1689,12 @@ function display_bids_for_review ()
   echo "    <TH ROWSPAN=2>Pref</TH>\n";
   echo "    <TH ROWSPAN=2>Max</TH>\n";
 
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
 	echo "    <TH COLSPAN='".count($BID_SLOTS[$day])."'>".substr($day,0,3)."</TH>\n";
   echo "  </tr>\n";
 
   echo "  <TR VALIGN=BOTTOM>\n";
-  foreach ($CON_DAYS as $day)
+  foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot)
   		echo "          <TH>".$BID_SLOT_ABBREV[$slot]."</TH>\n";
   echo "  </TR>\n";
@@ -1934,10 +1813,10 @@ function display_bids_for_review ()
     echo "    <TD>$row->Max</TD>\n";
     echo "    <TD>$row->Hours</TD>\n";
 
-	global $CON_DAYS;
+	global $CLASS_DAYS;
 	global $BID_SLOTS;
 
-  	foreach ($CON_DAYS as $day)
+  	foreach ($CLASS_DAYS as $day)
   		foreach ($BID_SLOTS[$day] as $slot) {
   			$key = $day.'_'.$slot;
   			echo "    <TD>" . table_value ($bidtimes[$key]) . "</TD>\n";

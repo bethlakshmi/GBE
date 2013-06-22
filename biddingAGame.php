@@ -23,7 +23,13 @@ else
 switch ($action)
 {
   case BAG_BID_PAGE:
-    display_bid_intro ();
+    display_bid_intro ("Conference");
+    break;
+  case BAG_PANEL_PAGE:
+    display_bid_intro ("Conference");
+    break;
+  case BAG_ACT_PAGE:
+    display_bid_intro ("Show");
     break;
 
   case BAG_SHOW_FORM:
@@ -58,7 +64,7 @@ function static_link ($page, $text)
   echo "<p><a href=\"Static.php?page=$page\">$text</a></p>\n"; 
 }
 
-function display_bid_intro ()
+function display_bid_intro ($area)
 {
   $sql = 'SELECT * FROM BidInfo';
   $result = mysql_query ($sql);
@@ -72,9 +78,9 @@ function display_bid_intro ()
   echo "<table cellspacing=\"2\" cellPadding=\"2\" width=\"100%\" border=\"0\">\n";
   echo "  <tr>\n";
   echo "    <td width=\"60%\" valign=\"top\">\n";
-  echo "      <h3>Bidding an Event for ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</h3>\n";
-    if (file_exists(TEXT_DIR.'/bidding1.html'))
-	include(TEXT_DIR.'/bidding1.html');	
+  echo "      <h3>Applying to ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)." ".$area."s</h3>\n";
+  if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
+	include(TEXT_DIR.'/'.$area.'bidding1.html');	
   echo "      <h3><a name=\"deadlines\">Bid Deadlines</a></h3>\n";
   if (user_has_priv (PRIV_SCHEDULING))
   {
@@ -132,7 +138,19 @@ function display_bid_intro ()
     $dest = 'Bids.php';
 
   echo "<div align=center>\n";
-  echo "<a href=$dest><img src=IWantToBid.gif width=115 height=27 alt=\"I Want To BID!\" border=0></a>\n";
+  if ( $area == "Conference")
+  {
+      echo "<a href=$dest?GameType=Class&Seq=41&action=50><img src=submitClass.gif alt=\"Submit Class\" border=0></a>\n";
+      echo "<a href=$dest?GameType=Panel&Seq=41&action=50><img src=submitPanel.gif alt=\"Submit Panel\" border=0></a>\n";
+
+  }
+  else if ($area == "Show")
+  {
+  		$dest = "Acts.php";
+        echo "<a href=$dest?GameType=Act&Seq=41&action=50><img src=submitAct.gif alt=\"Submit Act\" border=0></a>\n";
+  }
+  else
+    echo "<a href=$dest><img src=IWantToBid.gif width=115 height=27 alt=\"I Want To BID!\" border=0></a>\n";
   echo "</div>\n";
 
   echo "<p>\n";
@@ -140,10 +158,21 @@ function display_bid_intro ()
   echo "possible</i>. This is the <i>best</i> way to help us evaluate your\n";
   echo "class or panel quickly!</p>\n";
   echo "<p>\n";
-  printf ("If you have <i>any</i> questions, please contact %s, our\n",
+  
+  if ( $area == "Show")
+  {
+      printf ("If you have <i>any</i> questions, please contact %s, our\n",
+	  NAME_SHOW_CHAIR);
+    printf ("Performance Selection Chair at %s\n",
+	  mailto_or_obfuscated_email_address (EMAIL_SHOW_CHAIR));
+  }
+  else
+  {
+    printf ("If you have <i>any</i> questions, please contact %s, our\n",
 	  NAME_BID_CHAIR);
-  printf ("Bid Chair at %s\n",
+    printf ("Teacher Coordinator at %s\n",
 	  mailto_or_obfuscated_email_address (EMAIL_BID_CHAIR));
+  }
   echo "</p>\n";
   echo "</td>\n";
 

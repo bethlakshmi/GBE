@@ -258,6 +258,8 @@ define (THURSDAY_PROCESS_USER, 174);
 define (BAG_SHOW_FORM, 180);
 define (BAG_UPDATE, 181);
 define (BAG_BID_PAGE, 182);
+define (BAG_PANEL_PAGE, 183);
+define (BAG_ACT_PAGE, 184);
 
 // Action values for Plugs
 
@@ -1083,13 +1085,64 @@ function display_text_entry ($size, $display, $key='', $maxsize=0)
   form_text ($size, $display, $key, $maxsize);
 }
 
+
+/*
+ * form_text_one_col
+ *
+ * Add a text input field to a 2 column form, but do it in a single column
+ */
+
+function form_text_one_col ($size, $display, $key='', $maxsize=0, $required=FALSE)
+{
+  // If not specified, fill in default values
+
+  if ('' == $key)
+    $key = $display;
+
+  if (0 == $maxsize)
+    $maxsize = $size;
+
+  if ("" != $display)
+    $display .= ":";
+
+  // If this is a required field, make sure it has a leading '*'
+
+  if ($required)
+    $display = '<FONT COLOR=RED>*</FONT>&nbsp;' . $display;
+
+  // If magic quotes are on, strip off the slashes
+
+  if (! array_key_exists ($key, $_POST))
+    $text = '';
+  else
+  {
+    if (1 == get_magic_quotes_gpc())
+      $text = stripslashes ($_POST[$key]);
+    else
+      $text = $_POST[$key];
+  }
+
+  // Spit out the HTML
+
+  echo "  <TR>\n";
+  echo "    <TD COLSPAN=2>\n";
+  echo "      &nbsp;<BR>$display<BR>\n";
+  printf ("    <INPUT TYPE=TEXT NAME=%s SIZE=%d MAXLENGTH=%d VALUE=\"%s\">\n",
+	  $key,
+	  $size,
+	  $maxsize,
+	  $text);
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+}
+
 /*
  * form_text
  *
  * Add a text input field to a 2 column form
  */
 
-function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suffix='')
+function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suffix='',$key2='')
 {
   // If not specified, fill in default values
 
@@ -1119,18 +1172,35 @@ function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suff
       $text = $_POST[$key];
   }
 
+  if (! array_key_exists ($key2, $_POST))
+    $text2 = '';
+  else
+  {
+    if (1 == get_magic_quotes_gpc())
+      $text2 = stripslashes ($_POST[$key2]);
+    else
+      $text2 = $_POST[$key2];
+  }
+  
   // Spit out the HTML
 
   echo "  <tr>\n";
   echo "    <td align=\"right\">$display</td>\n";
   echo '    <td align="left">';
-  printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s">' .
-	  "%s</td>\n",
+  printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s">',
 	  $key,
 	  $size,
 	  $maxsize,
-	  htmlspecialchars ($text),
-	  $suffix);
+	  htmlspecialchars ($text));
+	  
+  if ('' != $key2)
+      printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s">',
+	  $key2,
+	  $size,
+	  $maxsize,
+	  htmlspecialchars ($text2));
+  printf ("%s</td>\n",$suffix);
+
   echo "  </tr>\n";
 }
 
@@ -1487,6 +1557,80 @@ function validate_int ($key, $min, $max, $display=0)
     return display_error ("$display must be less than $max");
 
   return TRUE;
+}
+
+function validate_schedule_table_entry ($key, $display)
+{
+  $key = str_replace ( ' ' , '_' , $key );
+  $value = trim ($_POST[$key]);
+
+  switch ($value)
+  {
+    case '':
+    case '1':      // 1, 2, 3 and X are all valid
+    case '2':
+    case '3':
+    case 'X':
+      return TRUE;
+
+    case ' ':
+      $_POST[$key] = '';
+      return TRUE;
+
+    case 'x':
+      $_POST[$key] = 'X';
+      return TRUE;
+  }
+
+  return display_error ("Invalid value \"$value\" for $display scheduling entry.  Valid values are 1, 2, 3 and X");
+}
+
+/*
+ * schedule_table_entry
+ *
+ * Display a drop-down list to allow the user to select whether he''s
+ * willing to run his game in this time slot
+ */
+
+function schedule_table_entry ($key)
+{
+  //  echo "          <TD><INPUT TYPE=TEXT NAME=$key SIZE=1 MAXLENGTH=1 VALUE=\"$_POST[$key]\"></TD>\n";
+
+  $mykey = str_replace ( ' ' , '_' , $key );
+
+  if (! isset ($_POST[$mykey]))
+    $value = '';
+  else
+  {
+    $value = trim ($_POST[$mykey]);
+    if (1 == get_magic_quotes_gpc())
+      $value = stripslashes ($value);
+  }
+
+  $dont_care = '';
+  $one = '';
+  $two = '';
+  $three = '';
+  $no = '';
+
+  switch ($value)
+  {
+    case '':  $dont_care = 'selected'; break;
+    case '1': $one       = 'selected'; break;
+    case '2': $two       = 'selected'; break;
+    case '3': $three     = 'selected'; break;
+    case 'X': $no        = 'selected'; break;
+  }
+
+  echo "          <TD>\n";
+  echo "            <SELECT NAME=$mykey SIZE=1>\n";
+  echo "              <option value=\"\" $dont_care>Don't Care&nbsp;</option>\n";
+  echo "              <option value=1 $one>1st Choice&nbsp;</option>\n";
+  echo "              <option value=2 $two>2nd Choice&nbsp;</option>\n";
+  echo "              <option value=3 $three>3rd Choice&nbsp;</option>\n";
+  echo "              <option value=X $no>Prefer Not&nbsp;</option>\n";
+  echo "            </SELECT>\n";
+  echo "          </TD>\n";
 }
 
 /*

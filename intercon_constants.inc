@@ -91,6 +91,9 @@ define (EMAIL_ADVERTISING, '');
 define (NAME_BID_CHAIR, 'Scandal from Bohemia');
 define (EMAIL_BID_CHAIR, 'Teachers12@Burlesque-Expo.com');
 
+define (NAME_SHOW_CHAIR, 'Scratch');
+define (EMAIL_SHOW_CHAIR, 'info@Burlesque-Expo.com');
+
 define (NAME_CON_SUITE, 'NONE');
 define (EMAIL_CON_SUITE, 'none@test.com');
 
@@ -199,9 +202,9 @@ define (PAGE_BANNER, 'PageBanner.png');
 global $CON_DAYS;
 $CON_DAYS = array('Friday', 'Saturday', 'Sunday');
 global $CLASS_DAYS;
-$CON_DAYS = array('Saturday', 'Sunday');
+$CLASS_DAYS = array('Saturday', 'Sunday');
 global $SHOW_DAYS;
-$CON_DAYS = array('Saturday', 'Sunday');
+$SHOW_DAYS = array('Friday','Saturday', 'Sunday');
 
 //These must match the text values in the BidTimes table slot field.
 global $BID_SLOTS;
@@ -209,9 +212,41 @@ $BID_SLOTS = array();
 $BID_SLOTS['Friday'] = array('Early Afternoon', 'Late Afternoon', 'Evening', 'After Midnight');
 $BID_SLOTS['Saturday'] = array('Morning', 'Early Afternoon', 'Late Afternoon');
 $BID_SLOTS['Sunday'] = array('Morning', 'Early Afternoon', 'Late Afternoon');
-
-
 $BID_SLOTS['All'] = array('Morning', 'Early Afternoon', 'Late Afternoon'); //all possible bid slots.
+
+//These must match the text values in the BidTimes table slot field.
+global $SHOW_SLOTS;
+global $SHOW_NAMES;
+$SHOW_SLOTS = array();
+$SHOW_SLOTS['Friday'] = array('After Midnight');
+$SHOW_SLOTS['Saturday'] = array('Evening','After Midnight');
+$SHOW_SLOTS['Sunday'] = array('Evening', 'After Midnight');
+$SHOW_SLOTS['All'] = array('Evening', 'After Midnight'); //all possible bid slots.
+
+
+$SHOW_NAMES['Friday_Evening'] = 'The Rhinestone Review';
+
+$SHOW_NAMES['Friday_After Midnight'] = 'The Last Chance Casino Party';
+
+$SHOW_NAMES['Saturday_Evening'] = 'The Main Event (Competition)';
+
+$SHOW_NAMES['Saturday_After Midnight'] = ' The Main Event (Not in Competition)';
+
+$SHOW_NAMES['Sunday_Evening'] = ' The Newcomer\'s Showcase';
+
+$SHOW_NAMES['Sunday_After Midnight'] = 'The Sideshow Ball';
+
+// controls radio buttons on act submission
+global $ANSWER_SET;
+global $OTHER_SHOWS;
+
+$ANSWER_SET = array("Yes", "No", "Yes - and Won!");
+$OTHER_SHOWS = array("The Great Burlesque Exposition", 			
+					"Miss Exotic World/Burlesque Hall",			
+					"NYBF",
+					"The New Orleans Burlesque Fest",		
+					"Texas Burlesque Festival");
+
 
 global $BID_SLOT_ABBREV;
 $BID_SLOT_ABBREV = array();

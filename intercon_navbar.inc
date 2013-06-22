@@ -297,7 +297,7 @@ function build_bids_subnavbar() {
   if (user_has_priv (PRIV_SCHEDULING))
     $bidsSection->push(NavBarItem::newAction('Manage Bid Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
-  $bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
+  //$bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
     
   return $bidsSection;
 }
@@ -317,7 +317,7 @@ function build_acts_subnavbar() {
   if (user_has_priv (PRIV_SCHEDULING))
     $bidsSection->push(NavBarItem::newAction('Manage Act Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
-  $bidsSection->push(NavBarItem::newAction("Bid an Act!", "biddingAGame.php"));
+  //$bidsSection->push(NavBarItem::newAction("Bid an Act!", "biddingAGame.php"));
     
   return $bidsSection;
 }
@@ -392,7 +392,7 @@ function build_schedule_subnavbar() {
   $scheduleSection->push(NavBarItem::newAction('Schedule Ops', 'ListGames.php', LIST_ADD_OPS));
   // Disabled ConSuite add in listgames.php
   // $scheduleSection->push(NavBarItem::newAction('Schedule ConSuite', 'ListGames.php', LIST_ADD_CONSUITE));
-//    $scheduleSection->push(NavBarItem::newAction('Add a Parallel Run', 'ListGames.php', LIST_TO_ADD_PARALLEL_RUN));
+  // $scheduleSection->push(NavBarItem::newAction('Add a Parallel Run', 'ListGames.php', LIST_TO_ADD_PARALLEL_RUN));
   $scheduleSection->push(NavBarItem::newAction('Add Special Event', 'SpecialEvents.php'));
   $scheduleSection->push(NavBarItem::newAction('Manage Special Events', 'SpecialEvents.php', SPECIAL_EVENT_LIST));
   
@@ -412,6 +412,22 @@ function build_about_subnavbar() {
   $aboutSection->push(NavBarItem::newAction("ConCom Schedule", "ConComSchedule.php"));
   if (NAV_SHOW_FLYER)
     $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).' Flyer', 'InterconFlyer.pdf'));
+  
+  return $aboutSection;
+}
+function build_participation_subnavbar() {
+  $aboutSection = new SubNavBar("I want to...</NOBR>");
+  
+  $aboutSection->push(NavBarItem::newAction("Submit an Act", "biddingAGame.php", BAG_ACT_PAGE));
+  $aboutSection->push(NavBarItem::newAction("Submit a Class", "biddingAGame.php", BAG_BID_PAGE));
+  $aboutSection->push(NavBarItem::newStatic("Sit on a Panel", "comingsoon"));
+  $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
+  $aboutSection->push(NavBarItem::newStatic("Volunteer", "volunteering"));
+  $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
+  $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
+  $aboutSection->push(NavBarItem::newExternal("Sell my Stuff", "https://burlesqueexpo.wufoo.com/forms/2013-vendor-application-form/"));
+  $aboutSection->push(NavBarItem::newStatic("Reserve a Hotel Room", "hotel"));
+  $aboutSection->push(NavBarItem::newStatic("Buy Tickets", "comingsoon"));
   
   return $aboutSection;
 }
@@ -451,6 +467,8 @@ function display_main_navbar() {
   
   $navbar->push(build_about_subnavbar());
   $navbar->push(build_larps_subnavbar());
+  $navbar->push(build_participation_subnavbar());
+
   if (accepting_bids() || user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
     $navbar->push(build_bids_subnavbar());
   if (accepting_bids() || user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
