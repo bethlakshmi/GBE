@@ -271,6 +271,7 @@ UNLOCK TABLES;
 -- Table structure for table `BidTimes`
 --
 
+DROP TABLE IF EXISTS `BidTimes`;
 CREATE TABLE `BidTimes` (
   `BidTimeId` int(10) unsigned NOT NULL auto_increment,
   `BidId` int(10) unsigned NOT NULL,
@@ -284,6 +285,7 @@ CREATE TABLE `BidTimes` (
 -- Table structure for table `ActHistory`
 --
 
+DROP TABLE IF EXISTS `ActHistory`;
 CREATE TABLE `ActHistory` (
   `ActHistoryId` int(10) unsigned NOT NULL auto_increment,
   `BidId` int(10) unsigned NOT NULL,
