@@ -495,6 +495,18 @@ function display_bid_form ($first_try)
   $EditGameInfo = 1;
   
   global $BID_TYPES;
+  global $OTHER_SHOWS;
+  global $ANSWER_SET;
+
+  global $SHOW_DAYS;
+  global $SHOW_SLOTS;
+  global $SHOW_NAMES;
+
+  $acthistory = array();
+
+
+  foreach ($OTHER_SHOWS as $show) 
+      $acthistory[$show] = "No";
 
   // Make sure that the user is logged in
 
@@ -589,7 +601,6 @@ function display_bid_form ($first_try)
 	  if (! $ahresult)
 		return display_mysql_error ("ActHistory query failed for BidId ".$row->BidId);
 
-	  $acthistory = array();
 	  while ($ahrow = mysql_fetch_array ($ahresult, MYSQL_ASSOC))
 	  {
 		$key = $ahrow['Show'];
@@ -620,10 +631,7 @@ function display_bid_form ($first_try)
       return display_access_error ();
 
   }
-  else {
-    foreach ($OTHER_SHOWS as $show) 
-      $acthistory[$show] = "No";
-  }
+
 
 
   // Show the header - varies depending on update/submit and the nature of the submission
@@ -700,9 +708,6 @@ function display_bid_form ($first_try)
     echo "    </TD>\n";
     echo "  </TR>\n";
   
-    global $SHOW_DAYS;
-    global $SHOW_SLOTS;
-    global $SHOW_NAMES;
 
 
     $DAYS = $SHOW_DAYS;
@@ -732,8 +737,6 @@ function display_bid_form ($first_try)
     echo "    </TD>\n";
     echo "  </TR>\n";
 
-    global $ANSWER_SET;
-    global $OTHER_SHOWS;
 
     echo "  <TR>\n";
     echo "    <TD colspan=2>\n";
