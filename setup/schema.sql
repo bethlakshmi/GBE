@@ -254,6 +254,11 @@ CREATE TABLE `Bids` (
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `Created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `VideoOf` SET( 'I don\'t have any video of myself performing', 
+                 'This is video of me but not the act I\'m submitting', 
+                 'This is video of the act I would like to perform' ) NULL ,
+  `VideoSource` VARCHAR( 128 ) NULL ,
+  `PhotoSource` VARCHAR( 128 ) NULL,
   PRIMARY KEY (`BidId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

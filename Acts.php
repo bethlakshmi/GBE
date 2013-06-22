@@ -435,6 +435,7 @@ function show_bid ()
   show_text ('Length', $bid_row['Minutes'].":".$bid_row['Seconds']);
   show_text ('Description', $bid_row['Description']);
   show_text ('Short Blurb', $bid_row['ShortBlurb']);
+  show_text ('Video of', $bid_row['VideoOf']);
 
   show_section ('Advertising Information');
 
@@ -812,6 +813,27 @@ function display_bid_form ($first_try)
         $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
     form_textarea ($text, 'ShortBlurb', 4, TRUE, TRUE);
     
+    echo "  <TR>\n";
+    echo "    <TD COLSPAN=2><br><br>\n";
+
+    $text = "Video ";
+    $VALUE_LIST = array('I don\'t have any video of myself performing', 
+                 'This is video of me but not the act I\'m submitting', 
+                 'This is video of the act I would like to perform');
+    $select = $VALUE_LIST[0];
+
+    if ( 0 != $BidId )
+    {
+        if (1 == get_magic_quotes_gpc())
+          $select = stripslashes ($_POST["VideoOf"]);
+        else
+          $select = $_POST["VideoOf"];
+    }
+
+    form_single_select($text,"VideoOf", $VALUE_LIST, $select);
+    echo "    </TD>\n";
+    echo "  </TR>\n";
+
     form_hidden_value ('MinPlayersMale', 0);            
     form_hidden_value ('MaxPlayersMale', 0);            
     form_hidden_value ('PrefPlayersMale', 0);
@@ -1106,6 +1128,7 @@ function process_bid_form ()
   $sql .= build_sql_string ('GMs', '', true, true);
   $sql .= build_sql_string ('Premise', '', true, true);
   $sql .= build_sql_string ('RunBefore');  
+  $sql .= build_sql_string ('VideoOf');  
   $sql .= build_sql_string ('Fee');
   $sql .= build_sql_string ('GameSystem');
   $sql .= build_sql_string ('CombatResolution');
