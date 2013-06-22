@@ -1055,8 +1055,11 @@ function display_bid_form ($first_try)
   {
       form_hidden_value ('OtherGames', '');
   }
-  
-  form_textarea ('Other Event Details', 'OtherDetails', 5);
+
+  if ($gametype == 'Class')
+    form_textarea ('Other Event Details (for example, materials fees or other needs)', 'OtherDetails', 5);
+  else  
+    form_textarea ('Other Event Details', 'OtherDetails', 5);
   
   if ($gametype != 'Panel')
       form_section ('Restrictions');
@@ -1103,10 +1106,10 @@ function display_bid_form ($first_try)
   form_textarea ($text, 'AgeRestrictions', 5); */
  
   
- if (ALLOW_EVENT_FEES && $gametype == 'Class')
+/* if (ALLOW_EVENT_FEES )
     form_yn ("&nbsp;<BR>Do you wish to charge a fee for your {$thingstring}?  This applies only to workshops.  If so, con will be in touch to discuss this.",
            'Fee');
- else
+ else*/
     form_hidden_value ('Fee', 'N');
 
   // We don't offer a choice of scheduling for performances - they get what we give them
