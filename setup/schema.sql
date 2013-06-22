@@ -287,20 +287,16 @@ CREATE TABLE `BidTimes` (
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
--- Table structure for table `ActHistory`
+-- Table structure for table `BidChoice`
 --
 
-DROP TABLE IF EXISTS `ActHistory`;
-CREATE TABLE `ActHistory` (
-  `ActHistoryId` int(10) unsigned NOT NULL auto_increment,
+DROP TABLE IF EXISTS `BidChoice`;
+CREATE TABLE `BidChoice` (
+  `BidChoice` int(10) unsigned NOT NULL auto_increment,
   `BidId` int(10) unsigned NOT NULL,
-  `Show` enum('The Great Burlesque Exposition', 			
-					'Miss Exotic World/Burlesque Hall',			
-					'NYBF',
-					'The New Orleans Burlesque Fest',		
-					'Texas Burlesque Festival') NOT NULL,
-  `Answer` enum('Yes', 'No', 'Yes - and Won!') NOT NULL,
-  PRIMARY KEY  (`ActHistoryId`)
+  `Question` varchar(128) NOT NULL,
+  `Answer` enum('Yes', 'No', 'Yes - and Won!','Not Sure') NOT NULL,
+  PRIMARY KEY  (`BidChoice`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --

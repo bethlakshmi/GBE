@@ -327,16 +327,16 @@ function show_bid ()
   printf ("      <FONT SIZE=\"+2\"><B>%s</B></FONT>\n", $bid_row['Title']);
   echo "    </TD>\n";
 
-  $sql = "SELECT * FROM ActHistory WHERE BidId=".$BidId.";";
+  $sql = "SELECT * FROM BidChoice WHERE BidId=".$BidId.";";
   $ahresult = mysql_query ($sql);
   if (! $ahresult)
-		return display_mysql_error ("ActHistory query failed for BidId ".$row->BidId);
+		return display_mysql_error ("BidChoice query failed for BidId ".$row->BidId);
 
-  $acthistory = array();
+  $BidChoice = array();
   while ($ahrow = mysql_fetch_array ($ahresult, MYSQL_ASSOC))
 	{
-		$key = $ahrow['Show'];
-		$acthistory[$key] = mysql_real_escape_string ($ahrow['Answer']);
+		$key = $ahrow['Question'];
+		$BidChoice[$key] = mysql_real_escape_string ($ahrow['Answer']);
 	}
 
   // Bid chair & GM Liaison can edit bids
@@ -392,9 +392,12 @@ function show_bid ()
   show_text ('Experience', $bid_row['RunBefore']);
 
   global $OTHER_SHOWS;
+  global $PARTICIPATION;
+
+  
   show_text("Other show experience","");
   foreach ($OTHER_SHOWS as $show)
-    show_text ($show, $acthistory[$show]);
+    show_text ($show, $BidChoice[$show]);
   
   
   global $SHOW_DAYS;
@@ -436,6 +439,10 @@ function show_bid ()
   show_text ('Description', $bid_row['Description']);
   show_text ('Short Blurb', $bid_row['ShortBlurb']);
   show_text ('Video of', $bid_row['VideoOf']);
+
+  show_text("Participation","");
+  foreach ($PARTICIPATION as $item)
+    show_text ($item, $BidChoice[$item]);
 
   show_section ('Advertising Information');
 
@@ -498,16 +505,19 @@ function display_bid_form ($first_try)
   global $BID_TYPES;
   global $OTHER_SHOWS;
   global $ANSWER_SET;
+  global $PARTICIPATE_SET;
+  global $PARTICIPATION;
 
   global $SHOW_DAYS;
   global $SHOW_SLOTS;
   global $SHOW_NAMES;
 
-  $acthistory = array();
-
+  $BidChoice = array();
 
   foreach ($OTHER_SHOWS as $show) 
-      $acthistory[$show] = "No";
+      $BidChoice[$show] = $ANSWER_SET[1];
+  foreach ($PARTICIPATION as $part) 
+      $BidChoice[$part] = $PARTICIPATE_SET[2];
 
   // Make sure that the user is logged in
 
@@ -596,16 +606,16 @@ function display_bid_form ($first_try)
 	  mysql_free_result ($result);
 
 
-      //Get Act History
-	  $sql = "SELECT * FROM ActHistory WHERE BidId=".$BidId.";";
+      //Get Bid Choices
+	  $sql = "SELECT * FROM BidChoice WHERE BidId=".$BidId.";";
 	  $ahresult = mysql_query ($sql);
 	  if (! $ahresult)
-		return display_mysql_error ("ActHistory query failed for BidId ".$row->BidId);
+		return display_mysql_error ("BidChoice query failed for BidId ".$row->BidId);
 
 	  while ($ahrow = mysql_fetch_array ($ahresult, MYSQL_ASSOC))
 	  {
-		$key = $ahrow['Show'];
-		$acthistory[$key] = mysql_real_escape_string ($ahrow['Answer']);
+		$key = $ahrow['Question'];
+		$BidChoice[$key] = mysql_real_escape_string ($ahrow['Answer']);
 	  }
 	  mysql_free_result ($ahresult);
 
@@ -744,39 +754,9 @@ function display_bid_form ($first_try)
 	    echo "        </tr>\n";
 	  }
 	}
-	echo "      </TABLE>\n";
-    echo "    </TD>\n";
-    echo "  </tr>\n";
 
-    echo "  <TR>\n";
-    echo "    <TD COLSPAN=2>\n";
-	echo "      <BR><BR>\n";
-    echo "      <b>I/We have Performed At...</b>\n";
-    echo "    </TD>\n";
-    echo "  </TR>\n";
-
-
-    echo "  <TR>\n";
-    echo "    <TD colspan=2>\n";
-    echo "      <TABLE BORDER=0>\n";
-	echo "  	  <TR><TH>&nbsp;</TH>";
-    foreach ($ANSWER_SET as $answer)
-  	  echo "          <TH width=\"100\">{$answer}</TH>\n";
-    echo "        </tr>\n";
-    foreach ($OTHER_SHOWS as $show){
-      echo "        <TR ALIGN=CENTER>\n";
-      echo "          <TD align=\"left\">{$show}</TD>\n";
-  	  foreach ($ANSWER_SET as $answer) {
-  	    if ( $answer == $acthistory[$show] )
-   		      echo "          <TD><INPUT TYPE=RADIO NAME=\"{$show}\" VALUE=\"{$answer}\" checked=\"checked\"></TD>\n";
-   		else
-    		  echo "          <TD><INPUT TYPE=RADIO NAME=\"{$show}\" VALUE=\"{$answer}\"></TD>\n";
-  	  }
-      echo "        </tr>\n";
-    }
-	echo "      </TABLE>\n";
-    echo "    </TD>\n";
-    echo "  </tr>\n";
+    $label =  "I/We have performed at...";
+    form_radio_grid ($label, $OTHER_SHOWS, $ANSWER_SET, $BidChoice,TRUE);
 
 
 
@@ -844,6 +824,9 @@ function display_bid_form ($first_try)
     form_hidden_value ('MaxPlayersNeutral', 0);            
     form_hidden_value ('PrefPlayersNeutral', 0);
     
+    $label =  "Are You...";
+    form_radio_grid ($label, $PARTICIPATION, $PARTICIPATE_SET, $BidChoice,TRUE);
+
   }
 
 
@@ -1033,7 +1016,8 @@ function process_bid_form ()
 
   // Advertising Information
   global $OTHER_SHOWS;
-  
+  global $PARTICIPATION;
+
 
   foreach ($OTHER_SHOWS as $show) {
     $form_ok &= validate_show($show);
@@ -1185,25 +1169,41 @@ function process_bid_form ()
   	}
 
   // update act history
-  $sql = "DELETE from ActHistory WHERE BidId=$BidId";
+  $sql = "DELETE from BidChoice WHERE BidId=$BidId";
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Delete from BidTimes failed");
+    return display_mysql_error ("Delete from BidChoice failed");
 
   global $OTHER_SHOWS;
-  foreach ($OTHER_SHOWS as $show) {
-	  $sql = "INSERT INTO ActHistory (`BidId` ,`Show` ,`Answer`) VALUES (";
+  global $PARTICIPATION;
+
+  foreach ($OTHER_SHOWS as $item) {
+	  $sql = "INSERT INTO BidChoice (`BidId` ,`Question` ,`Answer`) VALUES (";
 	  $sql .= "{$BidId}, ";
-	  $sql .= "'{$show}', ";
+	  $sql .= "'{$item}', ";
 	  $sql .= "'";
-	  $sql .= $_POST[str_replace(' ','_',"${show}")];
+	  $sql .= $_POST[str_replace(' ','_',"${item}")];
 	  $sql .= "');";
 	  $result = mysql_query ($sql);
 	  if (! $result)
-		return display_mysql_error ("Add {$show} to ActHistory failed");
+		return display_mysql_error ("Add {$item} to BidChoice failed");
 
   	}
 
+  foreach ($PARTICIPATION as $item) {
+	  $sql = "INSERT INTO BidChoice (`BidId` ,`Question` ,`Answer`) VALUES (";
+	  $sql .= "{$BidId}, ";
+	  $sql .= "'{$item}', ";
+	  $sql .= "'";
+	  $sql .= $_POST[str_replace(' ','_',"${item}")];
+	  $sql .= "');";
+	  $result = mysql_query ($sql);
+	  
+	  echo $sql;
+	  if (! $result)
+		return display_mysql_error ("Add {$item} to BidChoice failed");
+
+  	}
 
   // Advertising Information
 

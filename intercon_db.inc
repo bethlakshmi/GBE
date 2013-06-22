@@ -771,6 +771,8 @@ function form_textarea ($display,
   echo "  </tr>\n";
 }
 
+
+
 /*
  * form_yn
  *
@@ -838,6 +840,61 @@ function form_preferred_contact ($display, $key)
   echo "      </SELECT>\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
+}
+
+/*
+ * form_radio_grid
+ *
+ * Display a grid of radio buttons.
+ *  It uses a table for format, regardless, but it can optionally be a part of an
+ *  other table, as happens often with forms on this site.
+ *    label = pre table text describing what to do 
+ *    values = an array of value options for the headers of the table and 
+ *      each radio button
+ *    questions = the questions asked on each row
+ */
+
+function form_radio_grid ($label, $questions, $values, $selected, $inTable=FALSE)
+
+{      
+    if ($inTable) {
+      echo "    </TD>\n";
+      echo "  </tr>\n";
+
+      echo "  <TR>\n";
+      echo "    <TD COLSPAN=2>\n";
+  	  echo "      <BR><BR>\n";
+      echo "      <b>$label</b>\n";
+      echo "    </TD>\n";
+      echo "  </TR>\n";
+
+      echo "  <TR>\n";
+      echo "    <TD colspan=2>\n";
+    }
+    else 
+          echo "      <b>$label</b>\n";
+
+    echo "      <TABLE BORDER=0>\n";
+	echo "  	  <TR><TH>&nbsp;</TH>";
+    foreach ($values as $value)
+  	  echo "          <TH width=\"100\">{$value}</TH>\n";
+    echo "        </tr>\n";
+    foreach ($questions as $question){
+      echo "        <TR ALIGN=CENTER>\n";
+      echo "          <TD align=\"left\">{$question}</TD>\n";
+  	  foreach ($values as $value) {
+  	    if ( $value == $selected[$question] )
+   		      echo "          <TD><INPUT TYPE=RADIO NAME=\"{$question}\" VALUE=\"{$value}\" checked=\"checked\"></TD>\n";
+   		else
+    		  echo "          <TD><INPUT TYPE=RADIO NAME=\"{$question}\" VALUE=\"{$value}\"></TD>\n";
+  	  }
+      echo "        </tr>\n";
+    }
+    if ($inTable) {
+	  echo "      </TABLE>\n";
+      echo "    </TD>\n";
+      echo "  </tr>\n";
+    }
 }
 
 /*

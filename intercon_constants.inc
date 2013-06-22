@@ -236,7 +236,8 @@ $SHOW_NAMES['Sunday_Evening'] = ' The Newcomer\'s Showcase';
 
 $SHOW_NAMES['Sunday_After Midnight'] = 'The Sideshow Ball';
 
-// controls radio buttons on act submission
+// controls radio buttons for performer show history in other 
+// big conventions
 global $ANSWER_SET;
 global $OTHER_SHOWS;
 
@@ -247,6 +248,13 @@ $OTHER_SHOWS = array("The Great Burlesque Exposition",
 					"The New Orleans Burlesque Fest",		
 					"Texas Burlesque Festival");
 
+// controls radio buttons on participation at expo
+global $PARTICIPATE_SET;
+global $PARTICIPATION;
+
+$PARTICIPATE_SET = array("Yes", "No", "Not Sure");
+$PARTICIPATION = array("staying at the hotel",	"volunteering for the event",
+						"attending the conference during the day");
 
 global $BID_SLOT_ABBREV;
 $BID_SLOT_ABBREV = array();
