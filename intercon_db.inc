@@ -3374,10 +3374,10 @@ function form_single_select($text, $name, $VALUE_LIST, $choice=" ")
   echo "      <SELECT NAME=$name SIZE=1>\n";
   foreach ($VALUE_LIST as $value)
    if ($choice == $value)
-     echo "        <option value=$value selected>$value</option>\n";
+     echo "        <option value=\"$value\" selected>$value</option>\n";
 
    else 
-     echo "        <option value=$value>$value</option>\n";
+     echo "        <option value=\"$value\">$value</option>\n";
 
   echo "      </SELECT>\n";
 }

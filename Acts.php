@@ -389,7 +389,7 @@ function show_bid ()
 
   show_section ('About Performer');
   
-  show_text ('Experience', $bid_row['OtherGames']);
+  show_text ('Experience', $bid_row['RunBefore']);
 
   global $OTHER_SHOWS;
   show_text("Other show experience","");
@@ -697,14 +697,31 @@ function display_bid_form ($first_try)
     form_textarea ($text, 'GMs', 2);
 
     $maininfo = "About You";
+
     form_section ($maininfo);
 
+    echo "  <TR>\n";
+    echo "    <TD COLSPAN=2>\n";
+
+    $text = "I/We have been performing burlesque for... ";
+    $VALUE_LIST = array("I'm not a burlesque performer",
+    	"less than 1 year", "1-2 years", "3-4 years", "5-6 years", "more than 6 years");
+    $select = $VALUE_LIST[1];
+
+    if ( 0 != $BidId )
+    {
+        $select = $_POST["RunBefore"];
+    }
+
+    form_single_select($text,"RunBefore", $VALUE_LIST, $select);
+    echo "    </TD>\n";
+    echo "  </TR>\n";
 
 
 
     echo "  <TR>\n";
     echo "    <TD COLSPAN=2>\n";
-    echo "      <b>I/We would like to be considered for...</b>\n";
+    echo "      <br><b>I/We would like to be considered for...</b>\n";
     echo "    </TD>\n";
     echo "  </TR>\n";
   
@@ -822,35 +839,6 @@ function display_bid_form ($first_try)
   //form_textarea ('Other Event Details', 'OtherDetails', 5);
   
 
-/*  echo "  <TR>\n";
-  echo "    <TD COLSPAN=2>\n";
-  echo "     ".CON_NAME." appeals to a diverse group of participants of all \n";
-  echo "     ethnicities, belief systems, sexual preferences, physical\n";
-  echo "     capabilities, experience, etc.\n";
-  echo "     In order for the expo staff to balance these potentially\n";
-  echo "     opposing requirements, please answer the following questions.\n";
-  echo "     <p>\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-
-  $text = "Are there any components of your {$thingstring} that might offend or upset\n";
-  $text .= "some group of attendees?  For example, adult themes, potentially\n";
-  $text .= "offensive story arcs, etc.  If so, please explain.";
-  form_textarea ($text, 'Offensive', 5); 
-
-
-      $text = "What does your performance require from the stage?  Are there minimum space limitations?\n";
-      $text .= "Is a table or chair required?  Please note, the expo cannot meet an unlimited number \n";
-      $text .= "of prop requirements - if you require an unusual item, you will need to make special\n";
-      $text .= "arrangements.\n";
-      form_textarea ($text, 'PhysicalRestrictions', 5);
-
-  
-  $text = "Are there any components of your {$thingstring} that might be illegal for\n";
-  $text .= "attendees under the age of 18?  For example, props or items that\n";
-  $text .= "are illegal for a minor to possess, alchol, etc.  If so, please\n";
-  $text .= "explain.";
-  form_textarea ($text, 'AgeRestrictions', 5); */
  
   
     form_hidden_value ('Fee', 'N');
@@ -866,21 +854,11 @@ function display_bid_form ($first_try)
   $text .= "general public.\n";
   form_textarea ($text, 'ShortSentence', 2, TRUE, TRUE);
 
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-      $text = "Without giving away any secrets for the game (because we want to\n";
-      $text .= "play it too), are there any additional interesting things that\n";
-      $text .= "we can use when we do Shameless Plugs for the con?  Do you\n";
-      $text .= "have a Shameless Plug or advertising spiel you use when you\n";
-      $text .= "talk about the game that you can send or describe to us?";
-  }
-  else
-  {
       $text = "Are there any additional interesting things that\n";
       $text .= "we can use when we do Shameless Plugs for the expo?  Do you\n";
       $text .= "have a plug or advertising spiel you use when you\n";
       $text .= "talk about the {$thingstring} that you can send or describe to us?";
-  }
+
   form_textarea ($text, 'ShamelessPlugs', 4);
 
   $text = "Are you going to any shows, events or other conventions where\n";
