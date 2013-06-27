@@ -48,7 +48,7 @@ define (IRONGM_ENABLED, 0);
 
 // Set to 0 to disable allowing players to select events.
 
-define (SELECTEVENTS_ENABLED, 1);
+define (SELECTEVENTS_ENABLED, 0);
 
 // Defining the program file prefix enables the links on the ConCom menu
 // which allow users to download the program booklet sections.  The second
@@ -194,6 +194,11 @@ define(MAIL_BACKEND, "sendmail");
 define(SMTP_HOST, "smtp.gmail.com");
 define(SMTP_USERNAME, "web@" . CON_DOMAIN);
 define(SMTP_PASSWORD, "");
+
+// basic storage location for files 
+define (FILE_UPLOAD_LOC, "/Applications/MAMP/uploads/");
+define (FILE_DISPLAY_LOC, "/media/");
+
 
 //Look and feel items
 define (PAGE_BANNER, 'PageBanner.png');

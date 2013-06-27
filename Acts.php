@@ -1,5 +1,11 @@
 <?php
 include ("intercon_db.inc");
+include ("files.php");
+
+global $VIDEO_LIST;
+$VIDEO_LIST = array('I don\'t have any video of myself performing', 
+                 'This is video of me but not the act I\'m submitting', 
+                 'This is video of the act I would like to perform');
 
 $submitFilter = ' AND Bids.GameType = \'Performance\'';
 
@@ -349,14 +355,22 @@ function show_bid ()
 	    $BidId);
     echo "    </TD>\n";
   }
+  
   echo "  </tr>\n";
   echo "</TABLE>\n";
 
   echo "<TABLE BORDER=0>\n";
 
   show_section ('Submitter Information');
+
   show_text ('Submitter',
 		     $bid_row['FirstName'].' '. $bid_row['LastName']);
+
+/*		     
+  echo "<TD rowspan=\"5\">";
+  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/06/burlesque2.jpg\" width=\"200\">";
+  echo "<\TD>";
+*/
   $text = $bid_row['Address1'];
   if ('' != $bid_row['Address2'])
     $text .= '<BR>' . $bid_row['Address2'];
@@ -439,8 +453,9 @@ function show_bid ()
   show_text ('Description', $bid_row['Description']);
   show_text ('Short Blurb', $bid_row['ShortBlurb']);
   show_text ('Video of', $bid_row['VideoOf']);
-
-  show_text("Participation","");
+  display_media($bid_row['VideoSource'], $bid_row['PhotoSource']);
+  
+  show_section("Participation");
   foreach ($PARTICIPATION as $item)
     show_text ($item, $BidChoice[$item]);
 
@@ -456,6 +471,45 @@ function show_bid ()
 
   echo "</TABLE>\n";
   echo "<P>\n";
+}
+
+/**
+ * display_media
+ */
+
+function display_media ($video, $photo, $pre="")
+{
+
+  echo "  <TR valign=TOP>\n";
+  echo "    <TD align=right>\n";
+  if ( $video != NULL && strlen($video) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $video);
+    echo "<b>{$pre} Video:</b><br>";
+    echo "<a href=\"{$path}\">";
+    echo "Click to watch video";
+    echo "</a>";
+  }
+  else 
+    echo "Video not available";
+
+  echo "    </TD>\n";
+  echo "    <TD align=left>\n";
+
+
+  if ( $photo != NULL && strlen($photo) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
+    echo "<b>{$pre} Photo:</b>&nbsp;&nbsp;";
+    echo "<a href=\"{$path}\">";
+    echo "<img src=\"{$path}\" alt=\"Photo for Act\" height=300>";
+    echo "</a>";
+  }
+  else 
+    echo "Photo not available";
+  
+  echo "    </TD>\n";
+  echo "  </TR>\n";
 }
 
 /**
@@ -630,6 +684,29 @@ function display_bid_form ($first_try)
 	$EditGameInfo = 0;
       //      $EditGameInfo = (0 == $EventId);
     }
+    else
+    {
+      $sql = "SELECT VideoSource, PhotoSource FROM Bids WHERE BidId=$BidId;";
+      $result = mysql_query ($sql);
+      if (! $result)
+		return display_mysql_error ("Query failed for BidId $BidId");
+
+      if (0 == mysql_num_rows ($result))
+		return display_error ("Failed to find BidId $BidId");
+
+      if (1 != mysql_num_rows ($result))
+		return display_error ("Found multiple entries for BidId $BidId");
+
+      $row = mysql_fetch_array ($result, MYSQL_ASSOC);
+
+      foreach ($row as $key => $value)
+      {
+        if (1 == get_magic_quotes_gpc())
+          $_POST[$key] = mysql_real_escape_string ($value);
+        else
+          $_POST[$key] = $value;
+      }
+    }
 
     // Only the Chair, GM Liaison or the bidder can update this bid
 
@@ -657,7 +734,7 @@ function display_bid_form ($first_try)
     display_header ('Update information for <I>' . $_POST['Title'] . '</I>');
 
 
-  echo "<form method=\"POST\" action=\"Acts.php\">\n";
+  echo "<form method=\"POST\" action=\"Acts.php\" enctype=\"multipart/form-data\">\n";
   form_add_sequence ();
   form_hidden_value ('action', BID_PROCESS_FORM);
   form_hidden_value ('BidId', $BidId);
@@ -768,7 +845,7 @@ function display_bid_form ($first_try)
     $maininfo = "About Your Act";
     form_section ($maininfo);
     form_text (64, 'Title of Song', 'GameSystem', 128);
-    form_text (64, 'Name of Artist',  'OtherDetails');
+    form_text (64, 'Name of Artist',  'OtherDetails', 128);
     form_text (2, 'Act Length', 'Minutes', 0, TRUE, '(mm.ss)','Seconds');
     form_hidden_value ('Hours', 12);            
 
@@ -793,14 +870,18 @@ function display_bid_form ($first_try)
         $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
     form_textarea ($text, 'ShortBlurb', 4, TRUE, TRUE);
     
+	form_section ("Video and Photo");
+    
     echo "  <TR>\n";
     echo "    <TD COLSPAN=2><br><br>\n";
 
-    $text = "Video ";
-    $VALUE_LIST = array('I don\'t have any video of myself performing', 
-                 'This is video of me but not the act I\'m submitting', 
-                 'This is video of the act I would like to perform');
-    $select = $VALUE_LIST[0];
+    if (isset($_POST["VideoSource"]))
+      form_hidden_value ('OrigVideo', $_POST["VideoSource"]);
+    if (isset($_POST["PhotoSource"]))
+    form_hidden_value ('OrigPhoto', $_POST["PhotoSource"]);
+
+    global $VIDEO_LIST;
+    $select = $VIDEO_LIST[0];
 
     if ( 0 != $BidId )
     {
@@ -810,9 +891,27 @@ function display_bid_form ($first_try)
           $select = $_POST["VideoOf"];
     }
 
-    form_single_select($text,"VideoOf", $VALUE_LIST, $select);
-    echo "    </TD>\n";
+    form_single_select("","VideoOf", $VIDEO_LIST, $select);
+    echo "    <br></TD>\n";
     echo "  </TR>\n";
+ 
+    // Change to VideoURL
+    echo "  <tr>\n";
+    echo "     <td colspan=\"2\">\n";
+    echo "      &nbsp;<br clear=all>\n";
+    echo "      Link to Video<br>\n";
+    printf ('      <textarea name="VideoURL" cols="80" rows="1" wrap="physical">' .
+	  "%s</textarea>\n", $_POST["VideoSource"]);
+    echo "    </td>\n";
+    echo "  </tr>\n";
+
+
+    form_upload("...OR_upload A VIDEO", "video_upload");
+    
+    form_upload("Please_upload a photograph of yourself","photo_upload",TRUE);
+
+    if (isset($_POST["VideoSource"]) && isset($_POST["PhotoSource"]))
+      display_media($_POST["VideoSource"], $_POST["PhotoSource"], "Current");
 
     form_hidden_value ('MinPlayersMale', 0);            
     form_hidden_value ('MaxPlayersMale', 0);            
@@ -887,6 +986,60 @@ function display_bid_form ($first_try)
 
   echo "</TABLE>\n";
   echo "</FORM>\n";
+}
+
+/*
+ * validate_video
+ *
+ * Validate the state of video
+ */
+
+function validate_video ($haveFile)
+{
+  global $VIDEO_LIST;
+  $returnvalue = TRUE;
+  $a = trim($_POST["VideoOf"]);
+  $b = $VIDEO_LIST[0];
+  
+//echo $_FILES["video_upload"]["size"];
+//echo $_POST["VideoURL"];
+
+
+  // Test Video URL, if provided
+  if (isset($_POST["VideoURL"]) && strlen($_POST["VideoURL"]) > 0)
+  {
+    //echo $_POST["VideoURL"];
+    if(!filter_var($_POST["VideoURL"], FILTER_VALIDATE_URL)) {
+      $returnvalue &= display_error("Video URL is not valid");
+    }
+    else 
+    {
+      $h = array();
+      $h = get_headers( $_POST["VideoURL"]);
+      if ( $h[0] == "HTTP/1.1 404 Not Found")
+        $returnvalue &= display_error("Video is not available.");
+    }
+    
+    if ( validate_file( "video_upload") )
+      $returnvalue &= display_error("Please specify only 1 video source - file_upload".
+    								" or URL - not both");
+  }
+  
+   								
+//echo $a.$b;
+//echo strcmp($a, $b);
+			
+  if ( strcmp($a, $b) == 53 && 
+        (validate_file( "video_upload") || (isset($_POST["VideoURL"]) && 
+        		strlen($_POST["VideoURL"]) != 0 )))
+    $returnvalue &= display_error("Video description suggests no video, and yet a ".
+								    "video was provided.");
+  if ( !haveFile && strcmp($a, $b) != 53 && 
+        (!validate_file( "video_upload") && !isset($_POST["VideoURL"]) ))
+    $returnvalue &= display_error("Video description promises a video, and yet no ".
+								    "video was provided.");
+    
+  return $returnvalue;
 }
 
 /*
@@ -1024,6 +1177,12 @@ function process_bid_form ()
   }
 
   $form_ok &= validate_string ('ShortSentence', 'Short sentence');
+  
+  if (!validate_file ("photo_upload") && !isset($_POST["OrigPhoto"]))
+  {
+    $form_ok &= display_error("Please provide a photo");
+  }
+  $form_ok &= validate_video(isset($_POST["OrigVideo"]));
 
   // If any errors were found, abort now
 
@@ -1047,6 +1206,8 @@ function process_bid_form ()
       return display_error ("BidId = 0 when EditGameInfo = $EditGameInfo");
   }
 
+
+
   $new_bid = (0 == $BidId);
 
   // If this is a new bid, create an entry in the bid table
@@ -1062,6 +1223,8 @@ function process_bid_form ()
 
     $BidId = mysql_insert_id();
   }
+  
+
 
   // Now the event information
 
@@ -1199,7 +1362,6 @@ function process_bid_form ()
 	  $sql .= "');";
 	  $result = mysql_query ($sql);
 	  
-	  echo $sql;
 	  if (! $result)
 		return display_mysql_error ("Add {$item} to BidChoice failed");
 
@@ -1243,6 +1405,63 @@ function process_bid_form ()
     return display_error ('Failed to find user information');
 
   $row = mysql_fetch_object ($result);
+
+  // Start with file processing
+  // name it with the bid Id
+  $file = "video_upload";
+  if (validate_file($file))
+  {
+    $path = "";
+    $path = process_file($file, "video", "Bid-".$BidId );
+    if ( strpos($path,FILE_UPLOAD_LOC) === FALSE )
+    {
+      return display_error ("Error uploading the video file.");
+    }
+  }
+  else 
+    $path = $_POST["OrigVideo"];
+    
+  $file = "photo_upload";
+  if (validate_file($file))
+  {
+    $path2 = "";
+    $path2 = process_file($file, "picture", "Bid-".$BidId );
+    if ( strpos($path2,FILE_UPLOAD_LOC) === FALSE )
+    {
+      return display_error ("Error_uploading the photo file.");
+    }
+  }
+  else 
+    $path2 = $_POST["OrigPhoto"];
+
+  $sql = 'UPDATE Bids SET ';
+
+  global $VIDEO_LIST;
+
+
+  // trim($_POST["VideoOf"]) == $VIDEO_LIST[0] does not work?
+  if ( strcmp(trim($_POST["VideoOf"]),$VIDEO_LIST[0]) == 53 )
+  {
+    //echo $VIDEO_LIST[0];
+    $sql .= 'VideoSource="", ';
+  }
+  else if ($_POST["VideoURL"]) {
+    //echo "have URL ".$_POST["VideoURL"];
+    $sql .= 'VideoSource="'.$_POST["VideoURL"].'", ';
+  }
+  else if ( isset($path) && strlen($path) != 0 ) {
+      //echo "have video ".$path;
+    $sql .= 'VideoSource="'.$path.'", ';
+  }
+  else {
+    //echo "in else";
+    $sql .= 'VideoSource="", ';
+  }
+  $sql .= 'PhotoSource="'.$path2.'"';
+  $sql .= " WHERE BidId=".$BidId.";";
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Cannot query user information');
 
   $name = trim ("$row->FirstName $row->LastName");
   $email = $row->EMail;
