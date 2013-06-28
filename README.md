@@ -38,9 +38,32 @@ you to keep the plugs and mailing lists from last year.
    DB_* defines, and pretty much everything under the "Con identifiers"
    comment.  Please read through the entire file and make sure you understand
    what everything does, since this file comprises the entire configuration
-   for your instance of the app.
+   for your instance of the app.  ** For GBE, most of the con indentifiers (name of Con, dates, functionality
+   configuration, shows, conference days, etc - are already specified in this installation. It's still 
+   worth a read, a lot of functionality hangs on this.
    
 4a) Change db_constants.template.inc to db_constants.inc
+
+4b) Change 
+  define (FILE_UPLOAD_LOC, "/Applications/MAMP/uploads/");
+  define (FILE_DISPLAY_LOC, "/media/");
+
+FILE_UPLOAD_LOC is the upload location for files that are submitted with acts (video & photo), it must:
+- be writeable by the web server
+- exist
+- have two subdirectories - "picture" and "video" - you'll know it's working if files named with the bid id 
+appear after an act is submitted.
+
+FILE_DISPLAY_LOC is the reference as a web URL.  In the example above the URL would be "http://domain/media/picture/1.jpg"
+  where domain = hostname/DNS
+        picture = the subdirectory created in FILE_UPLOAD_LOC
+        1 = the bid id
+        .jpg = the original file extension
+        
+        
+You'll know it works when displaying the act in either the bid form or in the show committee special views shows 
+a working picture or video and a working link.
+        
    
 5) There are other files you probably want to replace in your copy of the
    app: the PageBanner image, and likely some of the static .html files.
@@ -50,7 +73,8 @@ you to keep the plugs and mailing lists from last year.
    try editing your profile to add your personal info.
    
 7) Now we need to get PayPal up and running.  Follow the instructions in
-   README.paypal.
+   README.paypal. * NOTE - may change when the ticket design goes into place, and isn't necessary 
+   if you are testing conference specific behavior.
 
 NOTE:   
 You may also want to disable certain features of the app that are
