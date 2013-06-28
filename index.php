@@ -1357,19 +1357,21 @@ function show_con_attendence()
   }
 
   // Get a summary of Thursday Thing attendees
-
-  $sql = 'SELECT COUNT(*) AS Count FROM Thursday';
-  $sql .= ' WHERE Status="Paid"';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get summary of Thursday attendees');
-
-  $row = mysql_fetch_object($result);
-  if ($row)
+  if (THURSDAY_ENABLED) 
   {
-    printf ("<b>%d</b> attendees for the %s Thursday Thing<p>\n",
-	    $row->Count,
-	    CON_NAME);
+    $sql = 'SELECT COUNT(*) AS Count FROM Thursday';
+    $sql .= ' WHERE Status="Paid"';
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ('Failed to get summary of Thursday attendees');
+
+    $row = mysql_fetch_object($result);
+    if ($row)
+    {
+      printf ("<b>%d</b> attendees for the %s Thursday Thing<p>\n",
+	      $row->Count,
+	      CON_NAME);
+    }
   }
 }
 
