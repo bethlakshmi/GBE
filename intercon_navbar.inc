@@ -298,7 +298,7 @@ function build_bids_subnavbar() {
     $bidsSection->push(NavBarItem::newAction('Manage Bid Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
   // Having this commented out was breaking my side in the navbar. -MDB
-  $bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
+  //$bidsSection->push(NavBarItem::newAction("Bid an Event!", "biddingAGame.php"));
     
   return $bidsSection;
 }
@@ -420,10 +420,14 @@ function build_about_subnavbar() {
 function build_participation_subnavbar() {
   $aboutSection = new SubNavBar("I want to...</NOBR>");
   
-  $aboutSection->push(NavBarItem::newAction("Submit an Act", "biddingAGame.php", BAG_ACT_PAGE));
-  $aboutSection->push(NavBarItem::newAction("Submit a Class", "biddingAGame.php", BAG_BID_PAGE));
-  $aboutSection->push(NavBarItem::newStatic("Sit on a Panel", "comingsoon"));
-  $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
+  if ( accepting_bids() )
+  {
+    $aboutSection->push(NavBarItem::newAction("Submit an Act", "biddingAGame.php", BAG_ACT_PAGE));
+    $aboutSection->push(NavBarItem::newAction("Submit a Class", "biddingAGame.php", BAG_BID_PAGE));
+    $aboutSection->push(NavBarItem::newStatic("Sit on a Panel", "comingsoon"));
+    $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
+  }
+
   $aboutSection->push(NavBarItem::newStatic("Volunteer", "volunteering"));
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
@@ -471,9 +475,9 @@ function display_main_navbar() {
   $navbar->push(build_larps_subnavbar());
   $navbar->push(build_participation_subnavbar());
 
-  if (accepting_bids() || user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
+  if ( user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
     $navbar->push(build_bids_subnavbar());
-  if (accepting_bids() || user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
+  if ( user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
     $navbar->push(build_acts_subnavbar());
   if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());
