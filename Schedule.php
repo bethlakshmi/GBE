@@ -794,7 +794,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 
   if (0 == mysql_num_rows ($result))
   {
-    echo "No games scheduled for $day<P>";
+    echo "No events scheduled for $day<P>";
     return TRUE;
   }
 

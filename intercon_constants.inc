@@ -202,7 +202,12 @@ define (FILE_DISPLAY_LOC, "/media/");
 
 //Look and feel items
 define (PAGE_BANNER, 'PageBanner.png');
-  
+
+// rooms at event - must match DB set in Runs  
+global $ROOM_LIST;
+$ROOM_LIST = array('Dance Space', 'Lecture Space A', 'Lecture Space B', 
+		'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool');
+
 //Items for Bids/Schedule
 global $CON_DAYS;
 $CON_DAYS = array('Friday', 'Saturday', 'Sunday');

@@ -3453,22 +3453,6 @@ function pretty_rooms($str)
   if ('' == $str)
     return '&nbsp;';
 
-  // Convert combined rooms into something 'pretty'
-  $str = str_replace('Cambridge East,Cambridge West', 'Cambridge', $str);
-  $str = str_replace('Lincoln East,Lincoln West', 'Lincoln', $str);
-  $str = str_replace('Eden Vale A1,Eden Vale A2,Eden Vale A3', 'Eden Vale A', $str);
-  $str = str_replace('Eden Vale A1,Eden Vale A2', 'Eden Vale A1 &amp; A2', $str);
-  $str = str_replace('Eden Vale A2,Eden Vale A3', 'Eden Vale A2 &amp; A3', $str);
-  $str = str_replace('Eden Vale A1,Eden Vale A3', 'Eden Vale A1 &amp; A3', $str);
-  $str = str_replace('Eden Vale C1,Eden Vale C2,Eden Vale C3', 'Eden Vale C', $str);
-  $str = str_replace('Eden Vale C1,Eden Vale C2', 'Eden Vale C1 &amp; C2', $str);
-  $str = str_replace('Eden Vale C2,Eden Vale C3', 'Eden Vale C2 &amp; C3', $str);
-  $str = str_replace('Eden Vale C1,Eden Vale C3', 'Eden Vale C1 &amp; C3', $str);
-  $str = str_replace('Eden Vale A,Eden Vale B,Eden Vale C', 'Eden Vale A, B &amp; C', $str);
-  $str = str_replace('Eden Vale A,Eden Vale B', 'Eden Vale A &amp; B', $str);
-  $str = str_replace('Eden Vale B,Eden Vale C', 'Eden Vale B &amp; C', $str);
-  $str = str_replace('Eden Vale A,Eden Vale C', 'Eden Vale A &amp; C', $str);
-
   // Check for single rooms
   $ary = explode(',', $str);
   if (1 == count($ary))
@@ -3496,6 +3480,7 @@ function room_check($ary, $room)
 
 function form_con_rooms($display, $key)
 {
+  global $ROOM_LIST;
   if (! array_key_exists($key, $_POST))
     $rooms = '';
   else
@@ -3511,24 +3496,19 @@ function form_con_rooms($display, $key)
   echo "    <td>\n";
   echo "      <table>\n";
   echo "        <tr valign=\"top\">\n";
-  echo "          <td>\n";
-  room_check($rooms, 'Dance Space');
-  room_check($rooms, 'Lecture Space A');
-  room_check($rooms, 'Lecture Space B');
-  room_check($rooms, 'Workshop Space');
-  echo "          </td>\n";
-  echo "          <td>\n";
-  room_check($rooms, 'Food Space');
-  room_check($rooms, 'Theater');
-  room_check($rooms, 'Vendors');
-  room_check($rooms, 'Pool');
-  echo "          </td>\n";
-  echo "          <td>\n";
- 
-  echo "          </td>\n";
-  echo "          <td>\n";
-
-  echo "          </td>\n";
+  $n = 1;
+  foreach ($ROOM_LIST as $room)
+  {
+    echo "          <td>\n";
+    room_check($rooms, $room);
+    echo "          </td>\n";
+    if ( ($n % 4) == 0 )
+    {
+        echo "        </tr>\n";
+        echo "        <tr>\n";
+    }
+    $n = $n + 1;
+  }
   echo "        </tr>\n";
   echo "      </table>\n";
   echo "    </td>\n";
