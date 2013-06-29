@@ -232,11 +232,11 @@ function navbar_end() {
 function build_larps_subnavbar() {
   $larpSection = new SubNavBar("Events at <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
   if (can_show_schedule()) {
-    $larpSection->push(NavBarItem::newAction("Class Schedule", "Schedule.php"));    
+    $larpSection->push(NavBarItem::newAction("Schedule", "Schedule.php"));    
     if (user_has_priv(PRIV_CON_COM))
       $larpSection->push(NavBarItem::newAction("Schedule with Counts", "Schedule.php", SCHEDULE_WITH_COUNTS));            
   }
-  $larpSection->push(NavBarItem::newAction("List of Games", "Schedule.php", LIST_GAMES));
+  $larpSection->push(NavBarItem::newAction("List of Contributions", "Schedule.php", LIST_GAMES));
   if (IRONGM_ENABLED)
     $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
@@ -337,8 +337,8 @@ function build_attendees_subnavbar() {
   $usersSection->push(NavBarItem::newAction('How Users Heard', 'Reports.php', REPORT_HOW_HEARD));
   $usersSection->push(NavBarItem::newAction('Bio Report', 'index.php', BIO_REPORT));
 
-  if (user_has_priv(PRIV_REGISTRAR))
-    $usersSection->push(NavBarItem::newAction('Users By Age', 'Reports.php', REPORT_BY_AGE));
+  //if (user_has_priv(PRIV_REGISTRAR))
+  //  $usersSection->push(NavBarItem::newAction('Users By Age', 'Reports.php', REPORT_BY_AGE));
     
   if (user_has_priv(PRIV_STAFF))
     $usersSection->push(NavBarItem::newAction('Become User', 'index.php', SELECT_USER_TO_BECOME));

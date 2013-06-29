@@ -832,6 +832,8 @@ CREATE TABLE `Users` (
   `HashedPassword` char(32) DEFAULT NULL,
   `FirstName` char(30) NOT NULL DEFAULT '',
   `LastName` char(30) NOT NULL DEFAULT '',
+  `StageName` char(60) NOT NULL DEFAULT '',
+  `DisplayName` char(60) NOT NULL DEFAULT '',
   `Nickname` char(30) NOT NULL DEFAULT '',
   `EMail` char(64) NOT NULL DEFAULT '',
   `Age` int(11) NOT NULL DEFAULT '0',

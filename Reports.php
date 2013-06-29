@@ -123,7 +123,7 @@ html_end ($bShowCopyright);
 
 function report_how_heard()
 {
-  $sql = 'SELECT FirstName, LastName, HowHeard,Created,';
+  $sql = 'SELECT DisplayName, HowHeard,Created,';
   $sql .= 'DATE_FORMAT(Created, "%d-%b-%Y") AS CreDate';
   $sql .= ' FROM Users';
   $sql .= ' WHERE HowHeard != ""';
@@ -151,7 +151,7 @@ function report_how_heard()
     echo "  <tr valign=\"top\">\n";
     echo "    <td nowrap>&nbsp;$row->CreDate&nbsp;</td>\n";
     printf ("    <td>&nbsp;%s&nbsp;</td>\n",
-	    	    trim ("$row->LastName, $row->FirstName"));
+	    	    trim ("$row->DisplayName"));
     echo "    <td>&nbsp;$row->HowHeard&nbsp;</td>\n";
     echo "  </tr>\n";
   }

@@ -1899,7 +1899,7 @@ function select_user ($header,
 
   // Get a list of first characters
 
-  $sql = 'SELECT DISTINCT UCASE(SUBSTRING(LastName,1,1)) AS Ch';
+  $sql = 'SELECT DISTINCT UCASE(SUBSTRING(DisplayName,1,1)) AS Ch';
   $sql .= '  FROM Users';
   $sql .= "  WHERE LastName<>'Admin'";
   if ($exclude_alumni)
@@ -1923,12 +1923,12 @@ function select_user ($header,
 
   // Get a list of all users
 
-  $sql = 'SELECT UserId, FirstName, LastName, EMail, CanSignup, Priv,';
+  $sql = 'SELECT UserId, DisplayName, LastName, EMail, CanSignup, Priv,';
   $sql .= ' LastLogin, PaymentAmount';
   $sql .= '  FROM Users';
   if ($exclude_alumni)
     $sql .= ' WHERE CanSignup<>"Alumni"';
-  $sql .= '  ORDER BY LastName, FirstName';
+  $sql .= '  ORDER BY DisplayName';
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Failed to get list of users', $sql);
@@ -1972,9 +1972,9 @@ function select_user ($header,
 
     // Add spacer between names starting with different letters
 
-    if ((!empty($row->LastName{0})) && ($ch != strtoupper($row->LastName{0})))
+    if ((!empty($row->DisplayName{0})) && ($ch != strtoupper($row->DisplayName{0})))
     {
-      $ch = strtoupper ($row->LastName{0});
+      $ch = strtoupper ($row->DisplayName{0});
       echo "  <TR BGCOLOR=\"#CCCCFF\"><TD COLSPAN=4><A NAME=$ch>$ch</A></TD></TR>\n";
     }
 
@@ -1983,14 +1983,12 @@ function select_user ($header,
     echo " <TR $bgcolor>\n";
 
     if (('' == $bgcolor) || $link_highlit_users)
-      printf ("    <TD><A HREF=$href&UserId=%d>%s, %s</A></TD>\n",
+      printf ("    <TD><A HREF=$href&UserId=%d>%s</A></TD>\n",
 	      $row->UserId,
-	      $row->LastName,
-	      $row->FirstName);
+	      $row->DisplayName);
     else
-      printf ("    <TD>%s, %s</TD>\n",
-	      $row->LastName,
-	      $row->FirstName);
+      printf ("    <TD>%s</TD>\n",
+	      $row->DisplayName);
 
     echo "    <TD><A HREF=mailto:$row->EMail>$row->EMail</A></TD>\n";
 

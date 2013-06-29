@@ -154,7 +154,7 @@ define (SHIRT_TWO_SHIRTS, 1);
 define (SHIRT_NAME, CON_NAME . " Men's Polo");
 define (SHIRT_2_NAME, CON_NAME . ' Babydoll');
 
-define (BIO_DUE_DATE, "December&nbsp;25,&nbsp;2009");
+define (BIO_DUE_DATE, "January&nbsp;1,&nbsp;2013");
 
 // Locations
 define (HOTEL_NAME, "The Hyatt Regency Hotel");

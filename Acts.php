@@ -281,7 +281,7 @@ function show_bid ()
   show_section ('Submitter Information');
 
   show_text ('Submitter',
-		     $bid_row['FirstName'].' '. $bid_row['LastName']);
+ 		     $bid_row['DisplayName']);
 
 /*		     
   echo "<TD rowspan=\"5\">";
@@ -1471,14 +1471,14 @@ function display_bids_for_review ($isAct)
         break;
 
       case 'Submitter':
-	$order = 'LastName, FirstName, Title';
+	$order = 'DisplayName';
         $desc = 'Submitter';
         break;
     }
   }
 
   $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Minutes, Bids.Seconds,';
-  $sql .= ' Bids.Status, Users.EMail, Users.FirstName, Users.LastName,';
+  $sql .= ' Bids.Status, Users.EMail, Users.DisplayName,';
   $sql .= ' Bids.Organization, Bids.EventId, Bids.UserId,';
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
   $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
@@ -1565,7 +1565,7 @@ function display_bids_for_review ($isAct)
 
     if (0 != $row->UserId)
     {
-      $sql = "SELECT FirstName, LastName, EMail";
+      $sql = "SELECT DisplayName, EMail";
       $sql .= " FROM Users WHERE UserId=$row->UserId";
       $user_result = mysql_query ($sql);
       if (! $user_result)
@@ -1577,8 +1577,7 @@ function display_bids_for_review ($isAct)
 	else
 	{
 	  $user_row = mysql_fetch_object ($user_result);
-	  $row->FirstName = $user_row->FirstName;
-	  $row->LastName = $user_row->LastName;
+	  $row->DisplayName;
 	  $row->EMail = $user_row->EMail;
 	}
 
@@ -1631,10 +1630,7 @@ function display_bids_for_review ($isAct)
 
 
 
-    $name = $row->FirstName;
-    if ('' != $name)
-      $name .= ' ';
-    $name .= $row->LastName;
+    $name = $row->DisplayName;
 
     echo "  <TR ALIGN=CENTER BGCOLOR=\"$bgcolor\">\n";
 

@@ -1383,7 +1383,7 @@ function show_con_attendence()
 
 function show_user_homepage_status ()
 {
-  $sql = 'SELECT FirstName, LastName, CanSignup, CompEventId FROM Users';
+  $sql = 'SELECT DisplayName, CanSignup, CompEventId FROM Users';
   $sql .= '  WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
 
   //  echo "$sql<p>\n";
@@ -1399,7 +1399,7 @@ function show_user_homepage_status ()
 
   $row = mysql_fetch_object ($result);
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = $row->DisplayName;
   $status = $row->CanSignup;
 
   display_header ("Welcome $name");
@@ -1865,8 +1865,16 @@ function add_user ()
   else
     $sql = 'INSERT Users SET ';
 
+  if ( strlen($_POST['StageName']) > 0 )
+    $DisplayName = $_POST['StageName'];
+  else
+    $DisplayName = $_POST['FirstName']." ".$_POST['LastName'];
+
+
   $sql .= build_sql_string ('FirstName', '', FALSE);
   $sql .= build_sql_string ('LastName');
+  $sql .= build_sql_string ('StageName');
+  $sql .= build_sql_string ('DisplayName', $DisplayName);
   $sql .= build_sql_string ('Nickname');
   $sql .= build_sql_string ('EMail');
   $sql .= build_sql_string ('BirthYear');
@@ -2063,11 +2071,11 @@ function display_user_form ($returning_alumni, $errors='')
     display_header ($text);
   }
 
-  echo "<p>Your contact information will be made available to Intercon\n";
-  echo "staff and the GMs of the games you signup for.  Supplying the\n";
+  echo "<p>Your contact information will be made available to GBE\n";
+  echo "staff and the stage managers of any shows you are a part of.  Supplying the\n";
   echo "contact information is optional.  If you have concerns about\n";
   echo "sharing this information, please do not enter it.  But if you do\n";
-  echo "not provide it, GMs may not be able to send you game-related\n";
+  echo "not provide it, GBE staff may not be able to send you Expo-related\n";
   echo "materials.</p>\n";
 
   print ("<form method=\"post\" action=\"index.php\">\n");
@@ -2090,9 +2098,10 @@ function display_user_form ($returning_alumni, $errors='')
 
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
+  form_text (64, 'Stage Name', 'StageName', 0);
   form_text (64, 'EMail', '', 0, TRUE);
-  form_text (30, 'Nickname');
-  form_birth_year_and_gender ('BirthYear', 'Gender');
+//  form_text (30, 'Nickname');
+//  form_birth_year_and_gender ('BirthYear', 'Gender');
   form_text (64, 'Address', 'Address1');
   form_text (64, '', 'Address2');
   form_text (64, 'City');
@@ -2252,8 +2261,8 @@ function display_user_form_for_others ()
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
   form_text (64, 'EMail', '', 0, TRUE);
-  form_text (30, 'Nickname');
-  form_birth_year_and_gender ('BirthYear', 'Gender');
+  form_text (64, 'Stage Name', 'StageName',0);
+  //form_birth_year_and_gender ('BirthYear', 'Gender');
   form_text (64, 'Address', 'Address1');
   form_text (64, '', 'Address2');
   form_text (64, 'City');
@@ -2544,9 +2553,16 @@ function process_edit_user ()
   }
 
   //  echo "Priv: $Priv<P>\n";
+  if ( strlen($_REQUEST['StageName']) > 0 )
+    $DisplayName = $_REQUEST['StageName'];
+  else
+    $DisplayName = $_REQUEST['FirstName']." ".$_REQUEST['LastName'];
+
 
   $sql .= build_sql_string ('FirstName', '', FALSE);
   $sql .= build_sql_string ('LastName');
+  $sql .= build_sql_string ('StageName');
+  $sql .= build_sql_string ('DisplayName',$DisplayName);
   $sql .= build_sql_string ('Nickname');
   $sql .= build_sql_string ('EMail');
   $sql .= build_sql_string ('BirthYear');
@@ -2620,7 +2636,8 @@ function display_user_information ($user_id)
   print ("<TABLE BORDER=0>\n");
   display_text_info ('First Name', $row->FirstName);
   display_text_info ('Last Name', $row->LastName);
-  display_text_info ('Nickname', $row->Nickname);
+  display_text_info ('Stage Name', $row->StageName);
+//  display_text_info ('Nickname', $row->Nickname);
   display_text_info ('Age', birth_year_to_age ($row->BirthYear));
   display_text_info ('Gender', $row->Gender);
   $address = $row->Address1;
@@ -3036,7 +3053,7 @@ function display_comped_users ()
   if (! user_has_priv (PRIV_CON_COM))
     return display_access_error ();
 
-  $sql = "SELECT Users.FirstName, Users.LastName, Users.CompEventId,";
+  $sql = "SELECT Users.FirstName, Users.LastName, Users.StageName, Users.CompEventId,";
   $sql .= "  Events.Title";
   $sql .= "  FROM Users, Events";
   $sql .= "  WHERE Users.CompEventId<>0";
@@ -3064,12 +3081,12 @@ function display_comped_users ()
 	$titles[$row->CompEventId] = $row->Title;
       }
 
-      echo "<BR>&nbsp;&nbsp;&nbsp;&nbsp;$row->LastName, $row->FirstName\n";
+      echo "<BR>&nbsp;&nbsp;&nbsp;&nbsp;$row->LastName, $row->FirstName -- $row->StageName\n";
     }
   }
   echo "<P>\n";
 
-  $sql = "SELECT FirstName, LastName, CompEventId";
+  $sql = "SELECT FirstName, LastName, StageName, CompEventId";
   $sql .= "  FROM Users";
   $sql .= "  WHERE CanSignup='Comp'";
   $sql .= "  ORDER BY LastName, FirstName";
@@ -3084,11 +3101,13 @@ function display_comped_users ()
   if (0 != $n)
   {
     echo "<TABLE BORDER=1 CELLPADDING=2>\n";
+    echo "<TR><TH>Stage Name</TH><TH>Last, First</TH><TH>Comp Description</TH></TR>\n";
     while ($row = mysql_fetch_object ($result))
     {
       $game = $titles[$row->CompEventId];
 
       echo "  <TR>\n";
+      echo "    <TD>$row->StageName</TD>\n";
       echo "    <TD>$row->LastName, $row->FirstName</TD>\n";
       echo "    <TD>$game</TD>\n";
       echo "  </TR>\n";
@@ -3201,14 +3220,10 @@ function show_gm_games ($UserId, $name)
 
   $num = mysql_num_rows ($result);
 
-  if (1 == $num)
-    $games = 'game';
-  else
-    $games = 'games';
 
   if ($num > 0)
   {
-    echo "<B>$name is GMing $num $games:</B><BR>\n";
+    echo "<B>$name is a part of $num shows, classes & panels:</B><BR>\n";
     echo "<TABLE>\n";
     while ($row = mysql_fetch_object ($result))
     {
@@ -3670,13 +3685,7 @@ function view_user ()
 
   $PaymentAmount = $row['PaymentAmount']/100;
 
-  if ('' == $row['Nickname'])
-    $name = trim ($row['FirstName'] . ' ' .  $row['LastName']);
-  else
-    $name = sprintf ('%s "%s" %s',
-		     $row['FirstName'],
-		     $row['Nickname'],
-		     $row['LastName']);
+  $name = $row['DisplayName'];
 
   display_header ($name);
 
@@ -3685,11 +3694,11 @@ function view_user ()
   display_array_info ($row, 'EMail');
   echo "  <tr valign=\"top\">\n";
   echo "    <td align=\"right\"><b>Age:</b></td>\n";
-  printf ("    <td align=\"left\">%d</td>\n",
-	  birth_year_to_age($row['BirthYear']));
+  //printf ("    <td align=\"left\">%d</td>\n",
+  //	  birth_year_to_age($row['BirthYear']));
   echo "  </tr>\n";
   //  display_array_info ($row, birth_year_to_age($row->BirthYear), 'Age');
-  display_array_info ($row, 'Gender');
+  //display_array_info ($row, 'Gender');
   display_array_info ($row, 'Address', 'Address1');
   display_array_info ($row, '', 'Address2', true);
   display_array_info ($row, 'City');
@@ -3922,6 +3931,8 @@ function edit_bio ()
     }
   }
 
+  
+
   echo '<H1>Bio for ' . $_SESSION[SESSION_LOGIN_USER_NAME] . "</H1>\n";
 
   echo "<FORM METHOD=POST ACTION=index.php>\n";
@@ -3939,8 +3950,8 @@ function edit_bio ()
   echo "formatting in your bio may be modified to match the format of the\n";
   echo "program booklet.  In addition, your bio in the program booklet\n";
   echo "may be edited to fit in the space available.<P>\n";
-  echo "<INPUT TYPE=CHECKBOX NAME=ShowNickname $show_nickname_checked VALUE=1>\n";
-  echo "Show Nickname (if any) in Bio<P>\n";
+  echo "Stage Names will be used if available.  If your stage names is not in your ";
+  echo "profile, your first and last name will be used.\n";
 
   // Gather the list of games the user is the GM for
 
@@ -3948,7 +3959,7 @@ function edit_bio ()
   {
     echo "<TABLE>\n";
     echo "  <TR VALIGN=TOP>\n";
-    echo "    <TD>GM for:</TD>\n";
+    echo "    <TD>Presenter for:</TD>\n";
     echo "    <TD>\n";
 
     $sql = 'SELECT Events.Title FROM Events, GMs';
@@ -4066,7 +4077,7 @@ function bio_report ()
 
   // Start by gathering the list of GMs
 
-  $sql = 'SELECT DISTINCT Users.UserId, Users.FirstName, Users.LastName,';
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName, ';
   $sql .= ' Users.EMail';
   $sql .= ' FROM GMs, Users';
   $sql .= ' WHERE Users.UserId=GMs.UserId';
@@ -4077,12 +4088,12 @@ function bio_report ()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $bio_users[$row->UserId] = "$row->LastName, $row->FirstName|$row->EMail";
+    $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
   // Now add the con staff.  Don't forget to skip Admin (UserId==1)
 
-  $sql = 'SELECT UserId, FirstName, LastName, EMail';
+  $sql = 'SELECT UserId, DisplayName, EMail';
   $sql .= ' FROM Users';
   $sql .= ' WHERE ""<>Priv';
 
@@ -4093,7 +4104,7 @@ function bio_report ()
   while ($row = mysql_fetch_object ($result))
   {
     if (1 != $row->UserId)
-      $bio_users[$row->UserId] = "$row->LastName, $row->FirstName|$row->EMail";
+      $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
   // Sort the array BY THE VALUE (as opposed to the key)

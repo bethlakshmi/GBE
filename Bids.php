@@ -351,7 +351,7 @@ function show_bid ()
 
   show_section ('Submitter Information');
   show_text ('Submitter',
-		     $bid_row['FirstName'].' '. $bid_row['LastName']);
+		     $bid_row['DisplayName']);
   $text = $bid_row['Address1'];
   if ('' != $bid_row['Address2'])
     $text .= '<BR>' . $bid_row['Address2'];
@@ -1538,14 +1538,14 @@ function display_bids_for_review ()
         break;
 
       case 'Submitter':
-	$order = 'LastName, FirstName, Title';
+	$order = 'DisplayName';
         $desc = 'Submitter';
         break;
     }
   }
 
   $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Status,';
-  $sql .= ' Users.EMail, Users.FirstName, Users.LastName,';
+  $sql .= ' Users.EMail, Users.DisplayName,';
   $sql .= ' Bids.Organization, Bids.EventId, Bids.UserId,';
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
   $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
@@ -1638,7 +1638,7 @@ function display_bids_for_review ()
 
     if (0 != $row->UserId)
     {
-      $sql = "SELECT FirstName, LastName, EMail";
+      $sql = "SELECT DisplayName, EMail";
       $sql .= " FROM Users WHERE UserId=$row->UserId";
       $user_result = mysql_query ($sql);
       if (! $user_result)
@@ -1650,8 +1650,7 @@ function display_bids_for_review ()
 	else
 	{
 	  $user_row = mysql_fetch_object ($user_result);
-	  $row->FirstName = $user_row->FirstName;
-	  $row->LastName = $user_row->LastName;
+	  $row->DisplayName = $user_row->DisplayName;
 	  $row->EMail = $user_row->EMail;
 	}
 
@@ -1702,11 +1701,8 @@ function display_bids_for_review ()
 	}
 	mysql_free_result ($btresult);
 
-    $name = $row->FirstName;
-    if ('' != $name)
-      $name .= ' ';
-    $name .= $row->LastName;
-
+    $name = $row->DisplayName;
+ 
     echo "  <TR ALIGN=CENTER BGCOLOR=\"$bgcolor\">\n";
 
     // If the status is "Pending" then folks with BidCom priv can know that
