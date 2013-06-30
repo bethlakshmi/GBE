@@ -692,7 +692,7 @@ function display_special_event($row, $dimensions, $bgcolor) {
     $text = $row->Title;
   }
   if ('' != $row->Rooms)
-    $text .= '<p>' . pretty_rooms($row->Rooms) . "\n";
+    $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
   
 
   echo "<div style=\"".$dimensions->getCSS()."\">";
@@ -925,7 +925,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
   
   // this controls how tall the table is - increasing/decreasing multiplier
   //   increases/decreases row height, but messes up other stuff
-  $full_height = ($mainBlock->getHours() * 2) . "em";
+  $full_height = ($mainBlock->getHours() * 3) . "em";
 
   $events_width = ($mainBlock->maxColumns / $maxColumns) * 100 . "%";
   $volunteer_width = ($volunteerBlock->maxColumns / $maxColumns) * 100 . "%";
