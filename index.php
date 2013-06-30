@@ -3906,12 +3906,10 @@ function select_user_by_date ($header,
 function edit_bio ()
 {
   // If this is the first time in, try to read any existing information
-
   if (! array_key_exists ('BioId', $_POST))
   {
-    $sql = 'SELECT * FROM Bios, Users';
+    $sql = 'SELECT * FROM Bios';
     $sql .= ' WHERE Bios.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-    $sql .= ' or Users.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ('Query for bio failed');
@@ -3925,9 +3923,6 @@ function edit_bio ()
       $_POST['ShowNickname'] = $row->ShowNickname;
       $_POST['Website'] = $row->Website;
       $_POST['PhotoSource'] = $row->PhotoSource;
-      $_POST['DisplayName'] = $row->DisplayName;
-      $_POST['PhotoSource'] = $row->PhotoSource;
-
     }
     else
     {
@@ -3937,14 +3932,19 @@ function edit_bio ()
       $_POST['ShowNickname'] = 1;
       $_POST['Website'] = '';
       $_POST['PhotoSource'] = '';
-      $_POST['DisplayName'] = '';
-      $_POST['PhotoSource'] = '';
     }
   }
 
-  
+    $sql = 'SELECT DisplayName FROM Users';
+    $sql .= ' WHERE Users.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ('Query for bio failed');
 
-  echo '<H1>Bio for ' . $_POST['DisplayName'] . "</H1>\n";
+    $row = mysql_fetch_object ($result);
+
+
+  echo '<H1>Bio for ' . $row->DisplayName . "</H1>\n";
 
 
   if ($_POST['ShowNickname'])

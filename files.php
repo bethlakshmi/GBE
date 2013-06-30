@@ -85,7 +85,7 @@ function process_file($name, $format, $destname, $required=FALSE)
     // It doesn't matter if it exists, over write it
     if(move_uploaded_file($_FILES[$name]["tmp_name"], $path)) 
     {
-      echo "The file ".  $path . " has been uploaded";
+      echo "<!--The file has been uploaded-->";
     } else {
       echo "There was an error uploading the file, please try again!";
     }  
