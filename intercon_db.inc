@@ -1597,6 +1597,19 @@ function start_hour_to_24_hour ($t)
 {
   return sprintf ('%02d:00', $t % 24);
 }
+/*
+ * start_hour_to_12_hour
+ *
+ * Start hours go from 8 to 31, which correspond to 08:00 to 07:00 'that night'
+ */
+
+function start_hour_to_12_hour ($t)
+{
+  $time = $t % 12;
+  if ($time == 0) 
+    $time = 12;
+  return sprintf ('%2d:00', $time);
+}
 
 function validate_int ($key, $min, $max, $display=0)
 {

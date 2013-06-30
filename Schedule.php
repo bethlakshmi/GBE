@@ -558,8 +558,9 @@ function display_event ($hour, $away_all_day, $away_hours,
   if ('' != $row->ScheduleNote)
     $text .= "<P>$row->ScheduleNote";
   if ('' != $row->Rooms)
-    $text .= '<p>' . pretty_rooms($row->Rooms) . "\n";
+    $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
 
+  /*
   if ($game_full)
     $text .= '<P><I>Full</I>';
   else
@@ -603,6 +604,7 @@ function display_event ($hour, $away_all_day, $away_hours,
       $text .= "<br>RunId: $row->RunId";
     }
   }
+  */
   
   echo "<div style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
@@ -921,27 +923,29 @@ function schedule_day ($day, $away_all_day, $away_hours,
   $away_width .= "px";
   $totals_width .= "px";
   
-  $full_height = ($mainBlock->getHours() * 9) . "em";
+  // this controls how tall the table is - increasing/decreasing multiplier
+  //   increases/decreases row height, but messes up other stuff
+  $full_height = ($mainBlock->getHours() * 2) . "em";
 
   $events_width = ($mainBlock->maxColumns / $maxColumns) * 100 . "%";
   $volunteer_width = ($volunteerBlock->maxColumns / $maxColumns) * 100 . "%";
   
   // main wrapper for the whole schedule
-  echo "<div style=\"position: relative; border: 1px black solid; min-width: $full_width;\">";
+  echo "<div style=\"position: relative; border: 1px black solid; min-width: $full_width;\">\n";
   
   // left column: times
-  echo "<div style=\"position: relative; width: $time_width; float: left;\">";
-  echo "<div style=\"width: 100%; height: 30px;\">";
-  write_centering_table("<b>Time</b>");
-  echo "</div>";
+  echo "<div style=\"position: relative; width: $time_width; float: left;\">\n";
+  echo "<div style=\"width: 100%; height: 30px;\">\n";
+  write_centering_table("<b>Time</b>\n");
+  echo "</div>\n";
   
-  echo "<div style=\"position: relative; width: 100%; height: $full_height;\">";
+  echo "<div style=\"position: relative; width: 100%; height: $full_height;\">\n";
   for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
 	echo "<div style=\"position: absolute; ";
 	echo "width: 100%; left: 0%; ";
 	echo "top: " . ((($hour - $blockStart) / $mainBlock->getHours()) * 100.0) . "%; ";
 	echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
-	echo "\">";
+	echo "\">\n";
 	
 	write_24_hour($hour);
 	

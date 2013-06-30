@@ -27,9 +27,9 @@ function write_hour ($tHour)
 
 function write_24_hour ($hour)
 {
-  $hour_start = start_hour_to_24_hour ($hour);
-  $hour_end = start_hour_to_24_hour ($hour + 1);
-  $txt = "<b>" . $hour_start . '<BR>--<BR>' . $hour_end . "</b>";
+  $hour_start = start_hour_to_12_hour ($hour);
+  $hour_end = start_hour_to_12_hour ($hour + 1);
+  $txt = "<b>" . $hour_start . "</b>";
   write_centering_table($txt);
 }
 
