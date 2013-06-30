@@ -195,9 +195,6 @@ define(SMTP_HOST, "smtp.gmail.com");
 define(SMTP_USERNAME, "web@" . CON_DOMAIN);
 define(SMTP_PASSWORD, "");
 
-// basic storage location for files 
-define (FILE_UPLOAD_LOC, "/Applications/MAMP/uploads/");
-define (FILE_DISPLAY_LOC, "/media/");
 
 
 //Look and feel items
