@@ -410,7 +410,7 @@ function build_about_subnavbar() {
   $aboutSection->push(NavBarItem::newAction("Contacts", "Contacts.php"));
   $aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
   $aboutSection->push(NavBarItem::newAction("Who's Who", "index.php", WHO_IS_WHO));
-  $aboutSection->push(NavBarItem::newStatic("Volunteering", "volunteering"));
+  //$aboutSection->push(NavBarItem::newStatic("Volunteering", "volunteering"));
   $aboutSection->push(NavBarItem::newAction("ConCom Schedule", "ConComSchedule.php"));
   if (NAV_SHOW_FLYER)
     $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).' Flyer', 'InterconFlyer.pdf'));
