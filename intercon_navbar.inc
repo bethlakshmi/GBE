@@ -432,7 +432,7 @@ function build_participation_subnavbar() {
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Sell my Stuff", "https://burlesqueexpo.wufoo.com/forms/2013-vendor-application-form/"));
-  $aboutSection->push(NavBarItem::newStatic("Reserve a Hotel Room", "hotel"));
+  $aboutSection->push(NavBarItem::newExternal("Reserve a Hotel Room", "https://resweb.passkey.com/Resweb.do?mode=welcome_ei_new&eventID=9655879"));
   $aboutSection->push(NavBarItem::newStatic("Buy Tickets", "comingsoon"));
   
   return $aboutSection;
