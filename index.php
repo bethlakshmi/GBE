@@ -1,5 +1,6 @@
 <?php
 include ("intercon_db.inc");
+include ("files.php");
 
 // Connect to the database
 
@@ -3908,8 +3909,9 @@ function edit_bio ()
 
   if (! array_key_exists ('BioId', $_POST))
   {
-    $sql = 'SELECT * FROM Bios';
-    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql = 'SELECT * FROM Bios, Users';
+    $sql .= ' WHERE Bios.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' or Users.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ('Query for bio failed');
@@ -3921,6 +3923,11 @@ function edit_bio ()
       $_POST['BioText'] = $row->BioText;
       $_POST['Title'] = $row->Title;
       $_POST['ShowNickname'] = $row->ShowNickname;
+      $_POST['Website'] = $row->Website;
+      $_POST['PhotoSource'] = $row->PhotoSource;
+      $_POST['DisplayName'] = $row->DisplayName;
+      $_POST['PhotoSource'] = $row->PhotoSource;
+
     }
     else
     {
@@ -3928,16 +3935,17 @@ function edit_bio ()
       $_POST['BioText'] = '';
       $_POST['Title'] = '';
       $_POST['ShowNickname'] = 1;
+      $_POST['Website'] = '';
+      $_POST['PhotoSource'] = '';
+      $_POST['DisplayName'] = '';
+      $_POST['PhotoSource'] = '';
     }
   }
 
   
 
-  echo '<H1>Bio for ' . $_SESSION[SESSION_LOGIN_USER_NAME] . "</H1>\n";
+  echo '<H1>Bio for ' . $_POST['DisplayName'] . "</H1>\n";
 
-  echo "<FORM METHOD=POST ACTION=index.php>\n";
-  printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", UPDATE_BIO);
-  printf ("<INPUT TYPE=HIDDEN NAME=BioId VALUE=%d>\n", $_POST['BioId']);
 
   if ($_POST['ShowNickname'])
     $show_nickname_checked = 'CHECKED';
@@ -3951,9 +3959,8 @@ function edit_bio ()
   echo "program booklet.  In addition, your bio in the program booklet\n";
   echo "may be edited to fit in the space available.<P>\n";
   echo "Stage Names will be used if available.  If your stage names is not in your ";
-  echo "profile, your first and last name will be used.\n";
+  echo "profile, your first and last name will be used.\n<br><br>";
 
-  // Gather the list of games the user is the GM for
 
   if (user_is_gm ())
   {
@@ -3981,6 +3988,12 @@ function edit_bio ()
     echo "</TABLE>\n";
   }
 
+  // Gather the list of games the user is the GM for
+  echo "<FORM METHOD=POST ACTION=index.php enctype=\"multipart/form-data\">\n";
+  printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", UPDATE_BIO);
+  printf ("<INPUT TYPE=HIDDEN NAME=BioId VALUE=%d>\n", $_POST['BioId']);
+  form_hidden_value ('OrigPhoto', $_POST["PhotoSource"]);
+
   if (',,' == $_SESSION[SESSION_LOGIN_USER_PRIVS])
     echo "<INPUT TYPE=HIDDEN NAME=Title VALUE=\"\">\n";
   else
@@ -3998,30 +4011,29 @@ function edit_bio ()
 	echo $privs[$i];
       }
     }
-
-    echo "\n<P>\nTitle(s):&nbsp;";
-    if (1 == get_magic_quotes_gpc())
-      $text = stripslashes ($_POST['Title']);
-    else
-      $text = $_POST['Title'];
-    printf ("<INPUT TYPE=TEXT NAME=Title SIZE=80 MAXLENGTH=256 VALUE=\"%s\"><P>\n",
-	    htmlspecialchars ($text));
+	    
   }
     
+  echo "<p><font color=red>*</font> indicates a required field\n<br><br>";
+  echo "<TABLE BORDER=0>\n";
 
-  echo "Biography.  Your bio should use HTML tags for formatting.  A quick\n";
-  echo "primer on a couple of useful HTML tags is available\n";
-  echo "<A HREF=HtmlPrimer.html TARGET=_blank>here</A>.<BR>\n";
+  if (',,' != $_SESSION[SESSION_LOGIN_USER_PRIVS])
+    form_text (64, 'Title', 'Title', 128, FALSE);
 
-  if (1 == get_magic_quotes_gpc())
-    $text = stripslashes ($_POST['BioText']);
-  else
-    $text = $_POST['BioText'];
+  $text = "Biography.  Your bio can use HTML tags for formatting.  A quick\n";
+  $text .= "primer on a couple of useful HTML tags is available\n";
+  $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>here</A>.<BR>\n";
 
-  echo "<TEXTAREA NAME=BioText COLS=80 ROWS=20 WRAP=PHYSICAL>$text</TEXTAREA>\n";
+  form_textarea ($text, 'BioText', 15);
+  form_text (64, 'Website', 'Website', 128, FALSE);
+  form_upload("Photo:","photo_upload", FALSE, TRUE);
+  display_media( $_POST["PhotoSource"]);
+  echo "</TABLE>\n";
+      
+
   echo "<CENTER><INPUT TYPE=SUBMIT VALUE=\"Submit\"></CENTER>\n";
   echo "</FORM>\n";
-  
+
   return true;
 }
 
@@ -4039,6 +4051,19 @@ function update_bio ()
     $ShowNickname = intval ($_POST['ShowNickname']);
   else
     $ShowNickname = 0;
+  $file = "photo_upload";
+  $path = "";
+
+  if (validate_file($file))
+  {
+    $path = process_file($file, "picture", "User-".$_SESSION[SESSION_LOGIN_USER_ID] );
+    if ( strpos($path,FILE_UPLOAD_LOC) === FALSE )
+    {
+      return display_error ("Error_uploading the photo file.");
+    }
+  }
+  else 
+    $path = $_POST["OrigPhoto"];
 
   if (0 == $BioId)
   {
@@ -4046,6 +4071,9 @@ function update_bio ()
     $sql .= build_sql_string ('BioText', '', true, true);
     $sql .= build_sql_string ('Title');
     $sql .= build_sql_string ('ShowNickname', $ShowNickname);
+    $sql .= build_sql_string ('Website');
+    $sql .= ', PhotoSource="'.$path.'"';
+
   }
   else
   {
@@ -4053,6 +4081,8 @@ function update_bio ()
     $sql .= build_sql_string ('BioText', '', false, true);
     $sql .= build_sql_string ('Title');
     $sql .= build_sql_string ('ShowNickname', $ShowNickname);
+    $sql .= build_sql_string ('Website');
+    $sql .= ', PhotoSource="'.$path.'"';
     $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
   }
 

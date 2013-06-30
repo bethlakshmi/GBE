@@ -18,7 +18,7 @@ $FILE_SIZES["video"]= 52228800;
  *
  */
 
-function form_upload ($display, $name, $required=FALSE)
+function form_upload ($display, $name, $required=FALSE,$twoCol=FALSE)
 {    
   if ($required)
     $req_prefix = '<font color="red">*</font>&nbsp;';
@@ -26,8 +26,13 @@ function form_upload ($display, $name, $required=FALSE)
     $req_prefix = '';
 
     echo "  <TR>\n";
-    echo "    <TD COLSPAN=2><br><br>\n";
+    if ($twoCol)
+      echo "    <TD align=right>";
+    else
+      echo "    <TD COLSPAN=2><br><br>\n";
     echo "      {$req_prefix}{$display}";
+    if ($twoCol)
+      echo "    </TD><TD>\n";
     echo "		<input type=\"file\" name=\"{$name}\"/>";
     echo "    </TD>\n";
     echo "  </TR>\n";
@@ -110,5 +115,45 @@ function validate_file ($name)
 {
   
   return $_FILES[$name]["size"] != 0;
+}
+
+
+/**
+ * display_media
+ */
+
+function display_media ($photo, $video=NULL, $pre="")
+{
+ 
+  echo "  <TR valign=TOP>\n";
+  echo "    <TD align=right>\n";
+  if ( $video != NULL && strlen($video) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $video);
+    echo "<b>{$pre} Video:</b><br>";
+    echo "<a href=\"{$path}\">";
+    echo "Click to watch video";
+    echo "</a>";
+  }
+  else 
+    echo "&nbsp;";
+
+  echo "    </TD>\n";
+  echo "    <TD align=left>\n";
+
+
+  if ( $photo != NULL && strlen($photo) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
+    echo "<b>{$pre} Photo:</b>&nbsp;&nbsp;";
+    echo "<a href=\"{$path}\">";
+    echo "<img src=\"{$path}\" alt=\"Photo for Act\" height=300>";
+    echo "</a>";
+  }
+  else 
+    echo "&nbsp;";
+  
+  echo "    </TD>\n";
+  echo "  </TR>\n";
 }
 

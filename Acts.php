@@ -370,7 +370,7 @@ function show_bid ()
   show_text ('Description', $bid_row['Description']);
   show_text ('Short Blurb', $bid_row['ShortBlurb']);
   show_text ('Video of', $bid_row['VideoOf']);
-  display_media($bid_row['VideoSource'], $bid_row['PhotoSource']);
+  display_media($bid_row['PhotoSource'], $bid_row['VideoSource']);
   
   show_section("Participation");
   foreach ($PARTICIPATION as $item)
@@ -390,44 +390,6 @@ function show_bid ()
   echo "<P>\n";
 }
 
-/**
- * display_media
- */
-
-function display_media ($video, $photo, $pre="")
-{
-
-  echo "  <TR valign=TOP>\n";
-  echo "    <TD align=right>\n";
-  if ( $video != NULL && strlen($video) > 0 )
-  {
-    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $video);
-    echo "<b>{$pre} Video:</b><br>";
-    echo "<a href=\"{$path}\">";
-    echo "Click to watch video";
-    echo "</a>";
-  }
-  else 
-    echo "Video not available";
-
-  echo "    </TD>\n";
-  echo "    <TD align=left>\n";
-
-
-  if ( $photo != NULL && strlen($photo) > 0 )
-  {
-    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
-    echo "<b>{$pre} Photo:</b>&nbsp;&nbsp;";
-    echo "<a href=\"{$path}\">";
-    echo "<img src=\"{$path}\" alt=\"Photo for Act\" height=300>";
-    echo "</a>";
-  }
-  else 
-    echo "Photo not available";
-  
-  echo "    </TD>\n";
-  echo "  </TR>\n";
-}
 
 /**
  * display_choose_form
@@ -828,7 +790,7 @@ function display_bid_form ($first_try)
     form_upload("Please_upload a photograph of yourself","photo_upload",TRUE);
 
     if (isset($_POST["VideoSource"]) && isset($_POST["PhotoSource"]))
-      display_media($_POST["VideoSource"], $_POST["PhotoSource"], "Current");
+      display_media($_POST["PhotoSource"], $_POST["VideoSource"], "Current");
 
     form_hidden_value ('MinPlayersMale', 0);            
     form_hidden_value ('MaxPlayersMale', 0);            

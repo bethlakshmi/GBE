@@ -322,6 +322,8 @@ CREATE TABLE `Bios` (
   `Title` text NOT NULL,
   `ShowNickname` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Website` VARCHAR( 128 ) NULL,
+  `PhotoSource` VARCHAR( 128 ) NULL,
   PRIMARY KEY (`BioId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
