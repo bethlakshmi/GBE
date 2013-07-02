@@ -470,14 +470,14 @@ function show_away_schedule_form ()
   if ($logged_in)
   {
     echo "    <TD" . get_bgcolor ('Confirmed') . ">$spaces</TD>\n";
-    echo "    <TD>Scheduled for Game$spaces</TD>\n";
+    echo "    <TD>Scheduled for the event</TD>\n";
     echo "    <TD" . get_bgcolor ('Waitlisted') . ">$spaces</TD>\n";
-    echo "    <TD>Waitlisted for Game$spaces</TD>\n";
+    echo "    <TD>Waitlisted for the event</TD>\n";
   }
   echo "    <TD" . get_bgcolor ('Full') . ">$spaces</TD>\n";
-  echo "    <TD>Game Full$spaces</TD>\n";
+  echo "    <TD>Opportunity is full</TD>\n";
   echo "    <TD" . get_bgcolor ('CanPlayConcurrently') . ">$spaces</TD>\n";
-  echo "    <TD>Can Play At Same Time As Other Games</TD>\n";
+  echo "    <TD>Does not require a schedule commitment</TD>\n";
   if ($logged_in)
   {
     echo "    <TD" . get_bgcolor ('Away') . ">$spaces</TD>\n";
@@ -490,16 +490,16 @@ function show_away_schedule_form ()
 
   if ($logged_in)
   {
-    echo "<A NAME=Away><H2>Time Away from the Convention</H2></A>\n";
+    echo "<A NAME=Away><H2>Time Away from the ".CON_NAME."</H2></A>\n";
     echo "Please let us know when you'll be away from the convention.  This\n";
-    echo "will help us plan the events.<P>\n";
+    echo "will help us plan the schedule.<P>\n";
     echo "You can specify that you'll be away for the entire day by simply\n";
     echo "marking the checkbox after the day and date.  Or you can specify\n";
     echo "individual hours by marking the checkboxes next to the time.<p>\n";
-    echo "Note that if you're signed up or waitlisted for a game, you cannot\n";
+    echo "Note that on a day you are teaching, presenting, performing, or volunteering, you cannot\n";
     echo "specify you'll be away for that period or that entire day.<p>\n";
-    echo "Similarly, if you've specified that you'll be away from the Con,\n";
-    echo "you cannot signup for a game.";
+    echo "Similarly, if you've specified that you'll be away from the Expo,\n";
+    echo "you cannot signup for any schedule item.";
   }
 }
 
@@ -529,7 +529,8 @@ function display_event ($hour, $away_all_day, $away_hours,
     $away_for_game = ('CHECKED' == $away_all_day);
     if (! $away_for_game)
     {
-      for ($h = $row->StartHour; $h < $hour + $row->Hours; $h++)
+
+      for ($h = $row->StartHour; $h < $row->StartHour + $row->Hours; $h++)
       {
 	if ('CHECKED' == $away_hours[$h])
 	{
@@ -541,6 +542,7 @@ function display_event ($hour, $away_all_day, $away_hours,
 
     if ($away_for_game)
       $bgcolor = get_bgcolor_hex ('Away');
+      
     elseif ('Y' == $row->CanPlayConcurrently)
       $bgcolor = get_bgcolor_hex ('CanPlayConcurrently');
   }

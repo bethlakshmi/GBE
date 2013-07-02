@@ -306,13 +306,15 @@ define (LIST_BY_TIME, 2);
 define (MAX_TRACKS, 15);
 
 // Minimum and maximum times for con days
-
+// if these need to be bigger than FRI - 12-31, SAT 8-31, SUN 8-31 
+// Sun > 16 needs a db reload
+// then the schema needs to be updated.
 define (FRI_MIN, 12);    // 12 noon
 define (FRI_MAX, 24);    // 7AM
-define (SAT_MIN, 7);     // 8AM
+define (SAT_MIN, 8);     // 8AM
 define (SAT_MAX, 24);    // 7AM
-define (SUN_MIN, 7);     // 8AM
-define (SUN_MAX, 24);    // 4PM
+define (SUN_MIN, 8);     // 8AM
+define (SUN_MAX, 16);    // 4PM
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
 define (SESSION_LOGIN_USER_TEACHER, 'LoginUserTeach_' . CON_ID);
