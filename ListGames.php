@@ -5,6 +5,12 @@ define (LIST_BY_TIME, 3);
 
 include ("intercon_db.inc");
 
+global $LIST_GAME_TEXT;
+$LIST_GAME_TEXT = "\n";
+$LIST_GAME_TEXT .= "Click on a title to schedule a new run.<br>\n";
+$LIST_GAME_TEXT .= "Click on a start time to edit or delete an existing run.<br><br>\n";
+$LIST_GAME_TEXT .= "\n";
+
 // Connect to the database -- Really should require staff privilege
 
 if (! intercon_db_connect ())
@@ -38,7 +44,7 @@ switch ($action)
    break;
 
  case LIST_GAMES_BY_TIME:
-   list_games (LIST_BY_TIME);
+   list_games (LIST_BY_TIME, FALSE);
    break;
 
  case ADD_RUN:
@@ -62,16 +68,24 @@ switch ($action)
  case EDIT_RUN:
    add_run_form (true);
    break;
+   
+
+ case LIST_OPS:
+   add_ops (LIST_BY_GAME);
+   break;
+
+ case LIST_OPS_BY_TIME:
+   add_ops (LIST_BY_TIME);
+   break;
 
  case LIST_ADD_OPS:
    add_ops();
    break;
+
+ case PROCESS_ADD_OPS:
+   process_add_ops ();
+   break;
  
- // this is just crazy.  We don't need a con suite - this option automatically adds
- // an ongoing consuite for all open hours.
- //case LIST_ADD_CONSUITE:
- //  add_consuite();
- //  break;
 
  default:
    echo "Unknown action code: $action\n";
@@ -85,7 +99,7 @@ html_end();
  * List the games by the list type
  */
 
-function list_games ($type = 0)
+function list_games ($type = 0, $showOps=FALSE)
 {
   if (0 == $type)
     $type = $_SESSION['ListType'];
@@ -98,15 +112,15 @@ function list_games ($type = 0)
   switch ($type)
   {
     case LIST_BY_GAME:
-      return list_games_alphabetically ();
+      return list_games_alphabetically ($showOps);
       break;
 
     case LIST_BY_RUNID:
-      return list_games_by ($type);
+      return list_games_by ($type,$showOps);
       break;
 
     case LIST_BY_TIME:
-      return list_games_by ($type);
+      return list_games_by ($type,$showOps);
       break;
 
     default:
@@ -119,13 +133,17 @@ function list_games ($type = 0)
 /*
  * list_games_alphabetically
  *
- * List the games in the database alphabetically by game title
+ * List the games in the database alphabetically by title
  */
 
-function list_games_alphabetically ()
+function list_games_alphabetically ($showOps=FALSE)
 {
   $sql = 'SELECT EventId, Title, Hours FROM Events';
   $sql .= ' WHERE SpecialEvent=0';
+  if ($showOps)
+    $sql .= ' AND IsOps = \'Y\'';
+  else
+    $sql .= ' AND IsOps = \'N\'';  
   $sql .= ' ORDER BY Title';
 
   $game_result = mysql_query ($sql);
@@ -135,16 +153,22 @@ function list_games_alphabetically ()
   if (0 == mysql_num_rows ($game_result))
     return display_error ('No games in database');
 
-  echo "<b>\n";
-  echo "Click on a game title to add a run.<br>\n";
-  echo "Click on a start time to edit or delete a run.<p>\n";
-  echo "</b>\n";
+  global $LIST_GAME_TEXT;
+  echo $LIST_GAME_TEXT;
+  
+  $action = 0;
+  
+  if ($showOps)
+    $action = LIST_OPS_BY_TIME;
+  else
+    $action = LIST_GAMES_BY_TIME;
+
   printf ("<a href=\"ListGames.php?action=%d\">Order Chronologically</a><p>\n",
-	  LIST_GAMES_BY_TIME);
+	  $action);
 
   echo "<table border=\"1\">\n";
   echo "  <tr>\n";
-  echo "    <th>Game Title</th>\n";
+  echo "    <th>Title</th>\n";
   echo "    <th>Hours</th>\n";
   echo "    <th>Day</th>\n";
   echo "    <th>Start Time</th>\n";
@@ -170,9 +194,15 @@ function list_games_alphabetically ()
       $rowspan = 1;
 
     echo "  <tr valign=\"top\">\n";
+    
+    $action = 0;
+    if ($showOps)
+      $action = LIST_OPS;
+    else
+      $action = ADD_RUN;
     printf ("    <td rowspan=\"%d\"><a href=\"ListGames.php?action=%d&EventId=%d\">%s</a></td>\n",
 	    $rowspan,
-	    ADD_RUN,
+	    $action,
 	    $game_row->EventId,
 	    $game_row->Title);
 
@@ -193,7 +223,7 @@ function list_games_alphabetically ()
 
       echo "    <td align=\"center\">$runs_row->Day</td>\n";
 
-      $start_time = start_hour_to_24_hour ($runs_row->StartHour);
+      $start_time = start_hour_to_12_hour ($runs_row->StartHour);
 
       printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 	      EDIT_RUN,
@@ -219,7 +249,7 @@ function list_games_alphabetically ()
 	echo "  <tr>\n";
         echo "    <td align=\"center\">$runs_row->Day</td>\n";
 
-	$start_time = start_hour_to_24_hour ($runs_row->StartHour);
+	$start_time = start_hour_to_12_hour ($runs_row->StartHour);
 
 	printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 		EDIT_RUN,
@@ -251,13 +281,17 @@ function list_games_alphabetically ()
  * List the games in the database ordered by RunId
  */
 
-function list_games_by ($type)
+function list_games_by ($type, $showOps=FALSE)
 {
   $sql = 'SELECT Runs.RunId, Runs.Track, Runs.TitleSuffix, Runs.Span,';
   $sql .= ' Runs.StartHour, Runs.Day, Runs.EventId, Runs.ScheduleNote,';
   $sql .= ' Events.Hours, Events.Title, Runs.Rooms';
   $sql .= ' FROM Events, Runs';
   $sql .= ' WHERE Events.EventId=Runs.EventId AND Events.SpecialEvent=0';
+  if ($showOps)
+    $sql .= ' AND Events.IsOps = \'Y\'';
+  else
+    $sql .= ' AND Events.IsOps = \'N\'';  
 
   switch ($type)
   {
@@ -276,18 +310,23 @@ function list_games_by ($type)
   if (0 == mysql_num_rows ($result))
     return display_error ('No games in database');
 
-  echo "<b>\n";
-  echo "Click on a game title to add a run.<br>\n";
-  echo "Click on a start time to edit or delete a run.<p>\n";
-  echo "</b>\n";
+  global $LIST_GAME_TEXT;
+  echo $LIST_GAME_TEXT;
+  
+  $action = 0;
+  if ($showOps)
+    $action = LIST_OPS;
+  else
+    $action = LIST_GAMES;
+
   printf ("<a href=\"ListGames.php?action=%d\">Order Alphabetically</a><p>\n",
-	  LIST_GAMES);
+	  $action);
 
   echo "<table border=\"1\">\n";
   echo "  <tr>\n";
   echo "    <th>Day</th>\n";
   echo "    <th>Start Time</th>\n";
-  echo "    <th>Game Title</th>\n";
+  echo "    <th>Title</th>\n";
   echo "    <th>Run Suffix</th>\n";
   echo "    <th>Schedule Note</th>\n";
   echo "    <th>Room(s)</th>\n";
@@ -306,7 +345,7 @@ function list_games_by ($type)
 	echo "  <tr>\n";
 	echo "    <th>Day</th>\n";
 	echo "    <th>Start Time</th>\n";
-	echo "    <th>Game Title</th>\n";
+	echo "    <th>Title</th>\n";
 	echo "    <th>Run Suffix</th>\n";
 	echo "    <th>Schedule Note</th>\n";
 	echo "    <th>Room(s)</th>\n";
@@ -323,9 +362,15 @@ function list_games_by ($type)
     printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 	    EDIT_RUN,
 	    $row->RunId,
-	    $start_time);
+	    start_hour_to_12_hour($start_time));
+
+    $action = 0;
+    if ($showOps)
+      $action = LIST_OPS;
+    else
+      $action = ADD_RUN;
     printf ("    <td><a href=\"ListGames.php?action=%d&EventId=%d\">%s</a></td>\n",
-	    ADD_RUN,
+	    $action,
 	    $row->EventId,
 	    $row->Title);
 
@@ -402,7 +447,7 @@ function add_run_form ($update)
   $sql = "SELECT Title FROM Events WHERE EventId=$EventId";
   $result = mysql_query ($sql);
   if (! $result)
-    return display_error ("Cannot query game title for EventId $EventId: " . mysql_error ());
+    return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
 
   if (0 == mysql_num_rows ($result))
     return display_error ("Cannot find EventId $EventId in the database!");
@@ -534,7 +579,7 @@ function process_add_run ()
   $sql = "SELECT Title FROM Events WHERE EventId=$EventId";
   $result = mysql_query ($sql);
   if (! $result)
-    return display_error ("Cannot query game title for EventId $EventId: " . mysql_error ());
+    return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
 
   if (0 == mysql_num_rows ($result))
     return display_error ("Cannot find EventId $EventId in the database!");
@@ -618,279 +663,269 @@ function process_add_run ()
   return $RunId;
 }
 
-/*
- * add_ops_for_day
- *
- * Add Ops entries for the specified day
- */
-
-function add_ops_for_day ($OpsEventId, $Day)
-{
-  // Get the range of hours that Ops is scheduled for
-
-  $sql = 'SELECT StartHour FROM Runs';
-  $sql .= " WHERE EventId=$OpsEventId AND Day='$Day'";
-  $sql .= ' ORDER BY StartHour';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get list of Ops runs for Friday: ',
-				$sql);
-
-  $min_ops_hour = 100;
-  $max_ops_hour = 0;
-
-  if ($row = mysql_fetch_object ($result))
-    $min_ops_hour = $max_ops_hour = $row->StartHour;
-
-  while ($row = mysql_fetch_object ($result))
-    $max_ops_hour = $row->StartHour;
-  
-  // Get the range of hours that events that are *not* Ops are scheduled for
-  // Don't count ConSuite runs either...
-
-  $sql = 'SELECT Runs.StartHour, Events.Hours FROM Runs, Events';
-  $sql .= ' WHERE Events.EventId=Runs.EventId';
-  $sql .= "   AND Runs.EventId<>$OpsEventId";
-  $sql .= "   AND Runs.Day='$Day'";
-  $sql .= '   AND Events.IsConSuite="N"';
-  $sql .= ' ORDER BY Runs.StartHour';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot query runs of Ops! ', $sql);
-
-  if (0 == mysql_num_rows ($result))
-  {
-    echo "No events scheduled for $Day<p>\n";
-    return true;
-  }
-  
-  if ($row = mysql_fetch_object ($result))
-  {
-    $min_event_hour = $row->StartHour;
-    $max_event_hour = $row->StartHour + $row->Hours;
-  }
-
-  while ($row = mysql_fetch_object ($result))
-  {
-    if ($max_event_hour < ($row->StartHour + $row->Hours))
-      $max_event_hour = $row->StartHour + $row->Hours;
-  }
-
-  // OK, we assume that Ops is always scheduled for a contiguous run of
-  // hours, covering all scheduled events.  Add any Ops runs to cover any
-  // events not already covered.  Note that this will  NOT handle the case
-  // where someone deletes a scheduled event that...  Don't do that.
-
-  $count = 0;
-
-  for ($hour = $min_event_hour; $hour < $max_event_hour; $hour++)
-  {
-    if (($hour < $min_ops_hour) || ($hour > $max_ops_hour))
-    {
-      $sql = "INSERT Runs SET EventId=$OpsEventId,";
-      $sql .= 'Track=' . MAX_TRACKS . ',';
-      $sql .= 'Span=1,';
-      $sql .= "Day='$Day',";
-      $sql .= "StartHour='$hour',";
-      $sql .= 'UpdatedById="' . $_SESSION[SESSION_LOGIN_USER_ID] . '"';
-
-      //      echo "Command: $sql<p>\n";
-      
-      $result = mysql_query ($sql);
-      if (! $result)
-	display_mysql_error ('Failed to insert Ops run: ', $sql);
-      else
-	$count++;
-    }
-  }
-
-  echo "Added $count runs of Ops for $Day<p>\n";
-}
-
-function add_ops()
-{
-  // Display what we're proposing to do for the user
-
-  echo "<h2>Add Runs for <i>Ops</i></h2>";
-
-  // Check that we've got one (and only one) event marked as Ops!
-
-  $sql = 'SELECT EventId, Title, Hours FROM Events';
-  $sql .= ' WHERE IsOps="Y"';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot query for Ops! ', $sql);
-
-  if (mysql_num_rows ($result) > 1)
-  {
-    display_error ("There are multiple ops entries!<br>\n<ul>\n");
-    while ($row = mysql_fetch_object ($result))
-    {
-      echo "  <le>$row->Title\n";
-    }
-    echo "</ul>\n";
-    return false;
-  }
-
-  if (0 == mysql_num_rows ($result))
-    return display_error ('There are no events marked as Ops!');
-
-  $row = mysql_fetch_object ($result);
-
-  if (1 != $row->Hours)
-    return display_error ("The scheduling size for Ops is $row->Hours " .
-			  'instead of 1 as is expected');
-
-  add_ops_for_day ($row->EventId, 'Fri');
-  add_ops_for_day ($row->EventId, 'Sat');
-  add_ops_for_day ($row->EventId, 'Sun');
-}
 
 /*
- * add_consuite_for_day
+ * process_add_ops
  *
- * Schedule ConSuite for the specified day
+ * Process the add_run form
  */
 
-function add_consuite_for_day ($ConSuiteEventId, $Day, $min_hour, $max_hour)
+function process_add_ops ()
 {
-  $count = 0;
+  // Check for a sequence error
 
-  // Add ConSuite runs.  Yeah, this could be done more efficiently.
-  // Tough.  It's going to be run *very* infrequently
+  if (out_of_sequence ())
+    return display_sequence_error (true);
 
-  // We assume that ConSuite is always scheduled for a contiguous run of
-  // hours.  Add any ConSuite runs to cover any missing hours.
-
-  for ($hour = $min_hour; $hour < $max_hour; $hour++)
+  if (!isset ($_POST['DeleteRun']))
   {
-    // See if ConSuite is scheduled for this hour
+    // Check values
+    $form_ok = TRUE;
 
-    $sql = 'SELECT RunId FROM Runs';
-    $sql .= " WHERE EventId=$ConSuiteEventId";
-    $sql .= "   AND Day='$Day'";
-    $sql .= "   AND StartHour=$hour";
+    $form_ok &= validate_string ('Title');
+    $form_ok &= validate_players ('Neutral');
+    $form_ok &= validate_int ('Hours', 1, 12, 'Hours');
+    $form_ok &= validate_string ('Description');
+    $form_ok &= validate_string ('ShortBlurb', 'Short blurb');
+    $form_ok &= validate_int ('Sessions', 1, 24, 'Sessions');
+    $form_ok &= validate_day_time_by_val (trim ($_POST['StartHour']), 
+    									trim ($_POST['Day']));
 
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to get ConSuite run for $Day $hour: ",
-				  $sql);
-    if (0 != mysql_num_rows($result))
-      continue;
+    //calculate and check end hour
+    $EndHour = $_POST['StartHour'] + ($_POST['Hours']*$_POST['Sessions']) - 1;
+    $form_ok &= validate_day_time_by_val ($EndHour, trim ($_POST['Day']));
 
-    $sql = "INSERT Runs SET EventId=$ConSuiteEventId,";
-    $sql .= sprintf ('Track=%d,', MAX_TRACKS-1);
-    $sql .= 'Span=1,';
-    $sql .= "Day='$Day',";
-    $sql .= "StartHour='$hour',";
-    $sql .= 'UpdatedById="' . $_SESSION[SESSION_LOGIN_USER_ID] . '"';
-
-    //      echo "Command: $sql<p>\n";
-      
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Failed to insert ConSuite run: ', $sql);
-    else
-      $count++;
-
-    //    echo "Added ConSuite for $Day, $hour:00<br>\n";
+    if (! $form_ok)
+      return FALSE;
   }
 
-  echo "Added $count runs of ConSuite for $Day<p>\n";
-}
+  // Update events table
 
-function add_consuite()
-{
-  // Display what we're proposing to do for the user
+  $AddTrack = $_POST['AddTrack'];
+  $sql = "";
+  $sqlend = ";";
+  $EventId = "";
 
-  echo "<h2>Add Runs for <i>ConSuite</i></h2>";
-
-  // Check that we've got one (and only one) event marked as Ops!
-
-  $sql = 'SELECT EventId, Title, Hours FROM Events';
-  $sql .= ' WHERE IsConSuite="Y"';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot query for ConSuite! ', $sql);
-
-  if (mysql_num_rows ($result) > 1)
+  if ( $AddTrack=='0')
   {
-    display_error ("There are multiple ConSuite entries!<br>\n<ul>\n");
-    while ($row = mysql_fetch_object ($result))
-    {
-      echo "  <le>$row->Title\n";
-    }
-    echo "</ul>\n";
-    return false;
-  }
-
-  $EventId = 0;
-
-  if (0 == mysql_num_rows ($result))
-  {
-    // Fetch the user ID for the ConSuite mistress
-
-    $names = explode (" ", NAME_CON_SUITE);
-    $last_name = array_pop ($names);
-    $first_name = implode ($names);
-
-    $sql = 'SELECT UserId FROM Users';
-    $sql .= " WHERE LastName='$last_name'";
-    $sql .= "   AND FirstName='$first_name'";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Attempt to find ConSuite Mistress ' .
-				  "$first_name $last_name failed:");
-    $row = mysql_fetch_object ($result);
-    $UserId = $row->UserId;
-
-    $blurb = 'Help serve Intercon breakfast, lunch and dinner';
-
+    // Insert Event and get Event Id
     $sql = 'INSERT Events SET ';
-    $sql .= build_sql_string ('Title', 'ConSuite', false);
-    $sql .= build_sql_string ('Author', NAME_CON_SUITE);
-    $sql .= build_sql_string ('IsConSuite', 'Y');
-    $sql .= build_sql_string ('MaxPlayersNeutral', '2');
-    $sql .= build_sql_string ('Hours', '1');
-    $sql .= build_sql_string ('Description', $blurb);
-    $sql .= build_sql_string ('ShortBlurb', $blurb);
-    $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Attempt to create ConSuite event failed!',
-				  $sql);
+    $sqlend = build_sql_string ('Title');
 
-    echo "Created ConSuite event.  Description: \"$blurb\"<p>";
-
-    $EventId = mysql_insert_id();
-
-    $sql = 'INSERT INTO GMs SET ';
-    $sql .= build_sql_string ('UserId', $UserId, false);
-    $sql .= build_sql_string ('EventId', $EventId);
-    $sql .= build_sql_string ('Submitter', 'Y');
-    $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Attempt to set ConSuite GM failed!', $sql);
-
-    echo "Added $first_name $last_name as \"GM\" for ConSuite<p>\n";
   }
   else
   {
-    $row = mysql_fetch_object ($result);
+    $EventId = $_POST['EventId'];
+    $sql = 'UPDATE Events SET ';
+    $sqlend = ' WHERE EventId='.$EventId.';';
+  }
+  
+  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
+  $sql .= build_sql_string ('GameEMail');
+  $sql .= build_sql_string ('Description');
+  $sql .= build_sql_string ('ShortBlurb');
+  $sql .= build_sql_string ('Hours');
+  $sql .= build_sql_string ('MinPlayersNeutral');
+  $sql .= build_sql_string ('MaxPlayersNeutral');
+  $sql .= build_sql_string ('PrefPlayersNeutral');
+  $sql .= build_sql_string ('IsOps','Y');
+  $sql .= $sqlend;
+  
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Insert into Bids failed");
 
-    if (1 != $row->Hours)
-      return display_error ("The scheduling size for ConSuite is $row->Hours " .
-			    'instead of 1 as is expected');
-    $EventId = $row->EventId;
+  if ( $AddTrack=='0')
+    $EventId = mysql_insert_id();
+    
+    
+  if ( $AddTrack=='0')
+    echo "Created event $EventId for <i>".$_POST['Title']."</I>\n<br>\n";
+  else
+  {
+    echo "Update $EventId for <i>".$_POST['Title']."</I>\n<br>\n";
   }
 
-  add_consuite_for_day ($EventId, 'Fri', FRI_MIN, 24);  // noon - midnight
-  add_consuite_for_day ($EventId, 'Sat', 9, 25);        // 9AM - 1AM
-  add_consuite_for_day ($EventId, 'Sun', 9, 15);        // 9AM - 3PM
+  if (!isset ($_POST['DeleteRun']))
+  {
+    // for each n of n sessions
+
+    $Rooms = '';
+    if (array_key_exists('Rooms', $_POST))
+      $Rooms = implode(',', $_POST['Rooms']);
+    $RunHour = $_POST['StartHour'];
+  
+    for ( $n=0; $n < $_POST['Sessions']; $n++)
+    {
+      $sql = "INSERT Runs SET EventId=$EventId";
+      $sql .= build_sql_string ('Day');
+      $sql .= build_sql_string ('StartHour', $RunHour);
+      //$sql .= build_sql_string ('TitleSuffix');
+      $sql .= build_sql_string ('ScheduleNote');
+      $sql .= build_sql_string ('Rooms', $Rooms);
+      $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+      echo "Created run of ".$_POST['Title']." at ".start_hour_to_am_pm($RunHour)." on ".$_POST['Day'].".<br>";
+      $RunHour = $RunHour + $_POST['Hours'];
+
+      //  echo "Command: $sql\n";
+      $result = mysql_query ($sql);
+      if (! $result)
+         return display_error ($action_failed . ' Runs table failed: ' . mysql_error ());
+    }
+
+    echo "TOTAL: Created $n runs of ".$_POST['Title']." on ".$_POST['Day'].".<br>";
+
+  }
+  else
+  {
+    $sql = "DELETE FROM Runs WHERE EventId=$EventId";
+
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ("Failed to delete run $RunId", $sql);
+
+    $sql = "DELETE FROM Events WHERE EventId=$EventId";
+
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ("Failed to delete run $RunId", $sql);
+
+    echo "Deleted all runs for <i>".$_POST['Title']."</I>.\n";
+
+  }
+
+  
+  
+  return TRUE;
 }
+
+
+function add_ops($type=0)
+{
+
+  if (! user_has_priv (PRIV_SCHEDULING) )
+  {
+    display_access_error ();
+    html_end ();
+  }
+  
+  list_games ($type, TRUE);
+  
+  // Display what we're proposing to do for the user
+
+  echo "<h2>Add Runs for <i>Ops</i></h2>";
+  
+  echo "This form is for a <i>series of runs</i> for an Operations track.  ";
+  echo "If you want to edit an existing run, click a link in the table, please. ";
+  echo "You can add just one run here, just enter 1 as the number of blocks.";
+  echo "<br /><br />";
+  echo "Use this form by providing a title, select a day and a start time. ";
+  echo "Select the # of hours, and the number of sessions <i>for a day</i>.";  
+  echo "You must repeat the form for each day.  Runs will naturally occur ";
+  echo "sequentially - for example if you select 8 sessions, of 1 hour, starting 9AM,";
+  echo " you will get 1 run an hour from 9AM to 5PM.<br /><br />";
+  echo "Choosing a room is optional.  If your event takes place in a location not";
+  echo "shown, then add a location note on where to meet.<br /><br />";
+  echo "<p><font color=red>*</font> indicates a required field</p>\n";
+
+  // Check that we've got one (and only one) event marked as Ops!
+  $update = FALSE;
+  if ( $_REQUEST['EventId'] > 0 )
+  {
+    $update = TRUE;
+    $EventId = $_REQUEST['EventId'];
+    $sql = "SELECT * FROM Events WHERE EventId=$EventId";
+
+    $result = mysql_query ($sql);
+    if (! $result)
+		return display_mysql_error ("Query failed for EventId $EventId");
+
+    if (0 == mysql_num_rows ($result))
+		return display_error ("Failed to find EventId $EventId");
+
+    if (1 != mysql_num_rows ($result))
+		return display_error ("Found multiple entries for EventId $EventId");
+
+    $row = mysql_fetch_array ($result, MYSQL_ASSOC);
+
+    foreach ($row as $key => $value)
+    {
+        if (1 == get_magic_quotes_gpc())
+          $_POST[$key] = mysql_real_escape_string ($value);
+        else
+          $_POST[$key] = $value;
+    }
+
+  }
+
+  // Display the form for the user
+  echo "<form method=POST action=\"ListGames.php?action=".PROCESS_ADD_OPS."\">\n";
+  form_add_sequence ();
+  form_hidden_value('action', PROCESS_ADD_OPS);
+  
+  if ($update)
+  {
+    echo "<a href=\"ListGames.php?action=".$_REQUEST['action']."\"><b>New Ops Event</b></a>";
+    form_hidden_value('EventId', $EventId);
+    form_hidden_value('AddTrack', '1');
+  }
+  else
+  {
+    form_hidden_value('AddTrack', '0');
+  }
+  echo "<table border=\"0\">\n";
+
+  form_section ('Run Information');
+
+  form_day ('Day');
+  form_start_hour ('Start Hour', 'StartHour');
+  form_text (2, 'Number of Sessions', 'Sessions');
+  //form_text (32, 'Title Suffix', 'TitleSuffix');
+  form_text (32, 'Location Note', 'ScheduleNote');
+  form_con_rooms('Rooms(s)', 'Rooms');
+
+  form_section ('Event Information');
+
+  form_text (64, 'Title', 'Title', 128, true);
+  form_text (32, 'Contact Email (Staff)', 'GameEMail');
+  form_text (2, 'Length', 'Hours');
+  form_players_entry ('Neutral',false);
+
+   $text = "A <b>short blurb</b> (50 words or less) to be used for\n";
+   $text .= "volunteer listings.\n";
+   $text .= "<br>";
+   if (file_exists('HtmlPrimer.html'))
+        $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
+   else
+        $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
+
+   form_textarea ($text, 'ShortBlurb', 4, TRUE, TRUE);
+    
+    
+   $text = "<b>Description</b>\n For use on the " . CON_NAME . " website, in soliciting <br>";
+   $text .= "help for ".CON_SHORT_NAME.".\n";
+   $text .= "The description should be 1-2 of paragraphs.<br><br>";
+   $text .= "You may use HTML tags for formatting.  A quick primer on ";
+   $text .= "a couple of useful HTML <br>tags is available ";
+   if (file_exists('HtmlPrimer.html'))
+        $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>here</A>.\n";
+   else
+        $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>here</A>.\n";
+
+   form_textarea ($text, 'Description', 15, TRUE, TRUE);
+  
+
+  if ($update)
+    form_submit2 ('Update Run', 'Delete All Tracks', 'DeleteRun');
+  else
+    form_submit ('Add Run');
+
+  echo "</table>\n";
+  echo "</form>\n";
+
+
+  display_valid_start_times ();
+}
+
 
 ?>

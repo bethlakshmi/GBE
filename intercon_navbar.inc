@@ -390,7 +390,7 @@ function build_print_materials_subnavbar() {
 
 function build_schedule_subnavbar() {
   $scheduleSection = new SubNavBar("Scheduling");
-  $scheduleSection->push(NavBarItem::newAction('Manage Schedule', 'ListGames.php'));
+  $scheduleSection->push(NavBarItem::newAction('Manage Conf Schedule', 'ListGames.php'));
   $scheduleSection->push(NavBarItem::newAction('Schedule Ops', 'ListGames.php', LIST_ADD_OPS));
   // Disabled ConSuite add in listgames.php
   // $scheduleSection->push(NavBarItem::newAction('Schedule ConSuite', 'ListGames.php', LIST_ADD_CONSUITE));

@@ -178,8 +178,11 @@ define (LIST_GAMES_BY_TIME, 65);
 //define (ADD_PARALLEL_RUN, 66);
 //define (PROCESS_ADD_PARALLEL_RUN, 67);
 //define (LIST_TO_ADD_PARALLEL_RUN, 68);
-define (LIST_ADD_OPS, 69);
 define (LIST_ADD_CONSUITE, 68);
+define (LIST_ADD_OPS, 69);
+define (PROCESS_ADD_OPS, 70);
+define (LIST_OPS, 71);
+define (LIST_OPS_BY_TIME, 72);
 
 // Action values in MailTo.php
 
@@ -1296,6 +1299,53 @@ function form_password ($size, $display, $name='', $maxsize=0, $required=FALSE)
   print ("  </TR>\n");
 }
 
+/*
+ * form_players_entry
+ *
+ * Display an entry that lets the user select the min, max and preferred
+ * numbers of players
+ */
+
+function form_players_entry ($gender, $showword)
+{
+  $min = 'MinPlayers' . $gender;
+  $max = 'MaxPlayers' . $gender;
+  $pref = 'PrefPlayers' . $gender;
+
+  if (array_key_exists ($min, $_POST))
+    $min_value = $_POST[$min];
+  else
+    $min_value = '0';
+
+  if (array_key_exists ($max, $_POST))
+    $max_value = $_POST[$max];
+  else
+    $max_value = '0';
+
+  if (array_key_exists ($pref, $_POST))
+    $pref_value = $_POST[$pref];
+  else
+    $pref_value = '0';
+
+  print ("  <TR>\n");
+  if ($showword)
+    print ("    <TD ALIGN=RIGHT>$gender Size:</TD>\n");
+  else
+    print ("    <TD ALIGN=RIGHT>Size:</TD>\n");   
+  print ("    <TD ALIGN=LEFT>\n");
+  printf ("      Min:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
+	  $min,
+	  $min_value);
+  printf ("      Preferred:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
+	 $pref,
+	 $pref_value);
+  printf ("      Max:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">\n",
+	  $max,
+	  $max_value);
+  print ("    </TD>\n");
+  print ("  </tr>\n");
+}
+
 function dump_str ($s, $desc='')
 {
   echo "<P>$desc\n";
@@ -1521,6 +1571,7 @@ function validate_string ($key, $display='', $required=TRUE)
  * validate_day_time
  *
  * Validate that the given time is valid on a given day
+ * DEPRECATED:  $time_display, $day_display
  */
 
 function validate_day_time ($time_key, $day_key, $time_display=0, $day_display=0)
@@ -1530,6 +1581,12 @@ function validate_day_time ($time_key, $day_key, $time_display=0, $day_display=0
 
   $day = trim ($_POST[$day_key]);
   $time = intval (trim ($_REQUEST[$time_key]));
+  
+  return validate_day_time_by_val($time, $day);
+}
+
+function validate_day_time_by_val ($time, $day)
+{
 
   switch ($day)
   {
@@ -1555,7 +1612,7 @@ function validate_day_time ($time_key, $day_key, $time_display=0, $day_display=0
     }
 
     default:
-      return display_error ("Invalid day specified for $day_display");
+      return display_error ("Invalid day specified - $day is not valid.");
   }
 
   if (($time >= $min_hour) && ($time <= $max_hour))
@@ -1564,8 +1621,44 @@ function validate_day_time ($time_key, $day_key, $time_display=0, $day_display=0
   $min_hour_text = start_hour_to_am_pm ($min_hour);
   $max_hour_text = start_hour_to_am_pm ($max_hour);
 
-  return display_error ("Invalid start time specified for $day." .
+  return display_error ("Invalid start time (time = $time) specified for $day." .
 			"Valid times are $min_hour_text to $max_hour_text.");
+}
+/*
+ * validate_players
+ *
+ * Validate the number of players passed in
+ */
+
+function validate_players ($gender)
+{
+  // Build the indicies into the $_POST array appropriate for the specified
+  // gender
+
+  $min  = 'MinPlayers'  . $gender;
+  $pref = 'PrefPlayers' . $gender;
+  $max  = 'MaxPlayers'  . $gender;
+
+  // Validate the individual numbers
+
+  if (! (validate_int ($min, 0, 100, "Min $gender Players") &&
+	 validate_int ($max, 0, 100, "Max $gender Players") &&
+	 validate_int ($pref, 0, 100, "Preferred $gender Players")))
+    return false;
+
+  // If the user didn't fill in the preferred number, default it to the
+  // maximum
+
+  if ((0 == $_POST[$pref]) && (0 != $_POST[$min]))
+    $_POST[$pref] = $_POST[$max];
+
+  if ((int)$_POST[$min] > (int)$_POST[$pref])
+    return display_error ("Min $gender Players must be less than or equal to Preferred $gender Players");
+
+  if ((int)$_POST[$pref] > (int)$_POST[$max])
+    return display_error ("Preferred $gender Players must be less than or equal to Max $gender Players");
+
+  return true;
 }
 
 function start_hour_to_am_pm ($t)
@@ -1605,10 +1698,13 @@ function start_hour_to_24_hour ($t)
 
 function start_hour_to_12_hour ($t)
 {
+  $m = "AM";
+  if ($t>11)
+     $m = "PM";
   $time = $t % 12;
   if ($time == 0) 
     $time = 12;
-  return sprintf ('%2d:00', $time);
+  return sprintf ('%2d:00 %s', $time, $m);
 }
 
 function validate_int ($key, $min, $max, $display=0)

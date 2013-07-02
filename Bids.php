@@ -108,52 +108,6 @@ switch ($action)
 
 html_end ();
 
-/*
- * form_players_entry
- *
- * Display an entry that lets the user select the min, max and preferred
- * numbers of players
- */
-
-function form_players_entry ($gender, $showword)
-{
-  $min = 'MinPlayers' . $gender;
-  $max = 'MaxPlayers' . $gender;
-  $pref = 'PrefPlayers' . $gender;
-
-  if (array_key_exists ($min, $_POST))
-    $min_value = $_POST[$min];
-  else
-    $min_value = '0';
-
-  if (array_key_exists ($max, $_POST))
-    $max_value = $_POST[$max];
-  else
-    $max_value = '0';
-
-  if (array_key_exists ($pref, $_POST))
-    $pref_value = $_POST[$pref];
-  else
-    $pref_value = '0';
-
-  print ("  <TR>\n");
-  if ($showword)
-    print ("    <TD ALIGN=RIGHT>$gender Size:</TD>\n");
-  else
-    print ("    <TD ALIGN=RIGHT>Size:</TD>\n");   
-  print ("    <TD ALIGN=LEFT>\n");
-  printf ("      Min:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
-	  $min,
-	  $min_value);
-  printf ("      Preferred:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
-	 $pref,
-	 $pref_value);
-  printf ("      Max:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">\n",
-	  $max,
-	  $max_value);
-  print ("    </TD>\n");
-  print ("  </tr>\n");
-}
 
 /*
  * form_combat
@@ -1168,42 +1122,6 @@ function display_bid_form ($first_try)
 }
 
 
-/*
- * validate_players
- *
- * Validate the number of players passed in
- */
-
-function validate_players ($gender)
-{
-  // Build the indicies into the $_POST array appropriate for the specified
-  // gender
-
-  $min  = 'MinPlayers'  . $gender;
-  $pref = 'PrefPlayers' . $gender;
-  $max  = 'MaxPlayers'  . $gender;
-
-  // Validate the individual numbers
-
-  if (! (validate_int ($min, 0, 100, "Min $gender Players") &&
-	 validate_int ($max, 0, 100, "Max $gender Players") &&
-	 validate_int ($pref, 0, 100, "Preferred $gender Players")))
-    return false;
-
-  // If the user didn't fill in the preferred number, default it to the
-  // maximum
-
-  if (0 == $_POST[$pref])
-    $_POST[$pref] = $_POST[$max];
-
-  if ((int)$_POST[$min] > (int)$_POST[$pref])
-    return display_error ("Min $gender Players must be less than or equal to Preferred $gender Players");
-
-  if ((int)$_POST[$pref] > (int)$_POST[$max])
-    return display_error ("Preferred $gender Players must be less than or equal to Max $gender Players");
-
-  return true;
-}
 
 /*
  * process_bid_form

@@ -821,6 +821,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	if ($row->IsOps == "Y" || $row->IsConSuite == "Y") {
 	  $volunteerRuns[$row->RunId] = $row;
 	  $volunteerBlock->addEventRun($pcsgRun);
+	  
 	} else {
 	  $eventRuns[$row->RunId] = $row;
 	  $mainBlock->addEventRun($pcsgRun);
@@ -2515,43 +2516,6 @@ function signup_user_for_game ($RunId, $EventId, $Title,
   return SIGNUP_OK;
 }
 
-
-/*
- * validate_players
- *
- * Validate the number of players passed in
- */
-
-function validate_players ($gender)
-{
-  // Build the indicies into the $_POST array appropriate for the specified
-  // gender
-
-  $min = 'MinPlayers' . $gender;
-  $max = 'MaxPlayers' . $gender;
-  $pref = 'PrefPlayers' . $gender;
-
-  // Validate the individual numbers
-
-  if (! (validate_int ($min, 0, 100, "Min $gender Players") &&
-	 validate_int ($max, 0, 100, "Max $gender Players") &&
-	 validate_int ($pref, 0, 100, "Preferred $gender Players")))
-    return false;
-
-  // If the user didn't fill in the preferred number, default it to the
-  // maximum
-
-  if ((0 == $_POST[$pref]) && (0 != $_POST[$min]))
-    $_POST[$pref] = $_POST[$max];
-
-  if ((int)$_POST[$min] > (int)$_POST[$pref])
-    return display_error ("Min $gender Players must be less than or equal to Preferred $gender Players");
-
-  if ((int)$_POST[$pref] > (int)$_POST[$max])
-    return display_error ("Preferred $gender Players must be less than or equal to Max $gender Players");
-
-  return true;
-}
 
 /*
  * validate_new_counts
