@@ -31,7 +31,7 @@ class TicketItem
 	
 	/* function load_from_itemid
 	 * 
-	 * Used to load a paticular ticket item by item id from the database. 
+	 * Used to load a particular ticket item by item id from the database. 
 	 *
 	 * $ItemID:  the Item ID to be loaded.
 	 * Returns: nothing.
@@ -232,6 +232,7 @@ class Transasction
 			return display_error("Transaction override state is not in a valid format");					
 		$this->Datestamp = date("Y-m-d H:i:s", time());	
 		
+		$this->Userstamp = $_SESSION[SESSION_LOGIN_USER_ID];
 		// Update the database.
 		
 		if ($Update)
@@ -295,7 +296,130 @@ class Transasction
 		if (!$result)
 			return display_mysql_error ('Cannot execute query', $sql);
 	}
-}				
+}	
+			
+/* Class EventTicketLink 
+ * 
+ * This class is used to represent which ticket items can be used as payment for
+ * various Events in the Events table.  It is basically a join of the Event table
+ * and the TicketItems table.  
+ * 
+ */
+class EventTicketLink
+{
+	// These public properties represent the various columns in the table.
+	
+	public $ETIndex;
+	public $EventID;
+	public $TicketItemID;
+	public $Description;
+	public $Active;
+	public $Datetamp;
+	public $Userstamp;
+
+	/* function load_from_index
+	 * 
+	 * Used to load a specific event ticket link from the database. 
+	 *
+	 * $ETIndex:  The unique Index to be loaded.
+	 * Returns: nothing.
+	 */
+	function load_from_index($ETIndex)
+	{
+		$sql = sprintf("select * from EventTicketLink where ETIndex = '%d'", $ETIndex);
+		 
+		$result = mysql_query($sql);
+		
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple event ticket links found with same index");	
+		if (1 != mysql_num_rows($result))
+			return display_error("Event ticket link not found:  $ETIndex");
+		
+		$row = mysql_fetch_object($result);
+		
+		$this->ETIndex = $row->ETIndex;
+		$this->EventID = $row->EventID;
+		$this->TicketItemID = $row->TicketItemID;
+		$this->Description = $row->Description;	
+		$this->Active = $row->Active;
+		$this->Datestamp = $row->Datestamp;
+		$this->Userstamp = $row->Userstamp;
+	}	
+	
+	/* function save_to_db
+	 * 
+	 * Used to save the current status of the event ticket link to the database.	 
+	 *
+	 * $Update: if true, attempt to update a transaction, not insert.
+	 * Returns: nothing.
+	 */
+	function save_to_db($Update)
+	{	
+		// Sanitize database input.  Note, the build_sql_string uses mysql_real_escape_string() below.  
+		
+		if (!is_integer($this->EventID))
+			return display_error("Transaction Event ID is not in a valid format.");
+		if (!is_integer($this->TicketItemID))
+			return display_error("Transaction Item ID is not in a valid format.");				
+		if (!is_bool($this->Active))
+			return display_error("Transaction active state is not in a valid format");	
+		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
+			return display_error("Cannot save TicketItem to DB:  not logged in.");	
+			
+		$this->Datestamp = date("Y-m-d H:i:s", time());	
+		$this->Userstamp = $_SESSION[SESSION_LOGIN_USER_ID];
+		
+		// Update the database.
+		
+		if ($Update)
+		{
+			if (!is_integer($this->ETIndex))
+				return display_error("Event ticket link index is not in a valid format.");
+			$sql = "update EventTicketLink set ";
+		}
+		else
+		{
+			$sql = "insert into EventTicketLink set ";
+		}	
+		
+		$sql .= build_sql_string('EventID', $this->EventID, false);
+		$sql .= build_sql_string('TicketItemID', $this->TicketItemID);
+		$sql .= build_sql_string('Description', $this->Description);
+		$sql .= build_sql_string('Active', $this->Active);
+		$sql .= build_sql_string('Datestamp', $this->Datestamp);
+		$sql .= build_sql_string('Userstamp', $this->Userstamp);
+
+		if ($Update)
+			$sql .= sprintf(" where ETIndex = '%d'", $this->ETIndex);
+		
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ("Insert into EventTicketLink failed");
+		
+		if (!$Update)
+			$this->ETIndex = mysql_insert_id();
+	}
+	
+	/* function remove_from_db
+	 * 
+	 * Used to remove this event ticket link from the database. 
+	 *
+	 * Returns: nothing.
+	 */
+	function remove_from_db()
+	{
+		if (!is_integer($this->ETIndex))
+			return display_error("Event ticket index is not in a valid format.");
+
+		$sql = sprintf("delete from EventTicketLink where ETIndex = '%d'", $this->ETIndex);
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+	}
+}
+
 
 ?>
 

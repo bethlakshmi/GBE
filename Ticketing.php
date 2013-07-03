@@ -23,41 +23,6 @@ if (! user_has_priv (PRIV_REGISTRAR))
   exit ();
 }
 
-/*
-$temp = new Transasction();
-$temp->TransIndex = 6;
-$temp->ItemID = 4;
-$temp->UserID = 2;
-$temp->Amount = 6.50;
-$temp->AdjustmentAmt = 0.0;
-$temp->Status = 'Posted';
-$temp->TenderType = 'Cash';
-$temp->Reference = '000111';
-$temp->Memo = 'Hello Animals!';
-$temp->Override = true;
-
-$temp->save_to_db(true, false);
-echo "<br><br>";
-echo serialize($temp);
-*/
-
-/*
-$tempItem = new TicketItem();
-
-$tempItem->ItemId = 7;
-$tempItem->Title = "cows!";
-$tempItem->Description = "Hello World!!";
-$tempItem->Active = true;
-$tempItem->Cost = 333.33;
-
-$tempItem->save_to_db();
-
-$tempItem->load_from_itemid(7);
-echo "<br><br>";
-echo serialize($tempItem);
-*/
-
-
 
 /*
 if (array_key_exists ('action', $_REQUEST))
