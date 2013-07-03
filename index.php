@@ -622,8 +622,8 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 
   while ($row = mysql_fetch_object ($result))
   {
-    $start_time = start_hour_to_24_hour ($row->StartHour);
-    $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+    $start_time = start_hour_to_12_hour ($row->StartHour);
+    $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
 
     $Title = $row->Title;
     if ("" != $row->TitleSuffix)

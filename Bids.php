@@ -2244,7 +2244,7 @@ function add_event ($bid_row)
   $sql .= build_sql_string ('PrefPlayersNeutral');
 
   $sql .= build_sql_string ('Hours');
-
+  $sql .= build_sql_string ('GameType');
   $sql .= build_sql_string ('Description');
   $sql .= build_sql_string ('ShortBlurb');
 

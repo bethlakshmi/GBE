@@ -1177,13 +1177,12 @@ function display_players ($head, $min, $max, $preferred)
  * by gender.
  */
 
-function game_full (&$msg, $gender,
-		    $male, $female,
-		    $max_male, $max_female, $max_neutral)
+function game_full (&$msg, $gender, $male, $female,
+		    $max_male, $max_female, $max_neutral, $neutralcount=0)
 {
   // If we're above total game max, then we're full
 
-  if ($male + $female >= $max_male + $max_female + $max_neutral)
+  if ($male + $female + $neutralcount >= $max_male + $max_female + $max_neutral)
   {
     //    echo "<!-- Above game total -->\n";
     $msg = 'This game is full';
@@ -1192,7 +1191,7 @@ function game_full (&$msg, $gender,
 
   // Calculate how many open slots we've got
 
-  $neutral = $max_neutral;
+  $neutral = $max_neutral-$neutralcount;
 
   //  echo "Max Male: $male, Female: $female, Neutral: $neutral<BR>\n";
 
@@ -1213,7 +1212,6 @@ function game_full (&$msg, $gender,
     $avail_female = 0;
     $neutral -= $female - $max_female;
   }
-
   /*
   echo "Gender: $gender<BR>\n";
   echo "Male slots: $avail_male<BR>\n";
@@ -1325,9 +1323,11 @@ function get_counts_for_run ($RunId, &$confirmed, &$waitlisted)
 
   $confirmed['Male'] = 0;
   $confirmed['Female'] = 0;
-
+  $confirmed[''] = 0;
+  
   $waitlisted['Male'] = 0;
   $waitlisted['Female'] = 0;
+  $waitlisted[''] = 0;
 
   // Start by getting the count of confirmed users
 
@@ -1362,6 +1362,10 @@ function get_counts_for_run ($RunId, &$confirmed, &$waitlisted)
     $waitlisted[$row->Gender] = $row->Count;
 
   mysql_free_result ($result);
+
+  $confirmed['Total'] = $confirmed['Male'] + $confirmed['Female'] + $confirmed[''];
+  $waitlisted['Total'] = $waitlisted['Male'] + $waitlisted['Female'] + $waitlisted[''];
+
 
   return true;
 }
@@ -1614,6 +1618,25 @@ function show_game ()
     $can_edit_game = false;
   }
 
+  global $EVENT_TYPES;
+  $gms = "GMs";
+  switch ($game_row->GameType)
+  {
+    case $EVENT_TYPES[0]:
+    	$gms = "Teacher(s)";
+    	break;
+    case $EVENT_TYPES[1]:
+    	$gms = "Panelist(s)";
+    	break;
+    case $EVENT_TYPES[2]:
+    	$gms = "Cast & Crew";
+    	break;
+    case $EVENT_TYPES[3]:
+    case $EVENT_TYPES[4]:
+    	$gms = "Staff";
+    	break;    
+  }
+
   // Note if this is the IronGM event
 
   $is_iron_gm = ('Y' == $game_row->IsIronGm);
@@ -1640,17 +1663,17 @@ function show_game ()
   if ($can_edit_game)
   {
     echo '<ul id="game_admin" class="menu priv">';
-    echo '<li class="title">Game Admin</li>';
-    printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit Game</a></li>',
+    echo '<li class="title">Event Admin</li>';
+    printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit Event</a></li>',
 	    EDIT_GAME, $EventId);
-    printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit GMs</a></li>',
-	    DISPLAY_GM_LIST, $EventId);
+    printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit %s</a></li>',
+	    DISPLAY_GM_LIST, $EventId, $gms);
     if ($is_iron_gm)
     {
       printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit Iron GM Teams</a></li>',
 	      SCHEDULE_IRON_GM_TEAM_LIST, $EventId);
     }
-    display_comp_info($EventId);
+    //display_comp_info($EventId);
     
     $updater_name = '<Unknown>';
 
@@ -1671,7 +1694,7 @@ function show_game ()
     echo '</ul>';
   }
 
-  // Display the game title
+  // Display the title
 
   echo "<h2><i>$game_row->Title</i></h2>\n";
 
@@ -1685,21 +1708,23 @@ function show_game ()
   }
   else
   {
+
     if ($volunteer_event)
       display_one_col ('Dept. Head', $game_row->Author);
-    else
-      display_one_col ('Author(s)', $game_row->Author);
+    //else
+    //  display_one_col ('Author(s)', $game_row->Author);
 
-    if ('' != $game_row->GameEMail)
+    // only expose emails if this is a privileged person.
+    if ('' != $game_row->GameEMail && $can_edit_game)
     {
       $email = mailto_or_obfuscated_email_address ($game_row->GameEMail);
-      display_one_col ('Game EMail', $email);
+      display_one_col ('Head of '.$game_row->GameType, $email);
     }
 
     // Fetch the list of GMs
 
-    $sql = 'SELECT DISTINCT Users.FirstName, Users.LastName,';
-    $sql .= ' Users.Nickname, Users.EMail, GMs.DisplayEMail, Users.CompEventId';
+    $sql = 'SELECT DISTINCT Users.DisplayName,';
+    $sql .= ' Users.EMail, GMs.DisplayEMail, Users.CompEventId';
     $sql .= ' FROM GMs, Users';
     $sql .= " WHERE GMs.EventId=$EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
@@ -1716,16 +1741,13 @@ function show_game ()
     if ($num_gms != 0)
     {
       echo "  <TR>\n";
-      echo "    <TH VALIGN=TOP ALIGN=RIGHT><A HREF=\"#GMs\">GM(s)</A>:</TH>\n";
+      echo "    <TH VALIGN=TOP ALIGN=RIGHT><A HREF=\"#GMs\">".$gms."</A>:</TH>\n";
       echo "    <TD>\n";
       echo "      <TABLE CELLSPACING=0 CELLPADDING=0>\n";
       while ($gm_row = mysql_fetch_object ($gm_result))
       {
 	echo "        <TR VALIGN=TOP>\n";
-	$name = $gm_row->FirstName . ' ';
-	if ('' != $gm_row->Nickname)
-	  $name .= '&quot;' . $gm_row->Nickname . '&quot; ';
-	$name .= $gm_row->LastName . '&nbsp;&nbsp;&nbsp;';
+	$name = $gm_row->DisplayName . '&nbsp;';
 	
 	if ('Y' == $gm_row->DisplayEMail)
 	  $EMail = mailto_or_obfuscated_email_address ($gm_row->EMail);
@@ -1746,21 +1768,8 @@ function show_game ()
       echo "      </TABLE>\n    </TD>\n  </TR>\n";
   }
 
-    $con_mail_dest = 'Unknown destination: ' . $game_row->ConMailDest;
-    switch ($game_row->ConMailDest)
-    {
-      case 'GMs':
-	$con_mail_dest = 'GMs who have elected to receive mail from the con';
-	break;
-      case 'GameMail':
-	$con_mail_dest = 'Game EMail address';
-	break;
-    }
-
-    if ($is_gm)
-      display_one_col ('Con EMail To', $con_mail_dest);
-
-    if (0 == $game_row->SpecialEvent)
+  
+    if (""  != $game_row->Organization)
       display_one_col ('Organization', $game_row->Organization);
   }
 
@@ -1780,26 +1789,12 @@ function show_game ()
 
   if ($max_signups > 0)
   {
-    if (! $volunteer_event)
-    {
-      display_players ('Male Players',
-		       $game_row->MinPlayersMale,
-		       $game_row->MaxPlayersMale,
-		       $game_row->PrefPlayersMale);
-      display_players ('Female Players',
-		       $game_row->MinPlayersFemale,
-		       $game_row->MaxPlayersFemale,
-		       $game_row->PrefPlayersFemale);
-      display_players ('Neutral Players',
-		       $game_row->MinPlayersNeutral,
-		       $game_row->MaxPlayersNeutral,
-		       $game_row->PrefPlayersNeutral);
-    }
     echo "  <tr>\n";
     if ($volunteer_event)
       echo "    <th>Volunteers Needed:</th>\n";
-    else
-      echo "    <th>Total Players:</th>\n";
+    else if ($game_row->GameType == "Show")
+      echo "    <th>Total Crew:</th>\n";
+    if ($volunteer_event || $game_row->GameType == "Show")
     printf ("    <td>Min: %d / Max: %d</td>\n",
 	    $game_row->MinPlayersMale +
 	    $game_row->MinPlayersFemale +
@@ -1861,6 +1856,7 @@ function show_game ()
     // there are neutral players, offer the user the ability to freeze the
     // gender balance
 
+    /*
     if ($can_edit_game &&
 	(1 == $run_count) &&
 	(0 != $game_row->MaxPlayersNeutral))
@@ -1869,7 +1865,7 @@ function show_game ()
 	      SCHEDULE_FREEZE_GENDER_BALANCE,
 	      $EventId);
     }
-
+    */
     // If we can show them the schedule, show them *something*
 
     if (can_show_schedule ())
@@ -1945,13 +1941,12 @@ function show_game ()
 	    get_user_status_for_run ($run_row->RunId, $SignupId, $is_signedup);
 
 	    // Get the signup counts for the run
-
 	    get_counts_for_run ($run_row->RunId, $confirmed, $waitlisted);
 
 	    //	$date = day_to_date ($run_row->Day);
 
-	    $game_start = start_hour_to_24_hour ($run_row->StartHour);
-	    $game_end = start_hour_to_24_hour ($run_row->StartHour +
+	    $game_start = start_hour_to_12_hour ($run_row->StartHour);
+	    $game_end = start_hour_to_12_hour ($run_row->StartHour +
 					       $game_row->Hours);
 	    $run_text = "$run_row->Day. $game_start - $game_end\n";
 	    if ('' != $run_row->Rooms)
@@ -1960,18 +1955,14 @@ function show_game ()
 	    $user_away = check_if_away ($run_row->Day,
 					$run_row->StartHour,
 					$game_row->Hours);
-
 	    $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 				    $confirmed['Male'], $confirmed['Female'],
 				    $game_row->MaxPlayersMale,
 				    $game_row->MaxPlayersFemale,
-				    $game_row->MaxPlayersNeutral);
-
-	    $count_text = sprintf ('Signed Up: M: %d, F: %d<BR>Waitlist: M: %d, F:%d',
-				   $confirmed['Male'],
-				   $confirmed['Female'],
-				   $waitlisted['Male'],
-				   $waitlisted['Female']);
+				    $game_row->MaxPlayersNeutral,$confirmed['']);
+	    $count_text = sprintf ('Signed Up: %d<BR>Waitlist: %d',
+				   $confirmed['Total'],
+				   $waitlisted['Total']);
 
 	    // If the user can edit the GM (he/she is a GM) or if they
 	    // have Outreach privilege, let them view the signups
@@ -2410,8 +2401,8 @@ function process_signup_request ()
     return $signup_ok;
 
   echo "You have $signup_result <I>$game_title</I> on $game_day, ";
-  echo start_hour_to_24_hour ($game_start_hour) . ' - ';
-  echo start_hour_to_24_hour ($game_end_hour);
+  echo start_hour_to_12_hour ($game_start_hour) . ' - ';
+  echo start_hour_to_12_hour ($game_end_hour);
   echo "<P>\n";
 
   // Notify any GMs who have requested notification of signups
@@ -2463,7 +2454,7 @@ function signup_user_for_game ($RunId, $EventId, $Title,
     $counts_towards_total = 'Y';
     $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 			    $confirmed['Male'], $confirmed['Female'],
-			    $max_male, $max_female, $max_neutral);
+			    $max_male, $max_female, $max_neutral, $confirmed['']);
   }
 
   if ($game_full)
@@ -2708,7 +2699,6 @@ function notify_about_event_changes ($EventId, $row)
 
   //  echo "Subject: $subj<br>\n";
   //  echo "Body: $changes<p>\n";
-
   if (! intercon_mail (EMAIL_BID_CHAIR, $subj, $changes))
     return display_error ('Attempt to send changes to Bid Chair failed');
 
@@ -2748,9 +2738,7 @@ function add_game ()
 
   // Check the numeric arguments
 
-  if (! (validate_players ('Male') &&
-         validate_players ('Female') &&
-         validate_players ('Neutral')))
+  if (! validate_players ('Neutral'))
     return FALSE;
 
   if (! validate_int ('Hours', 1, 12, 'Hours'))
@@ -2914,7 +2902,6 @@ function add_game ()
     display_mysql_error ('Failed to unlock the Signup table');
     return SIGNUP_FAIL;
   }
-
   return true;
 }
 
@@ -3093,16 +3080,16 @@ function display_game_form ()
 
   print ("<TABLE BORDER=0>\n");
   form_text (64, 'Title', '', 128);
-  form_text (64, 'Author(s)', 'Author', 128);
-  form_text (64, 'GameEMail');
+  //form_text (64, 'Author(s)', 'Author', 128);
+  form_text (64, 'Contact Email', 'GameEMail');
   form_text (64, 'Homepage', '', 128);
   form_text (64, 'Organization');
-  display_players_entry ("Male");
-  display_players_entry ("Female");
+//  display_players_entry ("Male");
+//  display_players_entry ("Female");
   display_players_entry ("Neutral");
 
 
-  $conmail_gamemail_checked = '';
+/*  $conmail_gamemail_checked = '';
   $conmail_gms_checked = '';
  
   switch ($_POST['ConMailDest'])
@@ -3114,7 +3101,6 @@ function display_game_form ()
       $conmail_gms_checked = 'checked';
       break;
   }
-
   echo "  <tr valign=\"top\">\n";
   echo "    <td>Send con mail to:</td>\n";
   echo "    <td>\n";
@@ -3126,27 +3112,26 @@ function display_game_form ()
 	  $conmail_gms_checked);
   echo "    </td>\n";
   echo "  </tr>\n";
- 
+ */
   if ('Y' == trim ($_POST['CanPlayConcurrently']))
-    $concurrent_state = "can";
+    $concurrent_state = "is";
   else
-    $concurrent_state = "can not";
+    $concurrent_state = "is not";
 
   echo "  <tr>\n";
   echo "    <td colspan=\"2\">\n";
-  echo "      This game <b>$concurrent_state</b> be played concurrently with ";
-  echo "other games.\n";
+  echo "      This item <b>$concurrent_state</b> ticketed.\n";
   echo "    </td>\n";
   echo "  </tr>\n";
 
   $is_event = scheduling_priv_option ('Ops', 'IsOps', 'CheckIsOps');
-  $is_event |= scheduling_priv_option ('ConSuite', 'IsConSuite',
+/*  $is_event |= scheduling_priv_option ('ConSuite', 'IsConSuite',
 				       'CheckIsConSuite');
   scheduling_priv_option ('Iron GM', 'IsIronGm', 'CheckIsIronGm');
   scheduling_priv_option ('a LARPA Small Game Contest Entry',
 			  'IsSmallGameContestEntry',
 			  'CheckIsSmallGameContestEntry');
-
+*/
   if ($is_event)
     $event_type = 'event';
   else
@@ -3202,7 +3187,7 @@ function display_game_form ()
   if (! $result)
     return display_mysql_error ("Query for list of comp'd users failed");
 
-  if (0 != mysql_num_rows ($result))
+/*  if (0 != mysql_num_rows ($result))
   {
     echo "<P>The following users are comped for this game:\n";
 
@@ -3211,7 +3196,7 @@ function display_game_form ()
       echo "<BR>&nbsp;&nbsp;&nbsp;&nbsp;$row->LastName, $row->FirstName\n";
     }
   }
-
+*/
   echo "<P>\n";
 }
 
@@ -3228,7 +3213,7 @@ function list_games_alphabetically ()
   if (accepting_bids())
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
-	include(TEXT_DIR.'/acceptingbids.html');	
+	include(TEXT_DIR.'/acceptings.html');	
   }
 
   $sql = 'SELECT EventId, Title, Author, ShortBlurb, SpecialEvent,';
@@ -4538,7 +4523,7 @@ function swap_gender_locked ($SignupId, $RunId, $EventId, $SwappedGender)
 
   if (game_full ($msg, $SwappedGender,
 		 $confirmed['Male'], $confirmed['Female'],
-		 $MaxMale, $MaxFemale, $MaxNeutral))
+		 $MaxMale, $MaxFemale, $MaxNeutral,$confirmed['']))
     return display_error ($msg);
 
   // Change the gender of the signup record.  The Signup table is locked,
@@ -4695,8 +4680,8 @@ function display_gm_list ()
 
   display_header ("GMs for <I>$Title</I>");
 
-  printf ('<p><a href="Schedule.php?action=%d&EventId=%d">Add GM</a> ' .
-	  "from users<p>\n",
+  printf ('<p><a href="Schedule.php?action=%d&EventId=%d"><b>Add</b></a> teacher, performer, panelist, etc. ' .
+	  "from registered users<p>\n",
 	  ADD_GM,
 	  $EventId);
 
@@ -4705,14 +4690,14 @@ function display_gm_list ()
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Query for comped GMs failed", $sql);
+    return display_mysql_error ("Query for comped people failed", $sql);
   $row = mysql_fetch_object($result);
 
   $comped_count = $row->CompCount;
 
   $unpaid_gms = array ();
 
-  $sql = 'SELECT Users.FirstName, Users.LastName, Users.CompEventId,';
+  $sql = 'SELECT Users.DisplayName, Users.CompEventId,';
   $sql .= '  Users.CanSignup, Users.UserId,';
   $sql .= '  GMs.GMId, GMs.Submitter, GMs.DisplayAsGM, GMs.DisplayEMail,';
   $sql .= '  GMs.ReceiveConEMail, GMs.ReceiveSignupEMail';
@@ -4732,11 +4717,11 @@ function display_gm_list ()
     echo "    <TH>#</TH>\n";
     echo "    <TH>Name</TH>\n";
     echo "    <TH>Submitted Bid</TH>\n";
-    echo "    <TH>Display as GM</TH>\n";
+    echo "    <TH>Display with Event</TH>\n";
     echo "    <TH>Display EMail Address</TH>\n";
     echo "    <TH>Receive EMail From Con</TH>\n";
     echo "    <TH>Receive EMail on Signup or Withdraw</TH>\n";
-    echo "    <TH>Comp'd For This Game</TH>\n";
+    // echo "    <TH>Comp'd For This Game</TH>\n";
     echo "  </TR>\n";
 
     $i = 1;
@@ -4763,13 +4748,13 @@ function display_gm_list ()
       echo "  <TR ALIGN=CENTER>\n";
       echo "    <TD>$i</TD>\n";
       $href = 'Schedule.php?action=' . EDIT_GM . "&GMId=$row->GMId&EventId=$EventId";
-      echo "    <TD ALIGN=LEFT><A HREF=$href>$row->LastName, $row->FirstName</A></TD>\n";
+      echo "    <TD ALIGN=LEFT><A HREF=$href>$row->DisplayName</A></TD>\n";
       yn_to_x_column ($row->Submitter);
       yn_to_x_column ($row->DisplayAsGM);
       yn_to_x_column ($row->DisplayEMail);
       yn_to_x_column ($row->ReceiveConEMail);
       yn_to_x_column ($row->ReceiveSignupEMail);
-      echo "    <TD>$comped</TD>\n";
+      //echo "    <TD>$comped</TD>\n";
       echo "  </TR>\n";
 
       $i++;
@@ -4777,12 +4762,12 @@ function display_gm_list ()
       // Check for unpaid GMs
 
       if (is_unpaid ($row->CanSignup))
-	array_push ($unpaid_gms, "$row->LastName, $row->FirstName");
+	array_push ($unpaid_gms, "$row->DisplayName");
     }
     echo "</TABLE><P>\n";
   }
 
-  printf ("%s comped for this game.  Each game is allowed up to %d comped\n",
+/*  printf ("%s comped for this game.  Each game is allowed up to %d comped\n",
 	  (1 == $comped_count) ?
 	      '1 registration is' :
 	      "$comped_count registrations are",
@@ -4795,7 +4780,7 @@ function display_gm_list ()
   echo "them as a GM.  If you need to reset someone to Unpaid, send mail to the\n";
   printf ("<a href=mailto:%s>GM Coordinator</a> or\n", EMAIL_GM_COORDINATOR);
   printf ("<a href=mailto:%s>Webmaster</a><p>\n", EMAIL_WEBMASTER);
-
+*/
   if (count ($unpaid_gms) > 0)
   {
     echo "<b><font color=red>WARNING:</font></b>\n";
@@ -4807,10 +4792,31 @@ function display_gm_list ()
     foreach ($unpaid_gms as $k=>$v)
       echo "<li>$v\n";
     echo "</ul>\n";
-    echo "They will not be allowed to signup for this game or any others ";
-    echo "until their registration is paid.  If you have any questions, ";
-    printf ("contact the <A HREF=MAILTO:%s>GM Coordinator</A>.<P>\n",
-	    EMAIL_GM_COORDINATOR);
+    echo "On the day they are scheduled to teach or present, they will be given, ";
+    echo "a bare minimum pass for the conference day <u>or</u> show they are a part of.";
+    echo "In general, teachers, panelists, and performers with no registration payment ";
+    echo "are an attendance risk, it's wise to keep in contact to be sure they will attend.";
+    echo "<br><br>";
+    
+    printf ("For Teachers/Panelists - Contact the <A HREF=MAILTO:%s>Conference Coordinator</A>.<P>\n",
+	    EMAIL_BID_CHAIR);
+    printf ("For Performers - Contact the <A HREF=MAILTO:%s>Show Coordinator</A>.<P>\n",
+	    EMAIL_SHOW_CHAIR);
+  }
+
+  $sql = 'SELECT Events.Author';
+  $sql .= '  FROM Events';
+  $sql .= "  WHERE EventId=$EventId";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Query for GMs failed", $sql);
+
+  $row = mysql_fetch_object ($result);
+
+  if (strlen($row->Author) > 0 )
+  {
+    echo "NOTE:  The teacher(s) from the original Bid were <b>".$row->Author."</b><br><br>";
   }
 
   printf ("<A HREF=Schedule.php?action=%d&EventId=%d>Return</A>",
@@ -5036,12 +5042,15 @@ function display_gm_information ()
   echo "  <TR>\n";
   echo "    <TD COLSPAN=2 BGCOLOR=\"CCFFFF\">\n";
   echo "      &nbsp;<BR>\n";
-  echo "      <B>$row->FirstName $row->LastName</B>\n";
+  echo "      <B>$row->DisplayName</B>\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
-  display_text_info ('Nickname', $row->Nickname);
-  display_text_info ('Age', birth_year_to_age ($row->BirthYear));
-  display_text_info ('Gender', $row->Gender);
+
+  display_text_info ('Name',"$row->FirstName $row->LastName");
+
+  //display_text_info ('Nickname', $row->Nickname);
+  //display_text_info ('Age', birth_year_to_age ($row->BirthYear));
+  //display_text_info ('Gender', $row->Gender);
   $address = $row->Address1;
   if ('' != $row->Address2)
     $address .= ', ' . $row->Address2;

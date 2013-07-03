@@ -281,6 +281,8 @@ global $BID_TYPES;
 $BID_TYPES = array('Class', 'Panel', 'Performance');
 //$BID_TYPES = array('LARP');
 
+global $EVENT_TYPES;
+$EVENT_TYPES = array('Class', 'Panel', 'Show', 'Special Event','Ops');
 
 function parse_date ($d)
 {

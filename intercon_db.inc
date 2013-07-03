@@ -10,7 +10,7 @@ error_reporting(0);
 
 ini_set( 
   'include_path', 
-  ini_get( 'include_path' ) . PATH_SEPARATOR . "/Users/bethlakshmi/pear/share/pear/Mail-1.2.0"
+  ini_get( 'include_path' ) . PATH_SEPARATOR . "/Applications/MAMP/bin/pear/Mail-1.2.0"
 );
 
 $pear_user_config = '/home/neiladmin/.pearrc';
@@ -18,6 +18,7 @@ $pear_user_config = '/home/neiladmin/.pearrc';
 require ('intercon_constants.inc');
 require ('db_constants.inc');
 require ('intercon_navbar.inc');
+require ('Mail.php');
 
 // File not found in repository or FTP.... 
 // require ('Mail.php');
@@ -1701,8 +1702,9 @@ function start_hour_to_24_hour ($t)
 function start_hour_to_12_hour ($t)
 {
   $m = "AM";
-  if ($t>11)
+  if ($t>11 && $t <24)
      $m = "PM";
+  
   $time = $t % 12;
   if ($time == 0) 
     $time = 12;
@@ -1832,10 +1834,9 @@ function can_signup () {
             display_error ('Failed to find UserId ' . $_SESSION[SESSION_LOGIN_USER_ID]);
 
         $row = mysql_fetch_object ($result);
-    
-        if (is_unpaid ($row->CanSignup))
-            $GLOBALS['USER_CAN_SIGNUP'] = false;
-        else
+//        if (is_unpaid ($row->CanSignup))
+//            $GLOBALS['USER_CAN_SIGNUP'] = false;
+//        else
             $GLOBALS['USER_CAN_SIGNUP'] = true;
     }
     

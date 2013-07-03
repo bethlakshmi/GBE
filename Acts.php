@@ -945,42 +945,7 @@ function validate_show ($key)
   return display_error ("Invalid value \"$value\" for $display scheduling entry.  Valid values are 1, 2, 3 and X");
 }
 
-/*
- * validate_players
- *
- * Validate the number of players passed in
- */
 
-function validate_players ($gender)
-{
-  // Build the indicies into the $_POST array appropriate for the specified
-  // gender
-
-  $min  = 'MinPlayers'  . $gender;
-  $pref = 'PrefPlayers' . $gender;
-  $max  = 'MaxPlayers'  . $gender;
-
-  // Validate the individual numbers
-
-  if (! (validate_int ($min, 0, 100, "Min $gender Players") &&
-	 validate_int ($max, 0, 100, "Max $gender Players") &&
-	 validate_int ($pref, 0, 100, "Preferred $gender Players")))
-    return false;
-
-  // If the user didn't fill in the preferred number, default it to the
-  // maximum
-
-  if (0 == $_POST[$pref])
-    $_POST[$pref] = $_POST[$max];
-
-  if ((int)$_POST[$min] > (int)$_POST[$pref])
-    return display_error ("Min $gender Players must be less than or equal to Preferred $gender Players");
-
-  if ((int)$_POST[$pref] > (int)$_POST[$max])
-    return display_error ("Preferred $gender Players must be less than or equal to Max $gender Players");
-
-  return true;
-}
 
 /*
  * process_bid_form
@@ -2182,6 +2147,9 @@ function  create_feedback_forum ($BidId)
  * add_event
  *
  * Add an event from the bid information
+ * GBE - this needs a big change!!! the act is no longer booked as an
+ * event, it is now scheduled into a show!!!
+ *
  */
 
 function add_event ($bid_row)
@@ -2222,6 +2190,7 @@ function add_event ($bid_row)
 
   $sql .= build_sql_string ('Description');
   $sql .= build_sql_string ('ShortBlurb');
+  $sql .= build_sql_string ('GameType');
 
 /*  $sql .= build_sql_string ('IsSmallGameContestEntry'); */
 
@@ -2373,7 +2342,7 @@ function display_bid_etc ()
   echo "The staff have been notified of your submission.\n";
   echo "<P>\n";
 
-  $page = 'bidFollowup.html';
+  $page = 'actFollowup.html';
 
   if (! is_readable ($page))
   {

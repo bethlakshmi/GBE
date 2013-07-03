@@ -721,6 +721,7 @@ function process_add_ops ()
   }
   
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
+  $sql .= build_sql_string ('Author');
   $sql .= build_sql_string ('GameEMail');
   $sql .= build_sql_string ('Description');
   $sql .= build_sql_string ('ShortBlurb');
@@ -887,6 +888,7 @@ function add_ops($type=0)
   form_section ('Event Information');
 
   form_text (64, 'Title', 'Title', 128, true);
+  form_text (32, 'Contact Person (Staff)', 'Author');
   form_text (32, 'Contact Email (Staff)', 'GameEMail');
   form_text (2, 'Length', 'Hours');
   form_players_entry ('Neutral',false);

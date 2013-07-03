@@ -284,7 +284,7 @@ function build_shirts_subnavbar() {
 }
 
 function build_bids_subnavbar() {
-  $bidsSection = new SubNavBar("Bids", true);
+  $bidsSection = new SubNavBar("Conference Bids", true);
   if (user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON))
     $bidsSection->push(NavBarItem::newAction("Status of Bids", "Bids.php", BID_REVIEW_BIDS));
   
