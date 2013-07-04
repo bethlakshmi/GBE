@@ -147,7 +147,7 @@ function display_media ($photo, $video=NULL, $pre="")
     $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
     echo "<b>{$pre} Photo:</b>&nbsp;&nbsp;";
     echo "<a href=\"{$path}\">";
-    echo "<img src=\"{$path}\" alt=\"Photo for Act\" height=300>";
+    echo "<img src=\"{$path}\" alt=\"Photo\" height=300>";
     echo "</a>";
   }
   else 
@@ -157,3 +157,20 @@ function display_media ($photo, $video=NULL, $pre="")
   echo "  </TR>\n";
 }
 
+/**
+ * simple photo display
+ */
+
+function display_photo ($photo, $align="right")
+{
+ 
+  if ( $photo != NULL && strlen($photo) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
+    echo "<a href=\"{$path}\">";
+    echo "<img src=\"{$path}\" alt=\"Photo\" width=200 align=$align>";
+    echo "</a>";
+  }
+  else 
+    echo "&nbsp;";
+}

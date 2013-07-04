@@ -131,10 +131,12 @@ class NavBarItem {
     return new NavBarItem($title, "$prefix$page", $class);
   }
   
-  public static function newAction($title, $page, $action=NULL, $class=NULL) {
+  public static function newAction($title, $page, $action=NULL, $class=NULL,$type=NULL) {
     $url = $page;
     if (NULL !== $action)
       $url .= "?action=$action";
+    if (NULL !== $type)
+      $url .= "&type=$type";
       
     return new NavBarItem($title, $url, $class);
   }
@@ -236,7 +238,11 @@ function build_larps_subnavbar() {
     if (user_has_priv(PRIV_CON_COM))
       $larpSection->push(NavBarItem::newAction("Schedule with Counts", "Schedule.php", SCHEDULE_WITH_COUNTS));            
   }
-  $larpSection->push(NavBarItem::newAction("List of Contributions", "Schedule.php", LIST_GAMES));
+  $larpSection->push(NavBarItem::newAction("Classes", "Schedule.php", LIST_GAMES,NULL,'Class'));
+  $larpSection->push(NavBarItem::newAction("Panels", "Schedule.php", LIST_GAMES,NULL,'Panel'));
+  $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
+  $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special Event'));
+  $larpSection->push(NavBarItem::newAction("Volunteer Opportunties", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   if (IRONGM_ENABLED)
     $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {

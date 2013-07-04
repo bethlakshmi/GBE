@@ -6,6 +6,7 @@ define (SIGNUP_CONFIRM, 2);
 include ("intercon_db.inc");
 include ("intercon_schedule.inc");
 include ("pcsg.inc");
+include ("files.php");
 
 // Connect to the database
 
@@ -82,7 +83,11 @@ switch ($action)
     break;
 
   case LIST_GAMES:
-    list_games_alphabetically ();
+    $type = "";
+    if (array_key_exists ('type', $_REQUEST))
+      $type = $_REQUEST['type'];
+
+    list_games_alphabetically ($type);
     break;
 
   case SCHEDULE_SHOW_SIGNUPS:
@@ -1579,6 +1584,7 @@ function show_game ()
   else
     $is_gm = false;
 
+  // checks convention wide setting.
   $signups_allowed = con_signups_allowed();
 
   // If this is a GM, or a privileged user, they can edit the game.
@@ -1741,7 +1747,7 @@ function show_game ()
     if ($num_gms != 0)
     {
       echo "  <TR>\n";
-      echo "    <TH VALIGN=TOP ALIGN=RIGHT><A HREF=\"#GMs\">".$gms."</A>:</TH>\n";
+      echo "    <TH VALIGN=TOP ALIGN=RIGHT>".$gms.":</TH>\n";
       echo "    <TD>\n";
       echo "      <TABLE CELLSPACING=0 CELLPADDING=0>\n";
       while ($gm_row = mysql_fetch_object ($gm_result))
@@ -1749,9 +1755,7 @@ function show_game ()
 	echo "        <TR VALIGN=TOP>\n";
 	$name = $gm_row->DisplayName . '&nbsp;';
 	
-	if ('Y' == $gm_row->DisplayEMail)
-	  $EMail = mailto_or_obfuscated_email_address ($gm_row->EMail);
-	else
+	if ('Y' != $gm_row->DisplayEMail)
 	  $EMail = '';
 
 	echo "          <TD>$name</TD>\n";
@@ -1837,7 +1841,9 @@ function show_game ()
   }
   echo "</table>\n";
 
-  if ($max_signups > 0)
+  // must allow people to join, and must be something you can sign up for
+  // Classes and Panels are flexible attendance and have no need for signups
+  if (can_show_schedule () )
   {
     $logged_in = is_logged_in ();
 
@@ -1868,41 +1874,37 @@ function show_game ()
     */
     // If we can show them the schedule, show them *something*
 
-    if (can_show_schedule ())
+    echo "<CENTER>\n";
+
+    // If the user isn't logged in, suggest that he should be
+
+    if (! $logged_in && is_signup_event($game_row->GameType) && $max_signups > 0)
     {
-      echo "<CENTER>\n";
-
-      // If the user isn't logged in, suggest that he should be
-
-      if (! $logged_in)
-      {
-	echo "<table border=1>\n";
-	echo "  <tr>\n";
-	echo "    <td>&nbsp;You must be logged in to signup for this game&nbsp;</td>\n";
-	echo "  </tr>\n";
-	echo "</table>\n";
-      }
-      else
-      {
-	// OK, show the user what he can (potentially) do
-
-	if (0 == $run_count)
-	  $colspan = 1;
+	    echo "<table border=1>\n";
+	    echo "  <tr>\n";
+	    echo "    <td>&nbsp;You must be logged in to signup for this event&nbsp;</td>\n";
+	    echo "  </tr>\n";
+	    echo "</table>\n";
+	}
+    
+    // OK, show the user what he can (potentially) do
+  	if (0 == $run_count)
+	    $colspan = 1;
 	else
-	  $colspan = min ($run_count, 4);
+	    $colspan = min ($run_count, 4);
 
-	$confirmed = array ();
-	$waitlisted = array ();
-
-	if ($can_signup)
-	  $table_title = 'Click on the run day/time to signup';
+    // if signing up is an option create the info.
+    if ($max_signups > 0 && is_signup_event($game_row->GameType) 
+    		&& $logged_in && $can_signup)
+	    $table_title = 'Click on the run day/time to signup';
 	else
-	  $table_title = 'Run Times';
-
+	    $table_title = 'Schedule Details';
+    
 	echo "<TABLE BORDER=1>\n";
-	echo "  <TR>\n";
+    echo "  <TR>\n";
 	echo "    <TH COLSPAN=$colspan>$table_title</TH>";
 	echo "  </TR>\n";
+	
 	if (($run_count > 1) && $can_edit_game)
 	{
 	  $cols = min (4, $run_count);
@@ -1916,8 +1918,9 @@ function show_game ()
 	  echo "  </TR>\n";
 	}
 	echo "  <TR ALIGN=CENTER VALIGN=TOP>\n";
+	
 	if (0 == $run_count)
-	  echo "    <TD>This game is not scheduled</TD>\n";
+	  echo "    <TD>This event is not scheduled</TD>\n";
 	else
 	{
 	  // The sequence number must be the same for all runs
@@ -1936,116 +1939,130 @@ function show_game ()
 	      echo "  </TR>\n  <TR ALIGN=CENTER VALIGN=TOP>\n";
 	    }
 
-	    // Check whether the user is already signed up for this run
-
-	    get_user_status_for_run ($run_row->RunId, $SignupId, $is_signedup);
-
-	    // Get the signup counts for the run
-	    get_counts_for_run ($run_row->RunId, $confirmed, $waitlisted);
-
-	    //	$date = day_to_date ($run_row->Day);
-
 	    $game_start = start_hour_to_12_hour ($run_row->StartHour);
 	    $game_end = start_hour_to_12_hour ($run_row->StartHour +
 					       $game_row->Hours);
 	    $run_text = "$run_row->Day. $game_start - $game_end\n";
+		
 	    if ('' != $run_row->Rooms)
 	      $run_text .= '<br>' . pretty_rooms($run_row->Rooms) . "\n";
+		$text = $run_text;
 
-	    $user_away = check_if_away ($run_row->Day,
+	    $bgcolor = '';
+
+        // if signing up is an option create the info related to availability
+        // of both slot and user
+        if ($max_signups > 0 && is_signup_event($game_row->GameType) && $logged_in)
+        {
+  		  $confirmed = array ();
+		  $waitlisted = array ();
+
+
+	      // Check whether the user is already signed up for this run
+
+	      get_user_status_for_run ($run_row->RunId, $SignupId, $is_signedup);
+
+	      // Get the signup counts for the run
+	      get_counts_for_run ($run_row->RunId, $confirmed, $waitlisted);
+
+	      //	$date = day_to_date ($run_row->Day);
+
+	      $user_away = check_if_away ($run_row->Day,
 					$run_row->StartHour,
 					$game_row->Hours);
-	    $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
+	      $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 				    $confirmed['Male'], $confirmed['Female'],
 				    $game_row->MaxPlayersMale,
 				    $game_row->MaxPlayersFemale,
 				    $game_row->MaxPlayersNeutral,$confirmed['']);
-	    $count_text = sprintf ('Signed Up: %d<BR>Waitlist: %d',
-				   $confirmed['Total'],
+	      $count_text = sprintf ('Signed Up: %d<BR>Waitlist: %d',
+		 		   $confirmed['Total'],
 				   $waitlisted['Total']);
 
-	    // If the user can edit the GM (he/she is a GM) or if they
-	    // have Outreach privilege, let them view the signups
+	      // If the user can edit the GM (he/she is a GM) or if they
+	      // have Outreach privilege, let them view the signups
 
-	    if ($can_edit_game || user_has_priv (PRIV_OUTREACH))
-	    {
-	      $count_text = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d' .
+  	      if ($can_edit_game || user_has_priv (PRIV_OUTREACH))
+	      {
+	        $count_text = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d' .
 				     '&EventId=%d&FirstTime=1>%s</A>',
 				     SCHEDULE_SHOW_SIGNUPS,
 				     $run_row->RunId,
 				     $EventId,
 				     $count_text);
-	    }
-
-	    $bgcolor = '';
-
-	    if (-1 != $SignupId)
-	    {
-	      $text = $run_text . '<P>' . $count_text;
-	      if ($is_signedup)
-		$text .= '<P><I>You are signed up</I>';
-	      else
-	      {
-		$wait = get_waitlist_number ($run_row->RunId, $SignupId);
-
-		if (0 == $wait)
-		  $text .= '<P><I>You are waitlisted</I>';
-		else
-		  $text .= "<P><I>You are waitlisted #$wait</I>";
 	      }
 
-	      if (($can_signup) && (0 != con_signups_allowed()))
+
+	      if (-1 != $SignupId)
 	      {
-		$link = sprintf ('<A HREF=Schedule.php?action=%d&SignupId=%d' .
+	        $text = $run_text . '<P>' . $count_text;
+	        if ($is_signedup)
+		      $text .= '<P><I>You are signed up</I>';
+	        else
+	        {
+		      $wait = get_waitlist_number ($run_row->RunId, $SignupId);
+
+		      if (0 == $wait)
+		         $text .= '<P><I>You are waitlisted</I>';
+		      else
+		         $text .= "<P><I>You are waitlisted #$wait</I>";
+	        }  
+
+	        if (($can_signup) && (0 != con_signups_allowed()))
+	        {
+		        $link = sprintf ('<A HREF=Schedule.php?action=%d&SignupId=%d' .
 				 '&Seq=%d>',
 				 WITHDRAW_FROM_GAME,
 				 $SignupId,
 				 $seq);
-		$text .= "<P>${link}Withdraw</A>";
+		         $text .= "<P>${link}Withdraw</A>";
+	         }
 	      }
-	    }
-	    else
-	    {
-	      // If we're logged in we can (attempt) to signup for this game
-	      // If the game's full, the user will be put on the waitlist
-
-	      $text = '<P>';
-
-	      if ($user_away)
-		$text .= "<FONT COLOR=RED>You are away during this game</FONT><P>$run_text";
 	      else
 	      {
-		if ($can_signup)
-		{
-		  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
-				   'EventId=%d&Seq=%d>',
-				   SCHEDULE_SIGNUP,
-				   $run_row->RunId,
-				   $EventId,
-				   $seq);
-		  $text .= "${link}$run_text</A><P>";
-		}
-		else
-		  $text .= $run_text;
+	        // If we're logged in we can (attempt) to signup for this game
+	        // If the game's full, the user will be put on the waitlist
+
+	        $text = '<P>';
+
+	        if ($user_away)
+		       $text .= "<FONT COLOR=RED>You are away during this game</FONT><P>$run_text";
+	        else
+	        {
+				if ($can_signup)
+				{
+				  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
+					   'EventId=%d&Seq=%d>',
+					   SCHEDULE_SIGNUP,
+					   $run_row->RunId,
+					   $EventId,
+					   $seq);
+		  		  $text .= "${link}$run_text</A><P>";
+				}
+				else
+				  $text .= $run_text;
+	      	}
+
+	        $text .= '<P>' . $count_text;
+
+	        if ($game_full)
+	        {
+				$bgcolor = get_bgcolor ('Full');
+				$text .= "<P><I>$full_msg</I>";
+	      	}
 	      }
 
-	      $text .= '<P>' . $count_text;
+	      if (($run_count > 1) && ($RunId == $run_row->RunId))
+	        $highlight = 'style="border: medium solid"';
+	      else
+	        $highlight = '';
 
-	      if ($game_full)
-	      {
-		$bgcolor = get_bgcolor ('Full');
-		$text .= "<P><I>$full_msg</I>";
-	      }
-	    }
-
-	    if (($run_count > 1) && ($RunId == $run_row->RunId))
-	      $highlight = 'style="border: medium solid"';
-	    else
-	      $highlight = '';
-
+	    } // end of if this is a signupable event
+	    
 	    echo "    <TD $highlight $bgcolor>$text</TD>";
-	  }
-	}
+
+	  } // while there are more runs
+	} // if it's scheduled
 	echo "  </TR>\n";
 	echo "</TABLE>\n";
 
@@ -2054,9 +2071,8 @@ function show_game ()
 
 	if ('Y' == $game_row->CanPlayConcurrently)
 	  echo "<BR><B>Note:</B> You can play this game at the same time as another game\n";
-      }
+      
       echo "</CENTER>\n";
-    }
   }
 
   if ($game_row->SpecialEvent)
@@ -2068,32 +2084,21 @@ function show_game ()
 
   echo "<P>\n";
   echo "<HR>\n";
-  echo $game_row->Description;
-  if ($is_small_game_contest_entry)
-  {
-    echo "<p>\n";
-    echo "<img src=\"LittleLARPA.gif\" width=\"61\" height=\"19\" align=\"left\">\n";
-    echo "This is a LARPA Small Game Contest entry.</p>\n";
-  }
-    
+  echo $game_row->Description;    
   echo "<p>\n<hr>\n";
-
-  if ($is_iron_gm)
-    show_iron_gms();
 
   if (0 == $num_gms)
     return;
 
-  echo "<A NAME=\"GMs\"> </A><P>\n";
 
   // Fetch the list of GMs again, so we can display their bios
 
-  $sql = 'SELECT DISTINCT Users.FirstName, Users.LastName, Users.UserId';
+  $sql = 'SELECT DISTINCT Users.DisplayName, Users.UserId';
   $sql .= ' FROM GMs, Users';
   $sql .= " WHERE GMs.EventId=$EventId";
   $sql .= "   AND GMs.DisplayAsGM='Y'";
   $sql .= "   AND Users.UserId=GMs.UserId";
-  $sql .= ' ORDER BY Users.LastName, Users.FirstName';
+  $sql .= ' ORDER BY Users.DisplayName';
 
   //  echo "$sql<P>";
 
@@ -2101,11 +2106,14 @@ function show_game ()
   if (! $gm_result)
     display_mysql_error ('Failed to fetch list of GMs');
 
+echo "<table border=0 width=\"800\">";
+
   while ($gm_row = mysql_fetch_object ($gm_result))
   {
-    display_header ("$gm_row->LastName, $gm_row->FirstName");
+  echo "<TR><TD >";
+    display_header ("$gm_row->DisplayName");
 
-    $sql = "SELECT BioText FROM Bios WHERE UserId=$gm_row->UserId";
+    $sql = "SELECT BioText, Website, PhotoSource FROM Bios WHERE UserId=$gm_row->UserId";
 
     $bio_result = mysql_query ($sql);
     if (! $bio_result)
@@ -2115,14 +2123,21 @@ function show_game ()
 
     $bio_row = mysql_fetch_object ($bio_result);
     if ($bio_row)
-      if ('' != $bio_row->BioText)
-	$bio_text = $bio_row->BioText;
+    {
+      if ('' != $bio_row->PhotoSource)
+ 		display_photo($bio_row->PhotoSource);
 
-    if ('' == $bio_text)
-      echo "<BR>\n";
-    else
-      echo "<BR>$bio_text<P>\n";
+      if ('' != $bio_row->Website)
+        echo "<BR><a href=\"http://$bio_row->Website\">$bio_row->Website</a><br>\n";
+        
+       if ('' == $bio_row->BioText)
+        echo "<BR><i>No Bio available.</i>\n";
+      else
+        echo "<BR>$bio_row->BioText<P>\n";
+    } 
+  echo "</TD></TR>";
   }
+echo "</table>";
 }
 
 /*
@@ -2646,6 +2661,18 @@ function accept_players_from_waitlist ($EventId,
     }
   }
 }
+/*
+ * is_signup_event
+ *
+ * Check that the event is a type that allows signup
+ *   Conference items do not - they are open to conference attendees.
+ *   Ops volunteer slots always do.
+ *
+ */
+ function is_signup_event ($GameType)
+ {
+   return ($GameType != "Class" && $GameType != "Panel");
+ }
 
 /*
  * notify_about_event_changes
@@ -3206,20 +3233,21 @@ function display_game_form ()
  * Let the user select a game to view.
  */
 
-function list_games_alphabetically ()
+function list_games_alphabetically ($GameType="")
 {
   // Always shill for games!
-
   if (accepting_bids())
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
 	include(TEXT_DIR.'/acceptings.html');	
   }
 
-  $sql = 'SELECT EventId, Title, Author, ShortBlurb, SpecialEvent,';
+  $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
   $sql .= ' LENGTH(Description) AS DescLen';
   $sql .= ' FROM Events';
+  if ($GameType != "")
+    $sql .= ' WHERE GameType=\''.$GameType.'\'';
   $sql .= ' ORDER BY Title';
 
   $result = mysql_query ($sql);
@@ -3253,12 +3281,33 @@ function list_games_alphabetically ()
       else
 	echo "<b>$row->Title</b> \n";
 
-      if ('Other' != $row->GameType)
-	echo "($row->GameType)";
+//      if ('Other' != $row->GameType)
+//	echo "($row->GameType)";
 
-      if ('' != $row->Author && 'X' != $row->Author)
-	echo "<br><i>by $row->Author</i>\n";
 
+	// get the teachers or panelists 
+	if ($GameType == "Class")
+	{	  
+	  $sql = 'SELECT DISTINCT Users.DisplayName';
+	  $sql .= ' FROM GMs, Users';
+	  $sql .= " WHERE GMs.EventId=$row->EventId";
+	  $sql .= "   AND GMs.DisplayAsGM='Y'";
+	  $sql .= "   AND Users.UserId=GMs.UserId";
+	  $sql .= ' ORDER BY Users.DisplayName';
+
+      $gm_result = mysql_query ($sql);
+      if (! $gm_result)
+    	 display_mysql_error ('Failed to fetch list of GMs');
+
+ 	  $gm_row = mysql_fetch_object ($gm_result);
+ 	  echo "<br><i>$gm_row->DisplayName</i>";
+
+      while ($gm_row = mysql_fetch_object ($gm_result))
+      {
+	      echo ", <i>$gm_row->DisplayName</i>";
+      }
+
+	}
       if ('' != $row->ShortBlurb)
 	echo "<br>\n$row->ShortBlurb\n";
 

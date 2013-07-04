@@ -48,7 +48,7 @@ define (IRONGM_ENABLED, 0);
 
 // Set to 0 to disable allowing players to select events.
 
-define (SELECTEVENTS_ENABLED, 0);
+define (SELECTEVENTS_ENABLED, 1);
 
 // Defining the program file prefix enables the links on the ConCom menu
 // which allow users to download the program booklet sections.  The second
