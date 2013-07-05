@@ -155,7 +155,7 @@ class TicketItem
  * 
  */
  
-class Transasction
+class Transaction
 {
 	// These public properties represent the various columns in the table.
 	
@@ -193,19 +193,31 @@ class Transasction
 			return display_error("Transaction not found:  $TransIndex");
 		
 		$row = mysql_fetch_object($result);
-		
-		$this->TransIndex = $row->TransIndex;
-		$this->ItemID = $row->ItemID;
-		$this->UserID = $row->UserID;
-		$this->Amount = $row->Amount;	
-		$this->Datestamp = $row->Datestamp;
-		$this->AdjustmentAmt = $row->AdjustmentAmt;
-		$this->Status = $row->Status;
-		$this->TenderType = $row->TenderType;
-		$this->Reference = $row->Reference;
-		$this->Cashier = $row->Cashier;
-		$this->Memo = $row->Memo;
-        $this->Override = $row->Override;
+		$this->convert_from_sql_row($row);
+	}
+	
+	/* function convert_from_sql_row
+	 * 
+	 * Used override the object contents with the resultset row from an SQL
+     * select query.	 
+	 *
+	 * $row: an object row from the Transactions table. 
+	 * Returns: nothing.
+	 */
+	function convert_from_sql_row($row)
+	{
+		$this->TransIndex = (int)$row->TransIndex;
+		$this->ItemID = (int)$row->ItemID;
+		$this->UserID = (int)$row->UserID;
+		$this->Amount = (float)$row->Amount;
+		$this->Datestamp = (string)$row->Datestamp;
+		$this->AdjustmentAmt = (float)$row->AdjustmentAmt;
+		$this->Status = (string)$row->Status;
+		$this->TenderType = (string)$row->TenderType;
+		$this->Reference = (string)$row->Reference;
+		$this->Cashier = (int)$row->Cashier;
+		$this->Memo = (string)$row->Memo;
+		$this->Override = (bool)$row->Override;
 	}
 
 	/* function save_to_db
@@ -419,6 +431,9 @@ class EventTicketLink
 			return display_mysql_error ('Cannot execute query', $sql);
 	}
 }
+
+
+
 
 
 ?>

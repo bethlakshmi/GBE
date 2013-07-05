@@ -23,6 +23,24 @@ if (! user_has_priv (PRIV_REGISTRAR))
   exit ();
 }
 
+$sql = "select * from Transactions";
+$result = mysql_query($sql);
+
+if (!$result)
+	return display_mysql_error ('Cannot execute query', $sql);
+
+$row = mysql_fetch_object($result);
+echo serialize($row);
+echo "<br><br>";
+
+$temp = new Transaction();
+$temp->convert_from_sql_row($row);
+
+echo serialize($temp);
+
+
+
+
 
 /*
 if (array_key_exists ('action', $_REQUEST))
