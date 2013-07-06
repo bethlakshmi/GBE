@@ -149,7 +149,7 @@ define (SPECIAL_EVENT_FORM, 40);
 define (SPECIAL_EVENT_ADD, 41);
 define (SPECIAL_EVENT_LIST, 42);
 
-// Action values in Bids.php & Action.php
+// Action values in Bids.php & Action.php & Panels.php
 
 define (BID_GAME, 50);
 define (BID_PROCESS_FORM, 51);

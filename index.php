@@ -419,7 +419,7 @@ function process_login_form ()
 
   // Query the database for the EMail address and password
 
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, Gender, CanSignup, Email';
+  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
   $sql .= ' FROM Users';
   $sql .= " WHERE EMail='$EMail' AND HashedPassword='$HashedPassword'";
 
@@ -447,7 +447,7 @@ function process_login_form ()
 function login_with_data ($row, $EMail)
 {
   $UserId = $row->UserId;
-  $Gender = $row->Gender;
+  $DisplayName = $row->DisplayName;
   $name = trim ("$row->FirstName $row->LastName");
 
   // Update the login time.  If the user was an Alumni, promote him or her to
@@ -487,7 +487,7 @@ function login_with_data ($row, $EMail)
 
   $_SESSION[SESSION_LOGIN_USER_ID] = $UserId;
   $_SESSION[SESSION_LOGIN_USER_PRIVS] = ",$row->Priv,";
-  $_SESSION[SESSION_LOGIN_USER_GENDER] = $Gender;
+  $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
   $_SESSION[SESSION_LOGIN_USER_NAME] = $name;
   $_SESSION[SESSION_LOGIN_USER_EMAIL] = $EMail;
   $_SESSION['IncludeAlumni'] = 0;
@@ -1248,7 +1248,7 @@ function mark_user_paid ()
 
   // Refetch the user info & log them in again, since it's probably lost
 
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, Gender, CanSignup, Email';
+  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
   $sql .= ' FROM Users';
   $sql .= " WHERE UserId=$user_id";
 
@@ -1925,7 +1925,7 @@ function add_user ()
     $UserId = mysql_insert_id ();
     $_SESSION[SESSION_LOGIN_USER_ID] = $UserId;
     $_SESSION[SESSION_LOGIN_USER_PRIVS] = ',,';
-    $_SESSION[SESSION_LOGIN_USER_GENDER] = $_POST['Gender'];
+    $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
 
     $name = $_POST['FirstName'] . ' ' . $_POST['LastName'];
     $_SESSION[SESSION_LOGIN_USER_NAME] = trim ($name);

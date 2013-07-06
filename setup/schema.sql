@@ -298,7 +298,22 @@ CREATE TABLE `BidTimes` (
   `Day` enum('Monday','Tuesday','Wednesday','Thursday','Friday', 'Saturday', 'Sunday') NOT NULL,
   `Slot` enum('Morning', 'Lunch', 'Early Afternoon', 'Late Afternoon', 'Dinner', 'Evening', 'After Midnight' ) NOT NULL,
   `Pref` char(1) NOT NULL default '',
+  `UserId` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY  (`BidTimeId`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+--
+-- Table structure for table `PanelBids'
+--
+
+DROP TABLE IF EXISTS `PanelBids`;
+CREATE TABLE `PanelBids` (
+  `PanelBidsId` int(10) unsigned NOT NULL auto_increment,
+  `BidId` int(10) unsigned NOT NULL,
+  `UserId` int(10) unsigned NOT NULL DEFAULT '0',
+  `Interest` enum('no involvement', 'being a panelist', 'being the moderator') NOT NULL,
+  `Expertise` text,
+  PRIMARY KEY  (`PanelBidsId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --

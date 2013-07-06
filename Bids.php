@@ -289,11 +289,13 @@ function show_bid ()
   echo "    </TD>\n";
 
   // Bid chair & GM Liaison can edit bids
+  $gametype = $bid_row['GameType'];
 
   if (user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_GM_LIAISON))
   {
     echo "    <TD>\n";
-    printf ('      [<A HREF=Bids.php?action=%d&BidId=%d>Edit Bid</A>]',
+    printf ('      [<A HREF=Bids.php?GameType=%s&action=%d&BidId=%d>Edit Bid</A>]',
+        $gametype,
 	    BID_GAME,
 	    $BidId);
     echo "    </TD>\n";
@@ -321,11 +323,10 @@ function show_bid ()
   show_text ('Preferred Contact', $bid_row['PreferredContact']);
   show_text ('Other Classes/Panels/Acts', $bid_row['OtherGames']);
 
-  $gametype = $bid_row['GameType'];
 
   show_section ("$gametype Information");
 
-  if ($gametype = 'Class')
+  if ($gametype == 'Class')
   {
     show_text ('Teacher(s)', $bid_row['Author']);
     show_text ('Assistant Teachers(s)', $bid_row['GMs']);
@@ -333,13 +334,13 @@ function show_bid ()
     show_text ('Homepage', $bid_row['Homepage']);
     show_text ('POC EMail', $bid_row['GameEMail']);
   }
-  else if ($gametype = 'Panel')
+  else if ($gametype == 'Panel')
   {
     show_text ('Recommended Panelist(s)', $bid_row['GMs']);
     show_text ('POC EMail', $bid_row['GameEMail']);
 
   }
-  else if ($gametype = 'Performance')
+  else if ($gametype == 'Performance')
   {
     show_text ('Performer(s)', $bid_row['Author']);
     show_text ('Fellow Performer(s)', $bid_row['GMs']);
@@ -365,57 +366,55 @@ function show_bid ()
 	     $bid_row['IsSmallGameContestEntry']); */
   //show_text ('Basic Premise', $bid_row['Premise']);
   show_text ('Run Before', $bid_row['RunBefore']);
-  if ($gametype='Class')
+  if ($gametype=='Class')
+  {
     show_text ('Class Type', $bid_row['GameSystem']);
-  // show_text ('Combat Resolution', $bid_row['CombatResolution']);
-  show_text ('Space Requirements', $bid_row['SpaceRequirements']);
+    show_text ('Space Requirements', $bid_row['SpaceRequirements']);
 
-  show_section ('Restrictions');
-
-  if ($gametype != 'Class') {
-    show_text ('Offensive', $bid_row['Offensive']);
-    show_text ('Age Restrictions', $bid_row['AgeRestrictions']);
-  }
+    show_section ('Restrictions');
   
-  show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
+    show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
+   }
+   
+  if ($gametype != 'Panel'){
+    show_section ('Scheduling Information');
 
-  show_section ('Scheduling Information');
+    global $CLASS_DAYS;
+    global $BID_SLOTS;
+    global $BID_SLOT_ABBREV;
 
-  global $CLASS_DAYS;
-  global $BID_SLOTS;
-  global $BID_SLOT_ABBREV;
-
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD ALIGN=RIGHT><B>Preferred Slots:</B></TD>\n";
-  echo "    <TD>\n";
-  echo "      <TABLE BORDER=1>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CLASS_DAYS as $day)
-  	echo "          <TD COLSPAN=".count($BID_SLOTS[$day]).">{$day}</TD>\n";
-  echo "        </tr>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CLASS_DAYS as $day)
-  	foreach ($BID_SLOTS[$day] as $slot)
+    echo "  <TR VALIGN=TOP>\n";
+    echo "    <TD ALIGN=RIGHT><B>Preferred Slots:</B></TD>\n";
+    echo "    <TD>\n";
+    echo "      <TABLE BORDER=1>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($CLASS_DAYS as $day)
+  	  echo "          <TD COLSPAN=".count($BID_SLOTS[$day]).">{$day}</TD>\n";
+    echo "        </tr>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($CLASS_DAYS as $day)
+  	  foreach ($BID_SLOTS[$day] as $slot)
   		echo "          <TD>".$BID_SLOT_ABBREV[$slot]."</TD>\n";
-  echo "        </tr>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($CLASS_DAYS as $day)
-  	foreach ($BID_SLOTS[$day] as $slot)
+    echo "        </tr>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($CLASS_DAYS as $day)
+  	  foreach ($BID_SLOTS[$day] as $slot)
   		if (isset($bid_pref_slots[$day.$slot]))
   			show_table_entry ($bid_pref_slots[$day.$slot]);
   		else
   			show_table_entry ('&nbsp;');
-  echo "        </tr>\n";
-  echo "      </TABLE>\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
+    echo "        </tr>\n";
+    echo "      </TABLE>\n";
+    echo "    </TD>\n";
+    echo "  </tr>\n";
 
-  show_text ('Hours', $bid_row['Hours']);
-  show_text ('Multiple Runs', $bid_row['MultipleRuns']);
-  // show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
-  show_text ('Other Constraints', $bid_row['SchedulingConstraints']);
-  show_text ('Other Details', $bid_row['OtherDetails']);
-
+    show_text ('Hours', $bid_row['Hours']);
+    show_text ('Multiple Runs', $bid_row['MultipleRuns']);
+    // show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
+    show_text ('Other Constraints', $bid_row['SchedulingConstraints']);
+    show_text ('Other Details', $bid_row['OtherDetails']);
+  }
+  
   show_section ('Advertising Information');
 
   show_text ('Short Sentence', $bid_row['ShortSentence']);
@@ -494,7 +493,7 @@ function display_bid_form ($first_try)
   else
       $gametype = $BID_TYPES[0];
 
-  echo "<h2>2013 {$gametype} Application</h2>";
+  echo "<h2>2014 {$gametype} Application</h2>";
   echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
   echo ".  </big><br /><br />";
   echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
@@ -984,7 +983,8 @@ function display_bid_form ($first_try)
     form_hidden_value ('Fee', 'N');
 
   // We don't offer a choice of scheduling for performances - they get what we give them
-  if ($gametype != 'Performance')
+  // or panels, which must fit the presenter's schedules.
+  if ($gametype != 'Performance' && $gametype != 'Panel')
   {
     form_section ('Scheduling Information');
 

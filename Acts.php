@@ -469,7 +469,7 @@ function display_bid_form ($first_try)
   else
       $gametype = 'Performance';
 
-  echo "<h2>2013 {$gametype} Application</h2>";
+  echo "<h2>2014 {$gametype} Application</h2>";
   echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
   echo ".  </big><br /><br />";
   echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";

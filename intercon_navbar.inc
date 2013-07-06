@@ -430,7 +430,7 @@ function build_participation_subnavbar() {
   {
     $aboutSection->push(NavBarItem::newAction("Submit an Act", "biddingAGame.php", BAG_ACT_PAGE));
     $aboutSection->push(NavBarItem::newAction("Submit a Class", "biddingAGame.php", BAG_BID_PAGE));
-    $aboutSection->push(NavBarItem::newStatic("Sit on a Panel", "comingsoon"));
+    $aboutSection->push(NavBarItem::newAction("Sit on a Panel", "Panels.php"));
     $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
   }
 
@@ -458,7 +458,7 @@ function build_website_subnavbar() {
 function display_account_control_navbar() {
   $accountControl = new NavBar();
   if (is_logged_in()) {
-    $userName = $_SESSION[SESSION_LOGIN_USER_NAME];
+    $userName = $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME];
     $accountControl->push(new NavBarTitle($userName));
     $accountControl->push(NavBarItem::newAction("Log Out", "index.php", LOGOUT_USER, "logout"));
     $accountControl->push(NavBarItem::newAction("My Profile", "index.php", UPDATE_USER, "profile"));
