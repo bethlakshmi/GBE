@@ -1459,10 +1459,15 @@ function display_bids_for_review ()
 	$order = 'DisplayName';
         $desc = 'Submitter';
         break;
+        
+      case 'Type':
+	    $order = 'GameSystem';
+        $desc = 'Class Type';
+        break;
     }
   }
 
-  $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Status,';
+  $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Status, Bids.GameSystem,';
   $sql .= ' Users.EMail, Users.DisplayName,';
   $sql .= ' Bids.Organization, Bids.EventId, Bids.UserId,';
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
@@ -1519,6 +1524,9 @@ function display_bids_for_review ()
 	  BID_REVIEW_BIDS);
   printf ("    <th rowspan=\"3\" align=\"left\">" .
 	  "<a href=\"Bids.php?action=%d&order=Created\">Created</th>\n",
+	  BID_REVIEW_BIDS);
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=Type\">Class Type</th>\n",
 	  BID_REVIEW_BIDS);
   echo "  </tr>\n";
 
@@ -1665,6 +1673,7 @@ function display_bids_for_review ()
 
     echo "    <TD>$row->LastUpdatedFMT</TD>\n";
     echo "    <TD>$row->CreatedFMT</TD>\n";
+    echo "    <TD>$row->GameSystem</TD>\n";
     echo "  </tr>\n";
   }
 
