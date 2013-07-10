@@ -284,6 +284,18 @@ $BID_TYPES = array('Class', 'Panel', 'Performance');
 global $EVENT_TYPES;
 $EVENT_TYPES = array('Class', 'Panel', 'Show', 'Special Event','Ops');
 
+global $GM_TYPES;
+$GM_TYPES = array();
+$GM_TYPES['Class'] = 'Teacher(s)';
+$GM_TYPES['Panel'] = 'Panelist(s)';
+$GM_TYPES['Show'] =  'Cast & Crew';
+$GM_TYPES['Special Event'] = 'Coordinator(s)';
+$GM_TYPES['Ops'] = 'Coordinator(s)';
+
+global $PANELIST_TYPE;
+$PANELIST_TYPE = array("nothing", "panelist", "moderator");
+
+
 function parse_date ($d)
 {
   $a = sscanf ($d, '%d-%d-%d');

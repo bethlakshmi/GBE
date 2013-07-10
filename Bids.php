@@ -1,8 +1,7 @@
 <?php
 include ("intercon_db.inc");
-include ("display_common.php");
+//include ("display_common.php");
 
-$submitFilter = ' AND Bids.GameType != \'Performance\'';
 
 // Connect to the database
 
@@ -270,17 +269,9 @@ function show_bid ()
     foreach ($event_row as $key => $value)
       $bid_row[$key] = $value;
   }
+  // Bid chair & GM Liaison can edit bids
+  $gametype = $bid_row['GameType'];
 
-  //Get the Bid Preferred Slot Info
-  $sql = 'SELECT * FROM BidTimes WHERE BidId=' . $BidId;
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query for BidId $BidId failed");
-
-  $bid_pref_slots = array();
-  while ($row = mysql_fetch_assoc($result)) {
-    $bid_pref_slots[$row['Day'].$row['Slot']] = $row['Pref'];
-	}
 
   echo "<TABLE BORDER=0 WIDTH=\"100%\">\n";
   echo "  <TR VALIGN=TOP>\n";
@@ -288,8 +279,6 @@ function show_bid ()
   printf ("      <FONT SIZE=\"+2\"><B>%s</B></FONT>\n", $bid_row['Title']);
   echo "    </TD>\n";
 
-  // Bid chair & GM Liaison can edit bids
-  $gametype = $bid_row['GameType'];
 
   if (user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_GM_LIAISON))
   {
@@ -369,45 +358,23 @@ function show_bid ()
   if ($gametype=='Class')
   {
     show_text ('Class Type', $bid_row['GameSystem']);
-    show_text ('Space Requirements', $bid_row['SpaceRequirements']);
+    //show_text ('Space Requirements', $bid_row['SpaceRequirements']);
 
     show_section ('Restrictions');
   
     show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
    }
    
-  if ($gametype != 'Panel'){
     show_section ('Scheduling Information');
 
-    global $CLASS_DAYS;
-    global $BID_SLOTS;
-    global $BID_SLOT_ABBREV;
+   // create schedule preference table
+   display_schedule_pref ($BidId, $gametype=='Panel');  
 
-    echo "  <TR VALIGN=TOP>\n";
-    echo "    <TD ALIGN=RIGHT><B>Preferred Slots:</B></TD>\n";
-    echo "    <TD>\n";
-    echo "      <TABLE BORDER=1>\n";
-    echo "        <TR ALIGN=CENTER>\n";
-    foreach ($CLASS_DAYS as $day)
-  	  echo "          <TD COLSPAN=".count($BID_SLOTS[$day]).">{$day}</TD>\n";
-    echo "        </tr>\n";
-    echo "        <TR ALIGN=CENTER>\n";
-    foreach ($CLASS_DAYS as $day)
-  	  foreach ($BID_SLOTS[$day] as $slot)
-  		echo "          <TD>".$BID_SLOT_ABBREV[$slot]."</TD>\n";
-    echo "        </tr>\n";
-    echo "        <TR ALIGN=CENTER>\n";
-    foreach ($CLASS_DAYS as $day)
-  	  foreach ($BID_SLOTS[$day] as $slot)
-  		if (isset($bid_pref_slots[$day.$slot]))
-  			show_table_entry ($bid_pref_slots[$day.$slot]);
-  		else
-  			show_table_entry ('&nbsp;');
-    echo "        </tr>\n";
     echo "      </TABLE>\n";
     echo "    </TD>\n";
     echo "  </tr>\n";
-
+    
+  if ($gametype != 'Panel'){
     show_text ('Hours', $bid_row['Hours']);
     show_text ('Multiple Runs', $bid_row['MultipleRuns']);
     // show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
@@ -707,13 +674,13 @@ function display_bid_form ($first_try)
 
     if ($gametype == 'Class')
     {
-	    $CLASSTYPES = array('Movement','Lecture','Workshop');
+        global $ROOM_TYPES;
         $choice = $_POST['GameSystem'];
 
         echo "  <tr>\n";
         echo "    <td align=\"right\">Class Type:</td>\n";
         echo '    <td align="left">';
- 	form_single_select('', 'GameSystem', $CLASSTYPES,$choice);
+ 	    form_single_select('', 'GameSystem', $ROOM_TYPES, $choice);
         echo "    </td>\n";
         echo "  </tr>\n";
 
@@ -1059,16 +1026,7 @@ function display_bid_form ($first_try)
   }
   
 
-  if ($gametype == 'Class')
-  {
-  echo "in loop";
-    global $ROOM_TYPES;
-    $text = "Space Requirements: \n";
-    $choice = $_POST['SpaceRequirements'];
-    echo "<TR><TD><BR> \n ";
-    form_single_select($text, 'SpaceRequirements', $ROOM_TYPES,$choice);
-    echo "<BR><BR></TD></TR>";
-  }
+
 
 /*  form_textarea ('Space Requirements', 'SpaceRequirements', 2); */
   
@@ -1423,7 +1381,6 @@ function table_value ($value)
 function display_bids_for_review ()
 {
 
-  global $submitFilter;
 
   // Only bid committe members, the bid chair and the GM Liaison may access
   // this page
@@ -1467,36 +1424,74 @@ function display_bids_for_review ()
     }
   }
 
-  $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Status, Bids.GameSystem,';
-  $sql .= ' Users.EMail, Users.DisplayName,';
-  $sql .= ' Bids.Organization, Bids.EventId, Bids.UserId,';
-  $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
-  $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
-  $sql .= ' Bids.MinPlayersMale+Bids.MinPlayersFemale+Bids.MinPlayersNeutral AS Min,';
-  $sql .= ' Bids.MaxPlayersMale+Bids.MaxPlayersFemale+Bids.MaxPlayersNeutral AS Max,';
-  $sql .= ' Bids.PrefPlayersMale+Bids.PrefPlayersFemale+Bids.PrefPlayersNeutral AS Pref';
-  $sql .= ' FROM Bids, Users';
-  $sql .= ' WHERE Users.UserId=Bids.UserId';
-  $sql .= $submitFilter;
-  $sql .= " ORDER BY $order";
-
-  //  echo "SQL: $sql<p>\n";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    display_mysql_error ('Query failed for bids');
-
-  if (0 == mysql_num_rows ($result))
-    display_error ('There are no bids to review');
 
   display_header ('Content Submitted for ' . CON_NAME . ' by ' . $desc);
-
+  echo "<a name=\"#Classes\">Classes/Workshops only - go to <a href=\"#Panels\">Panels Section</a> to see Panels</a>";
   echo "Click on the item's title to view the details<br>\n";
   echo "Click on the submitter to send mail\n";
   if (user_has_priv (PRIV_BID_CHAIR))
     echo "<br>Click on the status to change the status\n";
   echo "<p>\n";
 
+  display_class_table ($order, $desc);
+
+  echo "<P>\n";
+
+  echo "<a name=\"Panels\"><b>Panels</b></a> - to see classes, go <a href=\"#Classes\">up</a><br>\n";
+  display_panel_table ($order, $desc);
+
+
+
+
+  echo "<TABLE>\n";
+  echo "  <TR VALIGN=TOP>\n";
+  echo "    <TD BGCOLOR=#FFFFCC>Pending</TD>\n";
+  echo "    <TD>\n";
+  echo "      A newly submitted item.  The Conference Coordinator is working\n";
+  echo "      with the submitter to make sure that it is complete\n";
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+  echo "  <TR VALIGN=TOP>\n";
+  echo "    <TD BGCOLOR=#DDDDFF>Under Review</TD>\n";
+  echo "    <TD>\n";
+  echo "      An item that is available for review by the Conference Committee\n";
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+  echo "  <TR VALIGN=TOP>\n";
+  echo "    <TD BGCOLOR=#CCFFCC>Accepted</TD>\n";
+  echo "    <TD>\n";
+  echo "      An item that has been accepted for ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."\n";
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+  echo "  <TR VALIGN=TOP>\n";
+  echo "    <TD BGCOLOR=#FFCCCC>Rejected</TD>\n";
+  echo "    <TD>\n";
+  echo "      An item that has been rejected for ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."\n";
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+  echo "  <TR VALIGN=TOP>\n";
+  echo "    <TD BGCOLOR=#FFCC99>Dropped</TD>\n";
+  echo "    <TD>\n";
+  echo "      An item that was previously accepted and has been dropped\n";
+  echo "      from the schedule\n";
+  echo "    </TD>\n";
+  echo "  </tr>\n";
+  echo "</TABLE>\n";
+
+  echo "<P>\n";
+  
+  mysql_free_result ($result);
+
+}
+
+/*
+ * display_class_table
+ *
+ * Show the class bid summary table for review
+ */
+
+function display_class_table ($order,$desc)
+{
   global $CLASS_DAYS;
   global $BID_SLOTS;
   global $BID_SLOT_ABBREV;
@@ -1504,6 +1499,28 @@ function display_bids_for_review ()
   $numslots = 0;
   foreach ($CLASS_DAYS as $day)
 	$numslots += count($BID_SLOTS[$day]);
+	
+  $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Hours, Bids.Status,';
+  $sql .= ' Users.EMail, Users.DisplayName,';
+  $sql .= ' Bids.EventId, Bids.UserId,';
+  $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
+  $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
+  $sql .= ' Bids.MinPlayersMale+Bids.MinPlayersFemale+Bids.MinPlayersNeutral AS Min,';
+  $sql .= ' Bids.MaxPlayersMale+Bids.MaxPlayersFemale+Bids.MaxPlayersNeutral AS Max,';
+  $sql .= ' Bids.PrefPlayersMale+Bids.PrefPlayersFemale+Bids.PrefPlayersNeutral AS Pref';
+  $sql .= ' FROM Bids, Users';
+  $sql .= ' WHERE Users.UserId=Bids.UserId';
+  $sql .= ' AND Bids.GameType = \'Class\'';
+  $sql .= " ORDER BY $order";
+
+  // echo "SQL: $sql<p>\n";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    display_mysql_error ('Query failed for bids');
+
+  if (0 == mysql_num_rows ($result))
+    display_error ('There are no classes to review');
 
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";
@@ -1513,7 +1530,7 @@ function display_bids_for_review ()
   printf ("    <th rowspan=\"3\" align=\"left\">" .
 	  "<a href=\"Bids.php?action=%d&order=Submitter\">Submitter</th>\n",
 	  BID_REVIEW_BIDS);
-  echo "    <TH COLSPAN=3>Size</TH>\n";
+  echo "    <TH>Size</TH>\n";
   echo "    <TH ROWSPAN=3>Hours</TH>\n";
   echo "    <TH COLSPAN={$numslots}>Preferred Slots</TH>\n";
   printf ("    <th rowspan=\"3\" align=\"left\">" .
@@ -1531,9 +1548,7 @@ function display_bids_for_review ()
   echo "  </tr>\n";
 
   echo "  <TR VALIGN=BOTTOM>\n";
-  echo "    <TH ROWSPAN=2>Min</TH>\n";
-  echo "    <TH ROWSPAN=2>Pref</TH>\n";
-  echo "    <TH ROWSPAN=2>Max</TH>\n";
+  echo "    <TH ROWSPAN=2>Min/ Pref/ Max</TH>\n";
 
   foreach ($CLASS_DAYS as $day)
 	echo "    <TH COLSPAN='".count($BID_SLOTS[$day])."'>".substr($day,0,3)."</TH>\n";
@@ -1650,9 +1665,7 @@ function display_bids_for_review ()
     echo "    <TD ALIGN=LEFT>$title</TD>\n";
 
     echo "    <TD ALIGN=LEFT><A HREF=mailto:$row->EMail>$name</A></TD>\n";
-    printf ("    <TD><A NAME=BidId%d>$row->Min</A></TD>\n", $row->BidId);
-    echo "    <TD>$row->Pref</TD>\n";
-    echo "    <TD>$row->Max</TD>\n";
+    printf ("    <TD><A NAME=BidId%d>$row->Min/$row->Pref/$row->Max</A></TD>\n", $row->BidId);
     echo "    <TD>$row->Hours</TD>\n";
 
 	global $CLASS_DAYS;
@@ -1675,48 +1688,196 @@ function display_bids_for_review ()
     echo "    <TD>$row->CreatedFMT</TD>\n";
     echo "    <TD>$row->GameSystem</TD>\n";
     echo "  </tr>\n";
-  }
+  } // end while rows in original select
 
   echo "</TABLE>";
 
-  echo "<P>\n";
+}
 
-  echo "<TABLE>\n";
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD BGCOLOR=#FFFFCC>Pending</TD>\n";
-  echo "    <TD>\n";
-  echo "      A newly submitted item.  The Conference Coordinator is working\n";
-  echo "      with the submitter to make sure that it is complete\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD BGCOLOR=#DDDDFF>Under Review</TD>\n";
-  echo "    <TD>\n";
-  echo "      An item that is available for review by the Conference Committee\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD BGCOLOR=#CCFFCC>Accepted</TD>\n";
-  echo "    <TD>\n";
-  echo "      An item that has been accepted for ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD BGCOLOR=#FFCCCC>Rejected</TD>\n";
-  echo "    <TD>\n";
-  echo "      An item that has been rejected for ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD BGCOLOR=#FFCC99>Dropped</TD>\n";
-  echo "    <TD>\n";
-  echo "      An item that was previously accepted and has been dropped\n";
-  echo "      from the schedule\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-  echo "</TABLE>\n";
+/*
+ * display_panel_table
+ *
+ * Show the class bid summary table for review
+ */
 
-  echo "<P>\n";
+function display_panel_table ($order,$desc)
+{
+  global $CLASS_DAYS;
+  global $BID_SLOTS;
+  global $BID_SLOT_ABBREV;
+
+  $numslots = 0;
+  foreach ($CLASS_DAYS as $day)
+	$numslots += count($BID_SLOTS[$day]);
+
+  $sql = 'SELECT Bids.BidId, Bids.Title, Bids.Status,';
+  $sql .= ' Bids.EventId, Bids.UserId,';
+  $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
+  $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT';
+  $sql .= ' FROM Bids';
+  $sql .= ' WHERE Bids.GameType = \'Panel\' ';
+  $sql .= " ORDER BY $order";
+
+  // echo "SQL: $sql<p>\n";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    display_mysql_error ('Query failed for bids');
+
+  if (0 == mysql_num_rows ($result))
+    display_error ('There are no panels to review');
+
+  echo "<table border=\"1\">\n";
+  echo "  <tr valign=\"bottom\">\n";
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=Game\">Title</th>\n",
+	  BID_REVIEW_BIDS);
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=Game\">Panelist</th>\n",
+	  BID_REVIEW_BIDS);
+  echo "    <TH COLSPAN={$numslots}>Preferred Slots</TH>\n";
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=Status\">Status</th>\n",
+	  BID_REVIEW_BIDS);
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=LastUpdated\">LastUpdated</th>\n",
+	  BID_REVIEW_BIDS);
+  printf ("    <th rowspan=\"3\" align=\"left\">" .
+	  "<a href=\"Bids.php?action=%d&order=Created\">Created</th>\n",
+	  BID_REVIEW_BIDS);
+  echo "  </tr>\n";
+
+
+  foreach ($CLASS_DAYS as $day)
+	echo "    <TH COLSPAN='".count($BID_SLOTS[$day])."'>".substr($day,0,3)."</TH>\n";
+  echo "  </tr>\n";
+
+  echo "  <TR VALIGN=BOTTOM>\n";
+  foreach ($CLASS_DAYS as $day)
+  	foreach ($BID_SLOTS[$day] as $slot)
+  		echo "          <TH>".$BID_SLOT_ABBREV[$slot]."</TH>\n";
+  echo "  </TR>\n";
+
+  while ($row = mysql_fetch_object ($result))
+  {
+    // Determine the background color for this row
+
+    switch ($row->Status)
+    {
+      case 'Pending':        $bgcolor = '#FFFFCC'; break;
+      case 'Under Review':   $bgcolor = '#DDDDFF'; break;
+      case 'Accepted':       $bgcolor = '#CCFFCC'; break;
+      case 'Rejected':       $bgcolor = '#FFCCCC'; break;
+      case 'Dropped':        $bgcolor = '#FFCC99'; break;
+      default:               $bgcolor = '#FFFFFF'; break;
+    }
+
+    echo "  <TR ALIGN=CENTER BGCOLOR=\"$bgcolor\">\n";
+
+    // If the status is "Pending" then folks with BidCom priv can know that
+    // it's there, but they can't see the game.  The Bid Chair or the GM
+    // Liaison can see bid.
+    
+    // Get the panelists who voluntered and their preferred times
+	$sql = "SELECT PanelBids.*, Users.DisplayName, Users.EMail FROM PanelBids, Users";
+	$sql .= " WHERE PanelBids.BidId=".$row->BidId." AND Users.UserId=PanelBids.UserId;";
+	$panel_result = mysql_query ($sql);
+	if (! $panel_result)
+		return display_mysql_error ("BidTimes query failed for BidId ".$row->BidId);
+    $panelcount = mysql_num_rows($panel_result);
+
+    $game_link = true;
+    $priv = user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_GM_LIAISON);
+
+    if (('Pending' == $row->Status) && (! $priv))
+      $game_link = false;
+
+    if ($game_link)
+      $title = sprintf ("<A HREF=Bids.php?action=%d&BidId=%d>$row->Title</A>",
+	      BID_SHOW_BID,
+	      $row->BidId);
+    else
+      $title = $row->Title;
+    echo "    <TD ALIGN=LEFT rowspan=".$panelcount.">$title</TD>\n";
+    
+
+	global $CLASS_DAYS;
+	global $BID_SLOTS;
+
+	
+    if ($panelcount == 0)
+    {
+      echo "<td>&nbsp;</td>\n";
+   	  foreach ($CLASS_DAYS as $day)
+  		foreach ($BID_SLOTS[$day] as $slot) {
+  			$key = $day.'_'.$slot;
+          echo "<td>&nbsp;</td>\n";
+  	    }
+  	  if (user_has_priv (PRIV_BID_CHAIR))
+        printf ("    <TD rowspan=".$panelcount."><A HREF=Bids.php?action=%d&BidId=%d>$row->Status</A></TD>\n",
+	      BID_CHANGE_STATUS,
+	      $row->BidId);
+      else
+        echo "    <TD rowspan=".$panelcount.">$row->Status</TD>\n";
+
+      echo "    <TD rowspan=".$panelcount.">$row->LastUpdatedFMT</TD>\n";
+      echo "    <TD rowspan=".$panelcount.">$row->CreatedFMT</TD>\n";
+      echo "  </tr>\n";
+
+    } // no panelists
+    else {
+      $n = 0;
+      while ($panelist = mysql_fetch_object ($panel_result))
+      {
+        if ($n > 0 )
+            echo "  <TR ALIGN=CENTER BGCOLOR=\"$bgcolor\">\n";
+
+        echo "<td>".$panelist->DisplayName."</td>\n";
+
+	    $sql = "SELECT * FROM BidTimes WHERE UserId=".$panelist->UserId.";";
+		// echo $sql;
+	    $btresult = mysql_query ($sql);
+	    if (! $btresult)
+		  return display_mysql_error ("BidTimes query failed for UserId ".$row->UserId);
+
+	    $bidtimes = array();
+	    while ($btrow = mysql_fetch_array ($btresult, MYSQL_ASSOC))
+	    {
+		  $key = $btrow['Day'].'_'.$btrow['Slot'];
+		  $bidtimes[$key] = mysql_real_escape_string ($btrow['Pref']);
+	    }
+	    mysql_free_result ($btresult);
+
+   	    foreach ($CLASS_DAYS as $day)
+  		  foreach ($BID_SLOTS[$day] as $slot) {
+  			$key = $day.'_'.$slot;
+  			echo "    <TD>" . table_value ($bidtimes[$key]) . "</TD>\n";
+  	      }
+  	    if ($n==0)
+  	    {
+  	        if (user_has_priv (PRIV_BID_CHAIR))
+              printf ("    <TD rowspan=".$panelcount."><A HREF=Bids.php?action=%d&BidId=%d>$row->Status</A></TD>\n",
+	            BID_CHANGE_STATUS,
+	            $row->BidId);
+            else
+              echo "    <TD rowspan=".$panelcount.">$row->Status</TD>\n";
+
+            echo "    <TD rowspan=".$panelcount.">$row->LastUpdatedFMT</TD>\n";
+            echo "    <TD rowspan=".$panelcount.">$row->CreatedFMT</TD>\n";
+        }
+        echo "  </tr>\n";
+  	    $n=1;
+  	  } // while there's more panelists
+    
+    } // if there are some panelists
+    
+    
+    mysql_free_result ($panel_result);
+
+  } // end while rows in original select
+
+  echo "</TABLE><br><br>";
+
 }
 
 /*
@@ -1939,16 +2100,13 @@ function process_status_change ()
   if (is_unpaid ($row->CanSignup))
     comp_user ($UserId, $EventId);
 */
+
   // Add the lead GM as a GM for the game
-
-  $sql = "INSERT INTO GMs SET EventId=$EventId, UserId=$UserId,";
-  $sql .= '  Submitter="Y", ReceiveConEMail="Y",';
-  $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("GM insertion failed");
-
+  // if this is a panel, don't add, they have to be selected later.
+  if ($row['GameType'] != 'Panel')
+  {
+    add_gm($EventId, $UserId);
+  }
   return TRUE;
 }
 

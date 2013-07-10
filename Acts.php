@@ -1,7 +1,7 @@
 <?php
 include ("intercon_db.inc");
 include ("files.php");
-include ("display_common.php");
+//include ("display_common.php");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -308,8 +308,9 @@ function show_bid ()
 
 
   show_text ('Performance)', $bid_row['Title']);
+  show_text ('Stage Name/Troupe', $bid_row['Organization']);
   show_text ('Fellow Performer(s)', $bid_row['GMs']);
-  show_text ('Troupe', $bid_row['Organization']);
+  show_text ('Is this a Troupe?', $bid_row['MultipleRuns']);
   echo "  <TR VALIGN=TOP>\n";
   echo "    <TD ALIGN=RIGHT NOWRAP><B>Website:</B></TD><TD ALIGN=LEFT><a href=\"http://{$bid_row['Homepage']}\">{$bid_row['Homepage']}</a></TD>\n";
   echo "  </tr>\n";
@@ -658,6 +659,7 @@ function display_bid_form ($first_try)
 
     form_text (64, 'EMail for inquries/updates', 'GameEMail', 0, TRUE);
 
+	form_yn('Is this a Troupe Performance?', 'MultipleRuns');
 
     $text = "<b>Fellow performers</b>  Please list other people involved/required for this\n";
     $text .= "act.\n";

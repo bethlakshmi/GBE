@@ -242,7 +242,7 @@ function build_larps_subnavbar() {
   $larpSection->push(NavBarItem::newAction("Panels", "Schedule.php", LIST_GAMES,NULL,'Panel'));
   $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
   $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special Event'));
-  $larpSection->push(NavBarItem::newAction("Volunteer Opportunties", "Schedule.php", LIST_GAMES,NULL,'Ops'));
+  $larpSection->push(NavBarItem::newAction("Volunteer Opportunities", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   if (IRONGM_ENABLED)
     $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
@@ -458,7 +458,7 @@ function build_website_subnavbar() {
 function display_account_control_navbar() {
   $accountControl = new NavBar();
   if (is_logged_in()) {
-    $userName = $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME];
+    $userName = $_SESSION['SESSION_LOGIN_USER_DISPLAY_NAME'];
     $accountControl->push(new NavBarTitle($userName));
     $accountControl->push(NavBarItem::newAction("Log Out", "index.php", LOGOUT_USER, "logout"));
     $accountControl->push(NavBarItem::newAction("My Profile", "index.php", UPDATE_USER, "profile"));

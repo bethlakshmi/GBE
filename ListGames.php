@@ -442,9 +442,10 @@ function add_run_form ($update)
     $_POST['Rooms'] = explode(',', $row['Rooms']);
   }
 
-  // Start by fetching the title
+  // Start by fetching the title, type & BidId 
 
-  $sql = "SELECT Title FROM Events WHERE EventId=$EventId";
+  $sql = "SELECT Title, GameType FROM Events";
+  $sql .= " WHERE EventId=$EventId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
@@ -484,6 +485,29 @@ function add_run_form ($update)
   form_text (32, 'Schedule Note', 'ScheduleNote');
   form_con_rooms('Rooms(s)', 'Rooms');
 
+  if ( $row->GameType == "Class" || $row->GameType == "Panel")
+  {
+    $sql = "SELECT BidId FROM Bids WHERE EventId=$EventId";
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
+
+    if (0 == mysql_num_rows ($result))
+      return display_error ("Cannot find EventId $EventId in the database!");
+
+    if (1 != mysql_num_rows ($result))
+      return display_error ("EventId $EventId matched more than 1 row!");
+
+    $bidrow = mysql_fetch_object ($result);
+
+    //echo "Panel: ".$row->GameType." BidId: ".$bidrow->BidId;
+
+    display_schedule_pref($bidrow->BidId, $row->GameType == "Panel" );
+    
+    mysql_free_result ($bidrow);
+
+  }
+
   if ($update)
     form_submit2 ('Update Run', 'Delete Run', 'DeleteRun');
   else
@@ -512,11 +536,11 @@ function add_run_form ($update)
 
     if (0 != $row->Count)
     {
-      echo "<p><b>Warning:</b> There are $row->Count players signed up for\n";
+      echo "<p><b>Warning:</b> There are $row->Count people signed up for\n";
       echo "this run of <i>$Title</i>.  If you delete this run, you should\n";
-      echo "send them mail before deleting the run.  The site will not\n";
+      echo "send them mail before deleting the run.  The site will NOT\n";
       echo "automatically send them cancellation notices.  You can get a\n";
-      echo "list of EMail addresses for the signed up players\n";
+      echo "list of EMail addresses for the signed up participants\n";
       printf ("<A HREF=\"Schedule.php?action=%d&RunId=%d&EventId=%d&" .
 	      "FirstTime=1 TARGET=_blank\">here</a><p>\n",
 	      SCHEDULE_SHOW_SIGNUPS,
@@ -651,6 +675,7 @@ function process_add_run ()
   $result = mysql_query ($sql);
   if (! $result)
      return display_error ($action_failed . ' Runs table failed: ' . mysql_error ());
+
 
   if ($Update)
     echo "Updated run $RunId for <i>$Title</I>\n<p>\n";

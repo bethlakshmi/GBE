@@ -499,7 +499,7 @@ CREATE TABLE `GMs` (
   `DisplayEMail` enum('Y','N') NOT NULL DEFAULT 'Y',
   `ReceiveConEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `ReceiveSignupEMail` enum('Y','N') NOT NULL DEFAULT 'N',
-  `UpdatedById` int(11) NOT NULL DEFAULT '0',
+  `Role` enum( "panelist", "moderator" ) NULL DEFAULT NULL,
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`GMId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

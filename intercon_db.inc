@@ -19,6 +19,7 @@ require ('intercon_constants.inc');
 require ('db_constants.inc');
 require ('intercon_navbar.inc');
 require ('Mail.php');
+require ('display_common.php');
 
 // File not found in repository or FTP.... 
 // require ('Mail.php');
@@ -315,7 +316,7 @@ define (FRI_MAX, 24);    // 7AM
 define (SAT_MIN, 8);     // 8AM
 define (SAT_MAX, 24);    // 7AM
 define (SUN_MIN, 8);     // 8AM
-define (SUN_MAX, 16);    // 4PM
+define (SUN_MAX, 24);    // 4PM
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
 define (SESSION_LOGIN_USER_TEACHER, 'LoginUserTeach_' . CON_ID);
@@ -3074,6 +3075,152 @@ function start_time_table_row ($day, $min, $max)
 }
 
 /*
+ * display_schedule_pref
+ *
+ * Display the bid time preferences for either the bid or
+ * the panelists.  
+ */
+
+function display_schedule_pref ($BidId, $isPanel,$pickPanel=FALSE)
+{
+  $userids = "";
+  
+  if ($isPanel)
+  {
+	$sql = "SELECT PanelBids.*, Users.DisplayName, Users.EMail FROM PanelBids, Users";
+	$sql .= " WHERE PanelBids.BidId=".$BidId." AND Users.UserId=PanelBids.UserId;";
+	//echo $sql;
+    $panelresult = mysql_query ($sql);
+    if (!$panelresult)
+      return display_mysql_error ("Query for BidId $BidId failed");
+  }
+  else {
+    //Get the Bid Preferred Slot Info
+    $sql = 'SELECT * FROM BidTimes WHERE BidId=' . $BidId;
+    // echo $sql;
+    
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ("Query for BidId $BidId failed");
+
+    $bid_pref_slots = array();
+    while ($row = mysql_fetch_assoc($result)) {
+      $bid_pref_slots[$row['Day'].$row['Slot']] = $row['Pref'];
+    }
+    
+  }  
+
+  // Create Table Headers
+  global $CLASS_DAYS;
+  global $BID_SLOTS;
+  global $BID_SLOT_ABBREV;
+  global $PANELIST_TYPE;
+
+  echo "  <TR ALIGN=CENTER VALIGN=TOP>\n";
+  echo "    <TD><B>Preferred Slots:</B></TD>\n";
+  echo "    <TD>\n";
+  echo "      <TABLE BORDER=1>\n";
+  echo "        <TR>\n";
+  if ( $isPanel ) {
+      echo "    <TD rowspan=2>Participant</TD>";
+      echo "    <TD rowspan=2>";
+      if ($pickPanel)
+        echo "Preferred ";
+      echo "Role</TD>";
+  }
+  foreach ($CLASS_DAYS as $day)
+    echo "          <TD COLSPAN=".count($BID_SLOTS[$day]).">{$day}</TD>\n";
+  if ( $isPanel ) 
+    if ( $pickPanel)
+      echo "    <TD rowspan=2>Choose Role</TD>";
+    else
+      echo "    <TD rowspan=2>Experience</TD>";
+  echo "        </tr>\n";
+ 
+  echo "        <TR ALIGN=CENTER>\n";
+  foreach ($CLASS_DAYS as $day)
+    foreach ($BID_SLOTS[$day] as $slot)
+      echo "          <TD>".$BID_SLOT_ABBREV[$slot]."</TD>\n";
+  echo "        </tr>\n";
+
+
+  // Enter row(s) - 1 row for a regular class, several rows for panels
+  if ( $isPanel ) {
+      $n = 0;
+
+   	  while ( $panelist = mysql_fetch_object($panelresult))
+  	  {
+  	  	$sql = "SELECT * FROM BidTimes WHERE UserId=".$panelist->UserId.";";
+  	  	
+		//echo $sql;
+	    $btresult = mysql_query ($sql);
+	    if (! $btresult)
+		  return display_mysql_error ("BidTimes query failed for UserId ".$row->UserId);
+
+	    $bidtimes = array();
+
+	    while ($btrow = mysql_fetch_assoc ($btresult, MYSQL_ASSOC))
+	    {
+	      if (strlen($btrow['Pref']) == 0 )
+	        $bid_pref_slots[$btrow['Day'].$btrow['Slot']] = "&nbsp;";
+	      else
+ 		    $bid_pref_slots[$btrow['Day'].$btrow['Slot']] = $btrow['Pref'];
+	    }
+	    mysql_free_result ($btresult);
+
+  	    echo "        <TR ALIGN=CENTER>\n";
+  	    echo "          <TD>".$panelist->DisplayName."</TD>\n";
+  	    echo "          <TD>".$panelist->Interest."</TD>\n";
+        foreach ($CLASS_DAYS as $day)
+  	      foreach ($BID_SLOTS[$day] as $slot)
+  		    if (isset($bid_pref_slots[$day.$slot]))
+  		  	  show_table_entry ($bid_pref_slots[$day.$slot]);
+  		    else
+  			  show_table_entry ('&nbsp;');
+  	    if ($pickPanel)
+  	    {
+  	      $sql = "SELECT * FROM GMs, Bids WHERE GMs.UserId=".$panelist->UserId;
+  	      $sql .= " AND GMs.EventId=Bids.EventId and Bids.BidId=".$BidId;
+  	  	
+		  //echo $sql;
+	      $pickrole = mysql_query ($sql);
+	      if (! $pickrole)
+		    return display_mysql_error ("Role query failed for UserId ".$row->UserId);
+
+		  $role_row = mysql_fetch_object ($pickrole);
+
+  	      echo "          <TD>";
+  	      form_single_select("", "User-".$panelist->UserId, 
+  	      					$PANELIST_TYPE, $role_row->Role);
+  	      echo "</TD>\n";
+  	      $userids .= $panelist->UserId.'.';
+  	    }
+  	    else 
+  	      echo "          <TD>".$panelist->Expertise."</TD>\n";
+        echo "        </tr>\n";
+        $n++;
+ 	  } // while $panelist
+	  form_hidden_value('UserList',$userids);
+ 	  mysql_free_result ($panelist);
+  } // if it's a panel
+  else {
+      echo "        <TR ALIGN=CENTER>\n";
+      foreach ($CLASS_DAYS as $day)
+  	    foreach ($BID_SLOTS[$day] as $slot)
+  		  if (isset($bid_pref_slots[$day.$slot]))
+  			show_table_entry ($bid_pref_slots[$day.$slot]);
+  		  else
+  			show_table_entry ('&nbsp;');
+      echo "        </tr>\n";
+	  mysql_free_result ($btresult);
+
+  } // if it's not a panel
+
+  echo "      </TABLE>\n";
+
+}
+
+/*
  * get_waitlist_number
  *
  * Get the waitlist number for a user's signup
@@ -3625,5 +3772,17 @@ function form_con_rooms($display, $key)
   echo "      </table>\n";
   echo "    </td>\n";
   echo "  </tr>\n";
+}
+
+// Add a GM to the given event
+function add_gm($EventId, $UserId) 
+{
+    $sql = "INSERT INTO GMs SET EventId=$EventId, UserId=$UserId,";
+    $sql .= '  Submitter="Y", ReceiveConEMail="Y",';
+    $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ("GM insertion failed");
 }
 ?>

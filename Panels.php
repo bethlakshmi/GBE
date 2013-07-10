@@ -50,10 +50,26 @@ switch ($action)
   // using for add panelist - for the selection 
   // to be made by the Bid Chair
   case ADD_GM:
-    if (! can_edit_game_info ())
+    if (! user_has_priv (PRIV_SCHEDULING))
       display_access_error ();
     else
-      select_user_as_gm ();
+      set_panelists ();
+      
+  $page = 'panelists_added.html';
+
+  if (! is_readable ($page))
+  {
+    if (! is_readable (TEXT_DIR."/$page"))
+    {
+      display_error ("Unable to read $page");
+    }
+    else
+      include (TEXT_DIR."/$page");
+  }
+  else
+    include ($page);
+    
+    
     break;
 
   // commit panelist to panel is the same as teacher
@@ -113,14 +129,14 @@ function list_panels ()
 
   $n = mysql_num_rows ($result);
 
+  echo "<h2>2014 Panel Volunteering</h2>";
+  echo "<div><big>Thank you for your interest in participating in a panel at " . CON_NAME ;
+  echo ".  </big><br /><br />";
+  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
+  echo "<br /><br />";
+
   if ($n > 0)
   {
-    echo "<h2>2014 Panel Volunteering</h2>";
-    echo "<div><big>Thank you for your interest in participating in a panel at " . CON_NAME ;
-    echo ".  </big><br /><br />";
-    echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
-    echo "<br /><br />";
-
 
 //    if (file_exists(TEXT_DIR.'/actinstruct.html'))
 //  	  include(TEXT_DIR.'/actinstruct.html');	
@@ -165,10 +181,10 @@ function list_panels ()
       if ('' != $row->Description)
 	    echo "<tr><td colspan=2><B>Description:</b>\n$row->Description\n</td></tr>";
       
-      $text = "I am interested in... ";
-      $VALUE_LIST = array("no involvement", "being a panelist", "being the moderator");
+      $text = "I am would like to be a... ";
+      global $PANELIST_TYPE;
       form_hidden_value ('BidId-'.$n, $row->BidId);            
-      $select = $VALUE_LIST[0];
+      $select = $PANELIST_TYPE[0];
 
       if ( isset($_POST['Interest-'.$n]) )
       {
@@ -177,7 +193,7 @@ function list_panels ()
 
       echo "  <TR>\n";
       echo "    <TD COLSPAN=2><br>\n";
-      form_single_select($text,"Interest-".$n, $VALUE_LIST, $select);
+      form_single_select($text,"Interest-".$n, $PANELIST_TYPE, $select);
       echo "    </TD>\n";
       echo "  </TR>\n";
 
@@ -185,60 +201,67 @@ function list_panels ()
                      'Expertise-'.$n, 5, TRUE, TRUE);
 
       $n = $n + 1;
-    }
-  }
-  form_hidden_value("NumBids",$n);
+    }  // while there's more panels under review
+    form_hidden_value("NumBids",$n);
   
-  form_section ('Scheduling Information');
+    form_section ('Scheduling Information');
 
-  echo "  <TR>\n";
-  echo "    <TD COLSPAN=2>\n";
-  echo "      The expo can schedule your {$thingstring} into the\n";
-  echo "      time slots available over the weekend.  The expo aims to\n";
-  echo "      create a power packed agenda of balanced content across a \n";
-  echo "      wide selection time slots.  Your flexibility is vital.<p>\n";
-  echo "      Please pick your top three preferences for when you'd like to\n";
-  echo "      run your game and be conservative in the use of 'Prefer Not'.\n";
-  echo "    </TD>\n";
-  echo "  </TR>\n";
+    echo "  <TR>\n";
+    echo "    <TD COLSPAN=2>\n";
+    echo "      The expo can schedule your {$thingstring} into the\n";
+    echo "      time slots available over the weekend.  The expo aims to\n";
+    echo "      create a power packed agenda of balanced content across a \n";
+    echo "      wide selection time slots.  Your flexibility is vital.<p>\n";
+    echo "      Please pick your top three preferences for when you'd like to\n";
+    echo "      run your game and be conservative in the use of 'Prefer Not'.\n";
+    echo "    </TD>\n";
+    echo "  </TR>\n";
   
-  global $CLASS_DAYS;
-  global $CLASS_DAYS;
-  global $BID_SLOTS;
+    global $CLASS_DAYS;
+    global $CLASS_DAYS;
+    global $BID_SLOTS;
 
-  $DAYS = $CLASS_DAYS;
+    $DAYS = $CLASS_DAYS;
 
-  echo "  <TR>\n";
-  echo "    <TD COLSPAN=2>\n";
-  echo "      <TABLE BORDER=1>\n";
-  echo "        <TR VALIGN=BOTTOM>\n";
-  echo "          <TH></TH>\n";
-  foreach ($DAYS as $day)
-    echo "          <TH>{$day}</TH>\n";
-  echo "        </tr>\n";
-  foreach ($BID_SLOTS['All'] as $main_slot) {
-  echo "        <TR ALIGN=CENTER>\n";
-  echo "          <TH>{$main_slot}</TH>\n";
-  foreach ($DAYS as $day)
-    if (in_array($main_slot,$BID_SLOTS[$day]))
-	  		schedule_table_entry ("{$day}_{$main_slot}");
-    else
-	  		echo "          <TD>&nbsp;</TD>\n";
+    echo "  <TR>\n";
+    echo "    <TD COLSPAN=2>\n";
+    echo "      <TABLE BORDER=1>\n";
+    echo "        <TR VALIGN=BOTTOM>\n";
+    echo "          <TH></TH>\n";
+    foreach ($DAYS as $day)
+       echo "          <TH>{$day}</TH>\n";
     echo "        </tr>\n";
+    foreach ($BID_SLOTS['All'] as $main_slot) {
+    echo "        <TR ALIGN=CENTER>\n";
+    echo "          <TH>{$main_slot}</TH>\n";
+    foreach ($DAYS as $day)
+      if (in_array($main_slot,$BID_SLOTS[$day]))
+	  		schedule_table_entry ("{$day}_{$main_slot}");
+      else
+	  		echo "          <TD>&nbsp;</TD>\n";
+      echo "        </tr>\n";
+    }
+    echo "      </TABLE>\n";
+    echo "    </TD>\n";
+    echo "  </tr>\n";
+
+    $text = "Are there any other scheduling constraints on your {$thingstring}?  For\n";
+    $text .= "example, are you proposing another class, panel, or performance? \n";
+    form_textarea ($text, 'SchedulingConstraints', 5);
+
+    form_submit ("Submit");
+
+
+    echo "</TABLE>\n";
+    echo "</FORM>\n";
+    }
+  else 
+  {
+    echo "Unfortunately, there are no panels awaiting panelists at this time.  Please ";
+    echo "do check here later, panels may be added for consideration in the future or ";
+    echo "existing panels may require additional volunteers.";
   }
-  echo "      </TABLE>\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
 
-  $text = "Are there any other scheduling constraints on your {$thingstring}?  For\n";
-  $text .= "example, are you proposing another class, panel, or performance? \n";
-  form_textarea ($text, 'SchedulingConstraints', 5);
-
-  form_submit ("Submit");
-
-
-  echo "</TABLE>\n";
-  echo "</FORM>\n";
 
   mysql_free_result ($result);
 }
@@ -369,7 +392,73 @@ function process_bid_panel_form ()
 
   return TRUE;
 }
+/*
+ * display_bid_etc
+ *
+ * What to show when panel was successfully submitted.
+ */
 
+function display_bid_etc ()
+{
+  echo "<FONT SIZE=\"+2\">Thank you for offering to be a panelist or moderator for ";
+  echo CON_NAME . "!</FONT>\n";
+  echo "<P>\n";
+  echo "The bid committee has been notified of your submission.\n";
+  echo "<P>\n";
 
+  $page = 'panelfollowup.html';
+
+  if (! is_readable ($page))
+  {
+    if (! is_readable (TEXT_DIR."/$page"))
+    {
+      display_error ("Unable to read $page");
+    }
+    else
+      include (TEXT_DIR."/$page");
+  }
+  else
+    include ($page);
+}
+
+/*
+ * set_panelists
+ *
+ * set panelists based on the bid form.
+ */
+
+function set_panelists ()
+{
+  global $PANELIST_TYPE;
+  $Users = explode(".",trim ($_REQUEST['UserList']));
+  foreach ($Users as $user)
+  {
+    if (strlen($user) > 0 )
+    {
+      //echo "<br>".trim ($_REQUEST['User-'.$user])."<BR>\n";
+      $sql = "DELETE FROM GMs WHERE EventId=".$_REQUEST['EventId'];
+      $sql .= " AND UserId=$user; ";
+      
+      // echo $sql;
+      $insert_result = mysql_query ($sql);
+      if (! $insert_result)
+        return display_mysql_error ("GM Insertion failed", $sql);
+
+      if (trim($_REQUEST['User-'.$user]) != $PANELIST_TYPE[0])
+      {
+        $sql = "INSERT INTO GMs SET EventId=".$_REQUEST['EventId'].",";
+        $sql .= " UserId=$user, Role='".$_REQUEST['User-'.$user]."',";
+        $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+
+        // echo $sql;
+        $insert_result = mysql_query ($sql);
+        if (! $insert_result)
+          return display_mysql_error ("GM Insertion failed", $sql);
+      }// if the panelist has a role
+    }// if there is a value... the array has some empty bits
+
+  } // for each panel bid
+
+}
 
 ?>

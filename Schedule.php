@@ -1624,28 +1624,8 @@ function show_game ()
     $can_edit_game = false;
   }
 
-  global $EVENT_TYPES;
-  $gms = "GMs";
-  switch ($game_row->GameType)
-  {
-    case $EVENT_TYPES[0]:
-    	$gms = "Teacher(s)";
-    	break;
-    case $EVENT_TYPES[1]:
-    	$gms = "Panelist(s)";
-    	break;
-    case $EVENT_TYPES[2]:
-    	$gms = "Cast & Crew";
-    	break;
-    case $EVENT_TYPES[3]:
-    case $EVENT_TYPES[4]:
-    	$gms = "Staff";
-    	break;    
-  }
-
-  // Note if this is the IronGM event
-
-  $is_iron_gm = ('Y' == $game_row->IsIronGm);
+  global $GM_TYPES;
+  $gms = $GM_TYPES[$game_row->GameType];
 
   // Note if this is a volunteer event (ConSuite or Ops)
 
@@ -1672,13 +1652,12 @@ function show_game ()
     echo '<li class="title">Event Admin</li>';
     printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit Event</a></li>',
 	    EDIT_GAME, $EventId);
-    printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit %s</a></li>',
+	
+	// editing the presenters of the event is limited to scheduling people 
+	if (user_has_priv (PRIV_SCHEDULING) )
+      printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit %s</a></li>',
 	    DISPLAY_GM_LIST, $EventId, $gms);
-    if ($is_iron_gm)
-    {
-      printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit Iron GM Teams</a></li>',
-	      SCHEDULE_IRON_GM_TEAM_LIST, $EventId);
-    }
+
     //display_comp_info($EventId);
     
     $updater_name = '<Unknown>';
@@ -1707,13 +1686,6 @@ function show_game ()
   $num_gms = 0;
 
   echo "<table>\n";
-  if ($is_iron_gm)
-  {
-    $email = mailto_or_obfuscated_email_address ($game_row->GameEMail);
-    display_one_col ('Contact', $email);
-  }
-  else
-  {
 
     if ($volunteer_event)
       display_one_col ('Dept. Head', $game_row->Author);
@@ -1729,13 +1701,13 @@ function show_game ()
 
     // Fetch the list of GMs
 
-    $sql = 'SELECT DISTINCT Users.DisplayName,';
+    $sql = 'SELECT DISTINCT Users.DisplayName, GMs.Role,';
     $sql .= ' Users.EMail, GMs.DisplayEMail, Users.CompEventId';
     $sql .= ' FROM GMs, Users';
     $sql .= " WHERE GMs.EventId=$EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
     $sql .= "   AND Users.UserId=GMs.UserId";
-    $sql .= ' ORDER BY Users.LastName, Users.FirstName';
+    $sql .= ' ORDER BY GMs.Role DESC, Users.DisplayName';
 
     //  echo "$sql<P>";
 
@@ -1752,26 +1724,26 @@ function show_game ()
       echo "      <TABLE CELLSPACING=0 CELLPADDING=0>\n";
       while ($gm_row = mysql_fetch_object ($gm_result))
       {
-	echo "        <TR VALIGN=TOP>\n";
-	$name = $gm_row->DisplayName . '&nbsp;';
+	    echo "        <TR VALIGN=TOP>\n";
+	    $name = $gm_row->DisplayName.'&nbsp;';
+	    if ($game_row->GameType == "Panel")
+	     $name .= '-&nbsp;'.$gm_row->Role."&nbsp;";
 	
-	if ('Y' != $gm_row->DisplayEMail)
-	  $EMail = '';
+	    if ('Y' != $gm_row->DisplayEMail)
+	      $EMail = '';
 
-	echo "          <TD>$name</TD>\n";
-	echo "          <TD>$EMail</TD>\n";
-	if ($can_edit_game) {
-    echo "<TD>";
-    if ($gm_row->CompEventId == $EventId) {
-      echo "&nbsp;&nbsp;&nbsp;(Comp for this game)";
-    }
-    echo "</TD>";
-	}
-	echo "        </TR>\n";
+   	    echo "          <TD>$name</TD>\n";
+	    echo "          <TD>$EMail</TD>\n";
+	    if ($can_edit_game) {
+          echo "<TD>";
+          if ($gm_row->CompEventId == $EventId) {
+            echo "&nbsp;&nbsp;&nbsp;(Comp for this game)";
+          }
+          echo "</TD>";
+	    }
+	    echo "        </TR>\n";
       }
-      echo "      </TABLE>\n    </TD>\n  </TR>\n";
-  }
-
+    echo "      </TABLE>\n    </TD>\n  </TR>\n";
   
     if (""  != $game_row->Organization)
       display_one_col ('Organization', $game_row->Organization);
@@ -1825,19 +1797,6 @@ function show_game ()
       echo "  </tr>\n";
     }
 
-    if ('Y' == $game_row->IsIronGm)
-    {
-      echo "  <tr>\n";
-      echo "    <td colspan=\"2\">This event <b>is</b> Iron GM</td>\n";
-      echo "  </tr>\n";
-    }
-
-    if ('Y' == $game_row->IsSmallGameContestEntry)
-    {
-      echo "  <tr>\n";
-      echo "    <td colspan=\"2\">This event <b>is</b> a LARPA small game contest entry</td>\n";
-      echo "  </tr>\n";
-    }
   }
   echo "</table>\n";
 
@@ -1900,12 +1859,15 @@ function show_game ()
 	else
 	    $table_title = 'Schedule Details';
     
-	echo "<TABLE BORDER=1>\n";
-    echo "  <TR>\n";
-	echo "    <TH COLSPAN=$colspan>$table_title</TH>";
-	echo "  </TR>\n";
-	
-	if (($run_count > 1) && $can_edit_game)
+    if ( $run_count > 0)
+    {    
+  	  echo "<TABLE BORDER=1>\n";
+      echo "  <TR>\n";
+	  echo "    <TH COLSPAN=$colspan>$table_title</TH>";
+	  echo "  </TR>\n";
+    }
+    
+ 	if (($run_count > 1) && $can_edit_game)
 	{
 	  $cols = min (4, $run_count);
 	  echo "  <TR>\n";
@@ -1917,12 +1879,11 @@ function show_game ()
 	  echo "    </TD>\n";
 	  echo "  </TR>\n";
 	}
-	echo "  <TR ALIGN=CENTER VALIGN=TOP>\n";
 	
-	if (0 == $run_count)
-	  echo "    <TD>This event is not scheduled</TD>\n";
-	else
+	
+	if ( $run_count > 0)
 	{
+
 	  // The sequence number must be the same for all runs
 
 	  $seq = increment_sequence_number ();
@@ -1936,7 +1897,7 @@ function show_game ()
 	    if (4 == ++$run_col)
 	    {
 	      $run_col = 0;
-	      echo "  </TR>\n  <TR ALIGN=CENTER VALIGN=TOP>\n";
+	      echo " <TR ALIGN=CENTER VALIGN=TOP>\n";
 	    }
 
 	    $game_start = start_hour_to_12_hour ($run_row->StartHour);
@@ -2062,17 +2023,19 @@ function show_game ()
 	    echo "    <TD $highlight $bgcolor>$text</TD>";
 
 	  } // while there are more runs
-	} // if it's scheduled
-	echo "  </TR>\n";
-	echo "</TABLE>\n";
 
-	if ($can_edit_game)
-	  echo "    <BR>Click on the counts to see signup list\n";
+	  echo "</TABLE>\n";
 
-	if ('Y' == $game_row->CanPlayConcurrently)
-	  echo "<BR><B>Note:</B> You can play this game at the same time as another game\n";
+	  if ($can_edit_game && is_signup_event($game_row->GameType))
+	    echo "    <BR>Click on the counts to see signup list\n";
+
+	  if ('Y' == $game_row->CanPlayConcurrently)
+	    echo "<BR><B>Note:</B> You can play this game at the same time as another game\n";
       
       echo "</CENTER>\n";
+
+	} // if it's scheduled
+
   }
 
   if ($game_row->SpecialEvent)
@@ -3239,7 +3202,7 @@ function list_games_alphabetically ($GameType="")
   if (accepting_bids())
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
-	include(TEXT_DIR.'/acceptings.html');	
+	include(TEXT_DIR.'/acceptingbids.html');	
   }
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
@@ -4726,11 +4689,30 @@ function display_gm_list ()
 {
   $EventId = intval (trim ($_REQUEST ['EventId']));
   $Title = $_SESSION['GameTitle'];
+  
+  $sql = 'SELECT * FROM Events';
+  $sql .= "  WHERE EventId=$EventId";
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Query for comped people failed", $sql);
+  $event_row = mysql_fetch_object($result);
 
-  display_header ("GMs for <I>$Title</I>");
+  global $GM_TYPES;
+  global $PANELIST_TYPE;
+  $gms = $GM_TYPES[$event_row->GameType];
 
-  printf ('<p><a href="Schedule.php?action=%d&EventId=%d"><b>Add</b></a> teacher, performer, panelist, etc. ' .
-	  "from registered users<p>\n",
+  display_header ("$gms for <I>$Title</I>");
+
+  if ($event_row->GameType == "Panel")
+      printf ('<p><b>Add</b></a> <a href="Schedule.php?action=%d&EventId=%d&Role=%s">moderator</a>'.
+        ' or <a href="Schedule.php?action=%d&EventId=%d&Role=%s">panelist</a>. ' .
+	    "from registered users<p>\n",
+	    ADD_GM, $EventId, $PANELIST_TYPE[2],
+	    ADD_GM, $EventId, $PANELIST_TYPE[1]);
+
+  else
+    printf ('<p><a href="Schedule.php?action=%d&EventId=%d"><b>Add</b></a> '.$gms.
+	  " from registered users<p>\n",
 	  ADD_GM,
 	  $EventId);
 
@@ -4747,7 +4729,7 @@ function display_gm_list ()
   $unpaid_gms = array ();
 
   $sql = 'SELECT Users.DisplayName, Users.CompEventId,';
-  $sql .= '  Users.CanSignup, Users.UserId,';
+  $sql .= '  Users.CanSignup, Users.UserId, GMs.Role,';
   $sql .= '  GMs.GMId, GMs.Submitter, GMs.DisplayAsGM, GMs.DisplayEMail,';
   $sql .= '  GMs.ReceiveConEMail, GMs.ReceiveSignupEMail';
   $sql .= '  FROM GMs, Users';
@@ -4761,11 +4743,14 @@ function display_gm_list ()
 
   if (0 != mysql_num_rows ($result))
   {
+    $role = "";
+    if ($event_row->GameType == "Panel")
+      $role = "for Role";
     echo "<TABLE BORDER=1 CELLPADDING=5>\n";
     echo "  <TR VALIGN=BOTTOM>\n";
     echo "    <TH>#</TH>\n";
     echo "    <TH>Name</TH>\n";
-    echo "    <TH>Submitted Bid</TH>\n";
+    echo "    <TH>Submitted Bid $role</TH>\n";
     echo "    <TH>Display with Event</TH>\n";
     echo "    <TH>Display EMail Address</TH>\n";
     echo "    <TH>Receive EMail From Con</TH>\n";
@@ -4798,7 +4783,10 @@ function display_gm_list ()
       echo "    <TD>$i</TD>\n";
       $href = 'Schedule.php?action=' . EDIT_GM . "&GMId=$row->GMId&EventId=$EventId";
       echo "    <TD ALIGN=LEFT><A HREF=$href>$row->DisplayName</A></TD>\n";
-      yn_to_x_column ($row->Submitter);
+      if ($event_row->GameType == "Panel")
+        echo "   <TD ALIGN=CENTER>$row->Role&nbsp;</TD>";
+      else
+        yn_to_x_column ($row->Submitter);
       yn_to_x_column ($row->DisplayAsGM);
       yn_to_x_column ($row->DisplayEMail);
       yn_to_x_column ($row->ReceiveConEMail);
@@ -4843,7 +4831,7 @@ function display_gm_list ()
     echo "</ul>\n";
     echo "On the day they are scheduled to teach or present, they will be given, ";
     echo "a bare minimum pass for the conference day <u>or</u> show they are a part of.";
-    echo "In general, teachers, panelists, and performers with no registration payment ";
+    echo "  In general, teachers, panelists, and performers with no registration payment ";
     echo "are an attendance risk, it's wise to keep in contact to be sure they will attend.";
     echo "<br><br>";
     
@@ -4863,10 +4851,38 @@ function display_gm_list ()
 
   $row = mysql_fetch_object ($result);
 
+  /*
   if (strlen($row->Author) > 0 )
   {
     echo "NOTE:  The teacher(s) from the original Bid were <b>".$row->Author."</b><br><br>";
   }
+  */
+  
+  // we only need a panelist setting form if this is a panel,
+  // teachers are already booked
+  if ( $event_row->GameType == "Panel" ) {
+    echo "<h2>Select from Panelist Bids</h2>";
+    echo "<FORM METHOD=POST ACTION=Panels.php?action=".ADD_GM.">\n";
+    form_hidden_value("EventId",$EventId);
+    $sql = "SELECT BidId FROM Bids WHERE EventId=$EventId";
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
+
+    if (0 == mysql_num_rows ($result))
+      return display_error ("Cannot find EventId $EventId in the database!");
+
+    if (1 != mysql_num_rows ($result))
+      return display_error ("EventId $EventId matched more than 1 row!");
+
+    $bidrow = mysql_fetch_object ($result);
+
+    display_schedule_pref($bidrow->BidId, $event_row->GameType == "Panel", TRUE );
+    echo "  <br><br>";
+    echo "      <INPUT TYPE=SUBMIT VALUE=\"Add Panelists\">\n";
+    echo "</FORM>";
+  }
+
 
   printf ("<A HREF=Schedule.php?action=%d&EventId=%d>Return</A>",
 	  SCHEDULE_SHOW_GAME,
@@ -5006,6 +5022,9 @@ function select_user_as_gm ()
 		   $EventId,
 		   increment_sequence_number ());
 
+  if (isset($_REQUEST ['Role']))
+    $link .= "&Role=".$_REQUEST ['Role'];
+
   select_user ("Select User to be GM for <I>$Title</I>",
 	       $link,
 	       FALSE,
@@ -5029,12 +5048,14 @@ function process_add_gm ()
 
   $EventId = intval (trim ($_REQUEST ['EventId']));
   $UserId = intval (trim ($_REQUEST ['UserId']));
+  $Role = trim ($_REQUEST ['Role']);
 
   // Make him a GM
 
   $sql = "INSERT INTO GMs SET EventId=$EventId,";
   $sql .= " UserId=$UserId,";
   $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ', Role=\'' . $Role.'\'';
 
   $insert_result = mysql_query ($sql);
   if (! $insert_result)

@@ -602,7 +602,7 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
   $num_rows = mysql_num_rows ($result);
   if (0 == $num_rows)
   {
-    echo "<B>$prefix not $type for any games.</B><P>\n";
+    echo "<B>$prefix not $type for any volunteer opportunities.</B><P>\n";
     return TRUE;
   }
 
@@ -960,7 +960,7 @@ function show_user_homepage_gm ($UserId)
   if (0 == mysql_num_rows ($result))
     return true;
 
-  display_header ("<P>Links To Games You're a GM for");
+  display_header ("<P>Links To Classes & Panels you are Presenting:");
 
   echo "<TABLE CELLPADDING=2>\n";
   while ($row = mysql_fetch_object ($result))
@@ -997,14 +997,15 @@ function show_user_homepage_bids ($UserId)
   if (0 == mysql_num_rows ($result))
     return true;
 
-  display_header ("<P>Status of Games You've Bid");
+  display_header ("<P>Status of Classes, Panels and Acts you've offered:");
 
   echo "<TABLE CELLPADDING=2>\n";
   while ($row = mysql_fetch_object ($result))
   {
     echo "  <TR>\n";
     echo "    <TD>$row->Status:</TD>\n";
-    printf ("    <TD><A HREF=Bids.php?action=%d&BidId=%d>%s</A></TD>\n",
+    printf ("    <TD>%s<A HREF=Bids.php?action=%d&BidId=%d>%s</A></TD>\n",
+    	$row->GameType,
 	    BID_GAME,
 	    $row->BidId,
 	    $row->Title);
@@ -1279,31 +1280,33 @@ function display_signup_status ()
   switch ($signups_allowed)
   {
     case '1':
-      echo "You may signup to play only 1 game at this time.  &quot;Ops!&quot;,\n";
-      echo "or games that you are a GM for do not count towards your total.<p>\n";
+      echo "You may signup for 1 item at this time.  &quot;Ops!&quot;,\n";
+      echo "or items you are running do not count towards your total.<p>\n";
       break;
 
     case '2':
     case '3':
-      echo 'You may signup to play only ' . $signups_allowed;
-      echo " games at this time.  &quot;Ops!&quot;, or games that you are\n";
-      echo "a GM for do not count towards your total.<p>\n";
+      echo 'You may signup to for ' . $signups_allowed;
+      echo " items at this time.  &quot;Ops!&quot;, or items that you are\n";
+      echo "running do not count towards your total.<p>\n";
       break;
       
     case UNLIMITED_SIGNUPS:
-      echo "Game signup is now fully open!  You can sign up for any number of games.<p>\n";
+      echo "Conference schedule is now fully open!  Please signup for volunteer ";
+      echo "slots, rehearsal slots, buy tickets, or check the schedule for interesting";
+      echo "shows, classes, special events and more!<p>\n";
       break;
 
     default:
-      echo "Game signup is not allowed at this time.\n";
+      echo "Schedule signup is not allowed at this time.\n";
       break;
   }
 
   // Tell users that to register for games, they should view the game schedule
 
-  echo "To signup for games, select them on the ";
-  echo "<A HREF=Schedule.php>Schedule of Games</A> or\n";
-  printf ("<A HREF=Schedule.php?action=%d>List of Games</A> pages.\n",
+  echo "To signup for volunteer slots or rehearsal options, select them on the ";
+  echo "<A HREF=Schedule.php>Schedule</A> or\n";
+  printf ("<A HREF=Schedule.php?action=23&type=Ops>Volunteer Opportunities</A> pages.\n",
 	  LIST_GAMES);
 }
 
@@ -1467,7 +1470,7 @@ function show_user_homepage_status ()
     echo $_SESSION[SESSION_CON_NEWS] . "<P>\n";
   }
 
-  display_header ('Game Status');
+  display_header ('Scheduling Status');
 
   // If the schedule's not yet available, direct users to the list of games
   // and exit
@@ -1475,8 +1478,8 @@ function show_user_homepage_status ()
   if (! $_SESSION[SESSION_CON_SHOW_SCHEDULE])
   {
       echo "The schedule for " . CON_NAME . " is not yet available.  You \n";
-      echo "can see the list of games being planned by clicking on \n";
-      printf ("<A HREF=Schedule.php?action=%d>LARPs at %s</A>\n",
+      echo "can see the list of conference and speical events being planned by clicking on \n";
+      printf ("<A HREF=Schedule.php>The Events Lists</A>\n",
 	      LIST_GAMES, CON_NAME);
       echo "in the Navigation menu.<p>\n";
       return true;
@@ -1580,7 +1583,9 @@ function show_unpaid_messages()
 
   // If we get here, the user can still pay for the con and signup for games,
   // assuming that signups have opened and games are still available
-  echo "Until you pay, you won't be able to sign up for any games. ";
+  echo "Until you pay, you won't be able to attend the conference - you'll get access ";
+  echo "to any show or class you've been accepted for, but won't be able to partipate in ";
+  echo "any other part of the conference, shows or vendor exhibits. ";
   echo "<a href=\"PaymentStatus.php\">Click here to pay!</a>\n";
 
   return true;
@@ -1632,7 +1637,7 @@ function show_user_homepage_bio_info ()
 
   // If this user has NOT entered a bio, then issue a warning.
 
-  $sql = 'SELECT Title, BioText FROM Bios WHERE UserId=';
+  $sql = 'SELECT Title, BioText, Website, PhotoSource FROM Bios WHERE UserId=';
   $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
 
   $result = mysql_query ($sql);
@@ -1656,6 +1661,13 @@ function show_user_homepage_bio_info ()
   if ('' != $title)
     echo "Title(s): <I>$title</I><P>\n";
 
+  if ('' != $row->PhotoSource)
+ 		display_photo($row->PhotoSource);
+
+    
+  if ('' != $row->Website)
+        echo "<BR><b>Website:</b> <a href=\"http://$bio_row->Website\">$row->Website</a></br></br>\n";
+
   if ('' == $bio_text)
   {
     echo "<p><font color=\"red\">No bio text found.</font>  ";
@@ -1667,6 +1679,9 @@ function show_user_homepage_bio_info ()
   }
   else
     echo "$bio_text\n";
+    
+
+
 }
 
 /*

@@ -78,7 +78,8 @@ function display_bid_intro ($area)
   echo "<table cellspacing=\"2\" cellPadding=\"2\" width=\"100%\" border=\"0\">\n";
   echo "  <tr>\n";
   echo "    <td width=\"60%\" valign=\"top\">\n";
-  echo "      <h3>Applying to ".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)." ".$area."s</h3>\n";
+  echo "      <h3>Applying to ".CON_NAME." ".$area."</h3>\n";
+  echo CON_SHORT_NAME."...";
   if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
 	include(TEXT_DIR.'/'.$area.'bidding1.html');	
   echo "      <h3><a name=\"deadlines\">Bid Deadlines</a></h3>\n";
