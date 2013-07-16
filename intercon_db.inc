@@ -8,9 +8,11 @@ if (strstr($_SERVER["SERVER_NAME"], "interactiveliterature.org")) {
 
 error_reporting(0);
 
+// Yes, this is ugly, but at least it got my side to work.  -MDB
+
 ini_set( 
   'include_path', 
-  ini_get( 'include_path' ) . PATH_SEPARATOR . "/Applications/MAMP/bin/pear/Mail-1.2.0"
+  ini_get( 'include_path' ) . PATH_SEPARATOR . "/Applications/MAMP/bin/pear/Mail-1.2.0" . PATH_SEPARATOR . "C:\wamp\bin\php\php5.4.16\pear\Mail-1.2.0" . PATH_SEPARATOR . "C:\wamp\bin\php\php5.4.16\pear"
 );
 
 $pear_user_config = '/home/neiladmin/.pearrc';

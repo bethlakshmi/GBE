@@ -2,8 +2,8 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 7/1/2013 by MDB
-  *
+ * Last Updated 7/8/2013 by MDB
+ *
  */
  
 include("intercon_db.inc");
@@ -50,14 +50,26 @@ class TicketItem
 			return display_error("Ticket Item not found:  $ItemId");
 		
 		$row = mysql_fetch_object($result);
-		
-		$this->ItemId = $row->ItemId;
-		$this->Title = $row->Title;
-		$this->Description = $row->Description;
-		$this->Active = $row->Active;	
-		$this->Cost = $row->Cost;
-		$this->Datestamp = $row->Datestamp;	
-		$this->Userstamp = $row->Userstamp;
+		$this->convert_from_sql_row($row);
+	}
+	
+	/* function convert_from_sql_row
+	 * 
+	 * Used override the object contents with the resultset row from an SQL
+     * select query.	 
+	 *
+	 * $row: an object row from the TicketItems table. 
+	 * Returns: nothing.
+	 */
+	function convert_from_sql_row($row)
+	{
+		$this->ItemId = (int)$row->ItemId;
+		$this->Title = (string)$row->Title;
+		$this->Description = (string)$row->Description;
+		$this->Active = (bool)$row->Active;	
+		$this->Cost = (float)$row->Cost;
+		$this->Datestamp = (string)$row->Datestamp;	
+		$this->Userstamp = (int)$row->Userstamp;
 	}
 	
 	/* function save_to_db
@@ -350,15 +362,27 @@ class EventTicketLink
 			return display_error("Event ticket link not found:  $ETIndex");
 		
 		$row = mysql_fetch_object($result);
-		
-		$this->ETIndex = $row->ETIndex;
-		$this->EventID = $row->EventID;
-		$this->TicketItemID = $row->TicketItemID;
-		$this->Description = $row->Description;	
-		$this->Active = $row->Active;
-		$this->Datestamp = $row->Datestamp;
-		$this->Userstamp = $row->Userstamp;
+		$this->convert_from_sql_row($row);
 	}	
+	
+	/* function convert_from_sql_row
+	 * 
+	 * Used override the object contents with the resultset row from an SQL
+     * select query.	 
+	 *
+	 * $row: an object row from the EventTicketLink table. 
+	 * Returns: nothing.
+	 */
+	function convert_from_sql_row($row)
+	{
+		$this->ETIndex = (int)$row->ETIndex;
+		$this->EventID = (int)$row->EventID;
+		$this->TicketItemID = (int)$row->TicketItemID;
+		$this->Description = (string)$row->Description;	
+		$this->Active = (bool)$row->Active;
+		$this->Datestamp = (string)$row->Datestamp;
+		$this->Userstamp = (int)$row->Userstamp;
+	}
 	
 	/* function save_to_db
 	 * 
@@ -431,10 +455,6 @@ class EventTicketLink
 			return display_mysql_error ('Cannot execute query', $sql);
 	}
 }
-
-
-
-
 
 ?>
 
