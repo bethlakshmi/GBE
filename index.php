@@ -685,76 +685,6 @@ function build_order_string ($n, $size, &$s, &$count, $type)
   $count += $n;
 }
 
-/*
- * show_user_homepage_dead_dog
- *
- * Show whether the user has signed up for the Dead Dog
- */
-
-function show_user_homepage_dead_dog ($UserId)
-{
-  // Display the header for the Pre-Convention
-
-  display_header (CON_NAME . ' Dead Dog');
-
-  // Check whether the user has registered for the PreCon
-
-  $sql = 'SELECT SUM(Quantity) FROM DeadDog';
-  $sql .= " WHERE UserId=$UserId";
-  $sql .= '   AND Status="Paid"';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Thursday query failed', $sql);
-    
-  $row = mysql_fetch_row($result);
-  $tickets = $row[0];
-
-  if (0 == $tickets)
-  {
-    printf ("<p>You're not signed up for the %s Dead Dog.\n", CON_NAME);
-    echo "Click <a href=\"DeadDog.php\">here</a>";
-    echo " to buy tickets.</p>\n";
-    return;
-  }
-
-  printf ("<p>You have purchased %d tickets for the %s Dead Dog.</p>\n",
-	  $tickets, CON_NAME);
-}
-
-/*
- * show_user_homepage_thursday
- *
- * Show whether the user has signed up for the Thursday Thing
- */
-
-function show_user_homepage_thursday ($UserId)
-{
-  // Display the header for the Pre-Convention
-
-  display_header (CON_NAME . ' Pre-Convention Events');
-
-  // Check whether the user has registered for the PreCon
-
-  $sql = 'SELECT * FROM Thursday';
-  $sql .= " WHERE UserId=$UserId";
-  $sql .= '   AND Status="Paid"';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Thursday query failed', $sql);
-
-  if (0 == mysql_num_rows($result))
-  {
-    printf ("<p>You're not signed up for the %s Pre-Convention.\n", CON_NAME);
-    echo "What is the Pre-Convention?  Click <a href=\"Thursday.php\">here</a>";
-    echo " to find out.</p>\n";
-    return;
-  }
-
-  printf ("<p>You are signed up and paid for the %s Pre-Convention.</p>\n",
-	  CON_NAME);
-}
 
 /*
  * show_user_homepage_shirts
@@ -1409,7 +1339,9 @@ function show_user_homepage_status ()
   display_header ("Welcome $name");
 
   $user_status = '';
-  switch ($status)
+  
+  // Ideally we replace this with ticketing info.
+/*  switch ($status)
   {
     case 'Unpaid':
     case 'Alumni':
@@ -1455,7 +1387,7 @@ function show_user_homepage_status ()
   printf ("%s for %s.<P>\n",
 	  $user_status,
 	  CON_NAME);
-
+*/
   // Show the user what attendence is looking like, if they've got ConCom
   // priv
 
@@ -1623,63 +1555,68 @@ function status_unpaid ()
  * not expected to enter one
  */
 
-function show_user_homepage_bio_info ()
+function show_user_homepage_bio_info ($website="", $bio_text="", $photo="")
 {
-  // All GMs are expected to enter a bio, as are all privileged users
+  // if it's for this user
+  if ($website=="" && $bio_text=="" && $photo=="")
+  {
 
-  $should_enter_bio = user_is_gm () ||
+    // All GMs are expected to enter a bio, as are all privileged users
+    $should_enter_bio = user_is_gm () ||
                       (',,' != $_SESSION[SESSION_LOGIN_USER_PRIVS]);
 
-  // If this user isn't expected to enter a bio, return now
+    // If this user isn't expected to enter a bio, return now
+    if (! $should_enter_bio)
+      return;
 
-  if (! $should_enter_bio)
-    return;
+    // If this user has NOT entered a bio, then issue a warning.
 
-  // If this user has NOT entered a bio, then issue a warning.
+    $sql = 'SELECT Title, BioText, Website, PhotoSource FROM Bios WHERE UserId=';
+    $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
 
-  $sql = 'SELECT Title, BioText, Website, PhotoSource FROM Bios WHERE UserId=';
-  $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ('Cannot query bio information');
 
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot query bio information');
+    $row = mysql_fetch_object ($result);
 
-  $row = mysql_fetch_object ($result);
+    if (! $row)
+    {
+      $bio_text = '';
+      $title = '';
+    }
+    else
+    {
+      $bio_text = $row->BioText;
+      $title = $row->Title;
+    }
+    echo "<br><br>";
+    display_header ('Bio');
+    if ('' != $title)
+        echo "Title(s): <I>$title</I><P>\n";
+  
+    if ('' != $row->PhotoSource)
+ 		$photo = $row->PhotoSource;
+  
+    if ('' != $row->Website)
+        $website = $bio_row->Website;
 
-  if (! $row)
-  {
-    $bio_text = '';
-    $title = '';
-  }
-  else
-  {
-    $bio_text = $row->BioText;
-    $title = $row->Title;
-  }
-
-  display_header ('Bio');
-  if ('' != $title)
-    echo "Title(s): <I>$title</I><P>\n";
-
-  if ('' != $row->PhotoSource)
- 		display_photo($row->PhotoSource);
-
-    
-  if ('' != $row->Website)
-        echo "<BR><b>Website:</b> <a href=\"http://$bio_row->Website\">$row->Website</a></br></br>\n";
-
-  if ('' == $bio_text)
-  {
-    echo "<p><font color=\"red\">No bio text found.</font>  ";
-    printf ("Click <A HREF=index.php?action=%d>Edit My Bio</A> to enter" .
+    if ('' == $bio_text)
+    {
+      echo "<p><font color=\"red\">No bio text found.</font>  ";
+      printf ("Click <A HREF=index.php?action=%d>Edit My Bio</A> to enter" .
 	    " biographical information.  Bios are due by" .
 	    " <b><font color=red>%s</font></b></p>.\n",
 	    EDIT_BIO,
 	    BIO_DUE_DATE);
-  }
-  else
-    echo "$bio_text\n";
+	}
+  } // if we had to grab user info
+
     
+  // now display it
+  display_photo($photo);
+  echo "<BR><b>Website:</b> <a href=\"http://$website\">$website</a></br></br>\n";
+  echo "$bio_text\n";
 
 
 }
@@ -1697,19 +1634,11 @@ function show_user_homepage ()
   if (! show_user_homepage_status ())
     return;
 
-  // Show whether the user has signed up for the Thursday Thing
-
-  if (THURSDAY_ENABLED)
-    show_user_homepage_thursday($_SESSION[SESSION_LOGIN_USER_ID]);
-
   // If the user is a GM, provide a link to their game(s)
 
   if (user_is_gm())
     show_user_homepage_gm ($_SESSION[SESSION_LOGIN_USER_ID]);
 
-  // See if the user has bid any pre-convention events
-
-  show_user_homepage_precon_bids ($_SESSION[SESSION_LOGIN_USER_ID]);
 
   // See if the user has bid any games
 
@@ -1725,9 +1654,6 @@ function show_user_homepage ()
     show_user_homepage_shirts ($_SESSION[SESSION_LOGIN_USER_ID]);
     
   // Show whether the user has signed up for the Dead Dog
-
-  if (DEAD_DOG_ENABLED)
-    show_user_homepage_dead_dog($_SESSION[SESSION_LOGIN_USER_ID]);
 
   // Fetch whether the user is expected to submit a bio, and the text of that
   // bio, if one is available
@@ -2397,7 +2323,7 @@ function display_user_form_for_others ()
   print ("  </TR>\n");
   form_text (2, 'Payment Amount $', 'PaymentAmount');
   form_text (64, 'Payment Note', 'PaymentNote', 128);
-  form_comped_for_game ();
+  //form_comped_for_game ();
 
   form_submit ('Update');
 
@@ -4268,8 +4194,7 @@ function who_is_who ()
 
   // Start by gathering the list of GMs
 
-  $sql = 'SELECT DISTINCT Users.UserId, Users.FirstName, Users.LastName,';
-  $sql .= ' Users.Nickname';
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName ';
   $sql .= ' FROM GMs, Users';
   $sql .= ' WHERE Users.UserId=GMs.UserId';
 
@@ -4279,27 +4204,12 @@ function who_is_who ()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $bio_users[$row->UserId] = "$row->LastName|$row->FirstName|$row->Nickname";
+    $bio_users[$row->UserId] = "$row->DisplayName";
   }
-
-  // Now add the Iron GMs
-
-  $sql = 'SELECT Users.UserId, Users.FirstName, Users.LastName,';
-  $sql .= ' Users.Nickname';
-  $sql .= ' FROM IronGm, Users';
-  $sql .= ' WHERE Users.UserId=IronGm.UserId';
-
-  $result = mysql_query($sql);
-  if (! $result)
-    return display_mysql_error ('Query for Iron GMs failed', $sql);
-
-  while ($row = mysql_fetch_object($result))
-    $bio_users[$row->UserId] = "$row->LastName|$row->FirstName|$row->Nickname";
-
 
   // Now add the con staff.  Don't forget to skip Admin (UserId==1)
 
-  $sql = 'SELECT UserId, FirstName, LastName, Nickname';
+  $sql = 'SELECT UserId, DisplayName';
   $sql .= ' FROM Users';
   $sql .= ' WHERE ""<>Priv';
 
@@ -4310,7 +4220,7 @@ function who_is_who ()
   while ($row = mysql_fetch_object ($result))
   {
     if (1 != $row->UserId)
-      $bio_users[$row->UserId] = "$row->LastName|$row->FirstName|$row->Nickname";
+      $bio_users[$row->UserId] = "$row->DisplayName";
   }
 
   // Sort the array BY THE VALUE (as opposed to the key)
@@ -4322,22 +4232,18 @@ function who_is_who ()
 
   $user_count = 0;
 
-  foreach ($bio_users as $user_id => $v)
+  foreach ($bio_users as $user_id => $name)
   {
+    
     if (0 != $user_count++)
       echo "<center><hr width=\"50%\"></center>\n";
     echo "<p>";
 
     // Gather information from the Bios table, if it's available
-
-    $tmp = explode ('|', $v);
-    $last_name = $tmp[0];
-    $first_name = $tmp[1];
-    $nick_name = $tmp[2];
-
-    $name = trim ("$first_name $last_name");
     $Bio = '';
     $Title = '';
+    $website = '';
+    $photo = '';
 
     $sql = "SELECT * FROM Bios WHERE UserId=$user_id";
     $result = mysql_query ($sql);
@@ -4347,13 +4253,14 @@ function who_is_who ()
     $row = mysql_fetch_object ($result);
     if ($row)
     {
-      if ($row->ShowNickname && ('' != $nick_name))
-	$name = trim ("$first_name \"$nick_name\" $last_name");
 
       if ('' != $row->Title)
-	$Title = $row->Title;
+ 	    $Title = $row->Title;
 
       $Bio = $row->BioText;
+      $website = $row->Website;
+      $photo = $row->PhotoSource;
+
     }
 
     display_header ($name);
@@ -4375,7 +4282,7 @@ function who_is_who ()
 
     if (mysql_num_rows ($result) > 0)
     {
-      echo "GM for: ";
+      echo "Presenting: ";
       $games = 0;
 
       while ($row = mysql_fetch_object ($result))
@@ -4407,19 +4314,31 @@ function who_is_who ()
 	  case "BidCom":
 	    if ($staff_positions++ > 0)
 	      echo ', ';
-	    echo 'Bid Committee';
+	    echo 'Conference Committee';
 	    break;
 
 	  case "BidChair":
 	    if ($staff_positions++ > 0)
 	      echo ', ';
-	    echo "Bid Chair<br>\n";
+	    echo "Conference Coordinator<br>\n";
+	    break;
+
+	  case "ShowCom":
+	    if ($staff_positions++ > 0)
+	      echo ', ';
+	    echo 'Performance Selection Committee';
+	    break;
+
+	  case "ShowChair":
+	    if ($staff_positions++ > 0)
+	      echo ', ';
+	    echo "Performance Selection Chairperson<br>\n";
 	    break;
 
 	  case "GMLiaison":
 	    if ($staff_positions++ > 0)
 	      echo ', ';
-	    echo 'GM Liaison';
+	    echo 'Liaison';
 	    break;
 
 	  case "Registrar":
@@ -4438,7 +4357,7 @@ function who_is_who ()
 
       if ((0 == $staff_positions) && ('ConCom' == $row->Priv))
       {
-	echo 'Con Committee';
+	echo 'Staff';
 	$staff_positions++;
       }
     }
@@ -4486,24 +4405,10 @@ function who_is_who ()
     if ($staff_positions > 0)
       echo "<br>\n";
 
-    // Finally add whether the user was an Iron GM
 
-    $sql = 'SELECT IronGmTeam.Name';
-    $sql .= ' FROM IronGmTeam, IronGm';
-    $sql .= ' WHERE IronGmTeam.TeamId=IronGm.TeamId';
-    $sql .= "   AND IronGm.UserId=$user_id";
+    if (!($website == '' && $Bio == '' && $photo == ''))
+      show_user_homepage_bio_info ($website, $Bio, $photo);
 
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Query for Iron GM Teams failed', $sql);
-
-    while ($row = mysql_fetch_object($result))
-    {
-      echo "Iron GM: <i>$row->Name</i><br>\n";
-    }
-
-    if ('' != $Bio)
-      echo "<br>$Bio";
   }
 }
 
