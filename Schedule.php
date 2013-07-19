@@ -2775,7 +2775,7 @@ function add_game ()
     // Check for changes in player counts, hours and notify the Bid Chair
     // and GM Coordinator if there are any
 
-    notify_about_event_changes ($EventId, $row);
+   // notify_about_event_changes ($EventId, $row);
   }
 
   // If we don't have a game EMail address, we can't send mail there, can we?
