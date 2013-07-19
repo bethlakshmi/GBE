@@ -163,7 +163,7 @@ class NavBarItem {
   }
   
   public function isCurrent() {
-    return substr($_SERVER["REQUEST_URI"], strlen($_SERVER["REQUEST_URI"]) - strlen($this->url) - 1) == "/" . $this->url;
+      return substr($_SERVER["REQUEST_URI"], strlen($_SERVER["REQUEST_URI"]) - strlen($this->url) - 1) == "/" . $this->url;
   }
 }
 
@@ -241,7 +241,7 @@ function build_larps_subnavbar() {
   $larpSection->push(NavBarItem::newAction("Classes", "Schedule.php", LIST_GAMES,NULL,'Class'));
   $larpSection->push(NavBarItem::newAction("Panels", "Schedule.php", LIST_GAMES,NULL,'Panel'));
   $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
-  $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special Event'));
+  $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special'));
   $larpSection->push(NavBarItem::newAction("Volunteer Opportunities", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   if (IRONGM_ENABLED)
     $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));

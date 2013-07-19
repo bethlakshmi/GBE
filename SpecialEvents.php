@@ -220,6 +220,7 @@ function process_special_event_form ()
     $Rooms = implode(',', $_POST['Rooms']);
 
   $sql = "$verb Events SET Title='$Title', SpecialEvent=1";
+  $sql .= build_sql_string ('GameType', 'Special');
   $sql .= build_sql_string ('Hours');
   $sql .= build_sql_string ('ShortBlurb');
   $sql .= build_sql_string ('Description');
@@ -256,7 +257,7 @@ function process_special_event_form ()
 /*
  * list_special events
  *
- * List the special events in the database ordered by time
+ * List the special events in the database ord ered by time
  */
 
 function list_special_events ()
