@@ -748,6 +748,7 @@ function process_add_ops ()
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
   $sql .= build_sql_string ('Author');
   $sql .= build_sql_string ('GameEMail');
+  $sql .= build_sql_string ('GameType','Ops');
   $sql .= build_sql_string ('Description');
   $sql .= build_sql_string ('ShortBlurb');
   $sql .= build_sql_string ('Hours');

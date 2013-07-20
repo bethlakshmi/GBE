@@ -210,29 +210,6 @@ switch ($action)
     show_game ();
     break;
 
-  case SCHEDULE_IRON_GM_TEAM_LIST:
-    show_iron_gm_team_list();
-    break;
-
-  case SCHEDULE_SHOW_IRON_GM_TEAM_FORM:
-    show_iron_gm_team_form();
-    break;
-
-  case SCHEDULE_PROCESS_IRON_GM_TEAM_FORM:
-    if (process_iron_gm_team_form())
-      show_iron_gm_team_list();
-    else
-      show_iron_gm_team_form();
-    break;
-
-  case SCHEDULE_SELECT_USER_FOR_IRON_GM:
-    select_user_for_iron_gm();
-    break;
-
-  case SCHEDULE_ADD_IRON_GM:
-    add_iron_gm();
-    show_iron_gm_team_list();
-    break;
 
   default:
     display_error ("Unknown action code: $action");
@@ -1467,50 +1444,6 @@ function count_signed_up_games ()
   return $count;
 }
 
-function show_iron_gms()
-{
-  $sql = 'SELECT Name, TeamId FROM IronGmTeam ORDER BY Name';
-  $team_result = mysql_query ($sql);
-  if (! $team_result)
-    return display_mysql_error ('Query for Iron GM Teams failed', $sql);
-
-  if (0 == mysql_num_rows ($team_result))
-    return true;
-
-  echo "<b>Iron GM Teams:</b>\n";
-  echo "<ul>\n";
-  while ($team_row = mysql_fetch_object ($team_result))
-  {
-    echo "<li><i>$team_row->Name</i>";
-    
-    $sql = 'SELECT Users.FirstName, Users.LastName';
-    $sql .= ' FROM IronGm, Users';
-    $sql .= ' WHERE Users.UserId=IronGm.UserId';
-    $sql .= "   AND IronGm.TeamId=$team_row->TeamId";
-    $sql .= ' ORDER BY Users.LastName, Users.FirstName';
-
-    $gm_result = mysql_query($sql);
-    if (! $gm_result)
-      display_mysql_error ('Query for Iron GMs failed', $sql);
-    else
-    {
-      if (mysql_num_rows ($gm_result) > 0)
-      {
-	$count = 0;
-	echo ':';
-	while ($gm_row = mysql_fetch_object($gm_result))
-	{
-	  if (0 != $count)
-	    echo ',';
-	  echo " $gm_row->FirstName $gm_row->LastName";
-	  $count++;
-	}
-      }
-    }
-  }
-  echo "<ul>\n";
-}
-
 function display_comp_info($EventId)
 {
   $sql = 'SELECT FirstName, LastName FROM Users';
@@ -1662,7 +1595,7 @@ function show_game ()
     
     $updater_name = '<Unknown>';
 
-    $sql = 'SELECT FirstName, LastName';
+    $sql = 'SELECT DisplayName ';
     $sql .= ' FROM Users';
     $sql .= " WHERE UserId=$game_row->UpdatedById";
 
@@ -1672,7 +1605,7 @@ function show_game ()
     else
     {
       if ($updated_row = mysql_fetch_object ($updated_result))
-	      $name = trim ("$updated_row->FirstName $updated_row->LastName");
+	      $name = trim ("$updated_row->DisplayName");
       mysql_free_result ($updated_result);
     }
     echo "<li class=\"info\"><b>Last updated</b><br/>$game_row->Timestamp<br/>by $name</li>";
@@ -2537,7 +2470,7 @@ function validate_new_counts ($EventId,
 			    $new_max_male, $new_max_female, $new_max_neutral))
     {
       //      echo "New Max's: Male: $new_max_male, Female: $new_max_female, Neutral: $new_max_neutral<P>\n";
-      $error = sprintf ('There are %d male and %d female confirmed players. ' .
+      $error = sprintf ('There are %d male and %d female confirmed participants. ' .
 			'You cannot lower the number of players to the point '.
 			'where they will not fit in the game.',
 			$confirmed['Male'], $confirmed['Female']);
@@ -2913,8 +2846,11 @@ function display_players_entry ($gender)
   if (empty ($pref_value))
     $pref_value = '0';
 
+  if ($gender == "Neutral")
+    $gender = "";
+
   print ("  <TR>\n");
-  print ("    <TD ALIGN=RIGHT>$gender Players:</TD>\n");
+  print ("    <TD ALIGN=RIGHT>$gender Participants:</TD>\n");
   print ("    <TD ALIGN=LEFT>\n");
   printf ("      Min:<INPUT TYPE=TEXT NAME=%s SIZE=3 MAXLENGTH=3 VALUE=\"%s\">&nbsp;&nbsp;&nbsp;\n",
 	  $min,
@@ -3138,7 +3074,7 @@ function display_game_form ()
 
     echo "  <tr valign=\"top\">\n";
     printf ('    <td colspan="2">This %s lasts %d %s - Contact the <a href="mailto:%s">' .
-	    "GM Coordinator</a> to modify the length of this %s.</td>\n",
+	    "Conference Coordinator</a> to modify the length of this %s.</td>\n",
 	    $event_type,
 	    $_POST['Hours'],
 	    $period,
@@ -3163,7 +3099,7 @@ function display_game_form ()
   echo "  </tr>\n";
  */
 
-  form_textarea ('Short paragraph (50 words or less) displayed in game list', 'ShortBlurb', 4, TRUE, TRUE);
+  form_textarea ('Short paragraph (50 words or less) displayed in all lists', 'ShortBlurb', 4, TRUE, TRUE);
   form_textarea ('Description.  <FONT COLOR=red>The description must contain HTML tags for formatting.  Line breaks will be ignored by browsers.', 'Description', 20, TRUE, TRUE);
   form_submit ('Update Game');
 
@@ -3337,7 +3273,7 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
   if ('' != $include_gms_checked)
     $checked_state .= '&IncludeGMs=on';
 
-  echo "<P><FONT SIZE=\"+1\"><B>$state Players</B></FONT> - by $order_text\n";
+  echo "<P><FONT SIZE=\"+1\"><B>$state Participants</B></FONT> - by $order_text\n";
   echo "<TABLE BORDER=1 CELLPADDING=5>\n";
   echo "  <TR ALIGN=LEFT VALIGN=BOTTOM>\n";
 
@@ -3401,7 +3337,7 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
     echo "    <TH ALIGN=LEFT>EMail</TH>\n";
 
   if ('' != $include_gm_flag_checked)
-    echo "    <TH>GM</TH>\n";
+    echo "    <TH>Teacher/Panelist/Perfomer</TH>\n";
 
   echo "  </TR>\n";
 
@@ -3616,9 +3552,6 @@ function show_signups ()
   echo "<B><FONT SIZE='+1'>$Date&nbsp;&nbsp;&nbsp;$start_time - $end_time</FONT></B><P>\n";
 
   echo "Max: $total&nbsp;&nbsp;&nbsp;(";
-  echo "Male: $row->MaxPlayersMale,&nbsp;&nbsp;&nbsp;&nbsp;";
-  echo "Female: $row->MaxPlayersFemale,&nbsp;&nbsp;&nbsp;&nbsp;";
-  echo "Neutral: $row->MaxPlayersNeutral)\n";
 
   switch ($OrderBy)
   {
@@ -3736,7 +3669,7 @@ function show_signups ()
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGender $include_gender_checked>&nbsp;Gender\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeAge $include_age_checked>&nbsp;Age\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeEmail $include_email_checked>&nbsp;EMail\n";
-  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGMFlag $include_gm_flag_checked>&nbsp;GM Flag\n<BR>";
+  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGMFlag $include_gm_flag_checked>&nbsp;Running Flag\n<BR>";
   echo "      </B>\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
@@ -3746,7 +3679,7 @@ function show_signups ()
   echo "      <B>\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeConfirmed $include_confirmed_checked>&nbsp;Confirmed\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeWaitlisted $include_waitlisted_checked>&nbsp;Waitlisted\n";
-  echo "      <input type=checkbox name=IncludeGMs $include_gms_checked>&nbsp;GMs\n";
+  echo "      <input type=checkbox name=IncludeGMs $include_gms_checked>&nbsp;Teachers/Panelists/Performers\n";
   echo "    </td>\n";
   echo "  </tr>\n";
   echo "  <tr valign=top>\n";
@@ -3766,7 +3699,7 @@ function show_signups ()
 
     $result = mysql_query ($sql);
     if (! $result)
-      return display_mysql_error ('Query failed for CSV players', $sql);
+      return display_mysql_error ('Query failed for CSV', $sql);
 
 
     echo "<DIV NOWRAP>\n";
@@ -3825,7 +3758,7 @@ function show_signups ()
 	echo "<BR>\n";
     }
     echo "</DIV>\n";
-  }
+  } // if csv
   else
   {
     $conf_sql = $sql . "   AND Signup.State='Confirmed' ORDER BY $order_by_sql";
@@ -3835,18 +3768,18 @@ function show_signups ()
 
     $result = mysql_query ($conf_sql);
     if (! $result)
-      return display_mysql_error ("Query for list of players for run $RunId failed", $conf_sql);
+      return display_mysql_error ("Query for list of participants for run $RunId failed", $conf_sql);
 
     if (0 == mysql_num_rows ($result))
     {
-      echo "No players are signed up for this game\n";
+      echo "No one is signed up.\n";
     }
     else
     {
       $can_edit = can_edit_game_info ();
 
       if ('' != $include_confirmed_checked)
-	show_signups_state (true, $EventId, $RunId, $order_by_text,
+	      show_signups_state (true, $EventId, $RunId, $order_by_text,
 			    $OrderBy, $result, $status, $gms, $can_edit,
 			    $include_number_checked, $include_name_checked,
 			    $include_gender_checked, $include_age_checked,
@@ -3859,7 +3792,7 @@ function show_signups ()
       {
 	$result = mysql_query ($wait_sql);
 	if (! $result)
-	  return display_mysql_error ("Query for list of players for run $RunId failed", $wait_sql);
+	  return display_mysql_error ("Query for list of participants for run $RunId failed", $wait_sql);
 
 	if (0 != mysql_num_rows ($result))
 	  show_signups_state (false, $EventId, $RunId, $order_by_text,
@@ -3876,7 +3809,7 @@ function show_signups ()
 
   if ((sizeof ($gms) > 0) && ('' != $include_confirmed_checked))
   {
-    echo "<P><B>Warning: The following GMs are not signed up for this run:</B><BR>\n";
+    echo "<P><B>Warning: The following Presenters are not signed up for this run:</B><BR>\n";
     foreach ($gms as $gmid => $name)
       echo "&nbsp;&nbsp;&nbsp;&nbsp;$name<BR>\n";
   }
@@ -4134,7 +4067,7 @@ function show_all_signups ()
 
     $result = mysql_query ($conf_sql);
     if (! $result)
-      return display_mysql_error ("Query for list of confirmed players for event $EventId failed",
+      return display_mysql_error ("Query for list of confirmed participants for event $EventId failed",
 				  $conf_sql);
 
     if (0 == mysql_num_rows ($result))
@@ -4240,15 +4173,15 @@ function display_user_information ()
   echo "  <TR>\n";
   echo "    <TD COLSPAN=2 BGCOLOR=\"CCFFFF\">\n";
   echo "      &nbsp;<BR>\n";
-  echo "      <B>$row->FirstName $row->LastName</B>\n";
+  echo "      <B>$row->DisplayName</B>\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
-  //  display_text_info ('First Name', $row->FirstName);
-  //  display_text_info ('Last Name', $row->LastName);
-  display_text_info ('Nickname', $row->Nickname);
-  display_text_info ('Age', birth_year_to_age ($row->BirthYear));
-  display_text_info ('Player Gender', $row->Gender);
-  display_text_info ('Role Gender', $row->SignupGender);
+  display_text_info ('First Name', $row->FirstName);
+  display_text_info ('Last Name', $row->LastName);
+  display_text_info ('Stage Name', $row->StageName);
+  //display_text_info ('Age', birth_year_to_age ($row->BirthYear));
+  //display_text_info ('Player Gender', $row->Gender);
+  //display_text_info ('Role Gender', $row->SignupGender);
 
   $address = $row->Address1;
   if ('' != $row->Address2)
@@ -4298,8 +4231,8 @@ function display_user_information ()
   if ('' != $row->TitleSuffix)
     $Title .= " - $row->TitleSuffix";
 
-  $start_time = start_hour_to_24_hour ($row->StartHour);
-  $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+  $start_time = start_hour_to_12_hour ($row->StartHour);
+  $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
 
   $Day = $row->Day;
   $Date = day_to_date ($Day);
@@ -4319,8 +4252,8 @@ function display_user_information ()
 
   echo "  <TR>\n";
   echo "    <TD COLSPAN=2>\n";
-  echo "      The player is <B>$row->State</B> for this run.<BR>\n";
-  echo "      The player <B>$gm_state</B> a GM for this game.\n";
+  echo "      The attendee is <B>$row->State</B> for this run.<BR>\n";
+  echo "      The attendee <B>$gm_state</B> a teacher, panelist, performer, etc. for this event.\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
 
@@ -4331,22 +4264,16 @@ function display_user_information ()
     $checked = 'CHECKED';
   else
     $checked = '';
-  echo "      <INPUT TYPE=CHECKBOX NAME=Counted $checked> Count this player towards totals for this run\n";
+  echo "      <INPUT TYPE=CHECKBOX NAME=Counted $checked> Count this attendee towards totals for this run\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
 
   if (user_has_priv (PRIV_STAFF))
-    form_submit2 ('Update User for this Run', 'Force user into game',
+    form_submit2 ('Update User for this Run', 'Force user into event',
 		  'ForceUser');
   else
     form_submit ('Update User for this Run');
 
-  $caption = "Change signup gender to $swapped_gender";
-  echo "  <tr>\n";
-  echo "    <td colspan=2 align=center>\n";
-  echo "      <input type=submit value=\"$caption\" name=SwapGender>\n";
-  echo "    </td>\n";
-  echo "  </tr>\n";
 
   echo "</TABLE>\n";
   echo "</FORM>\n";
@@ -4739,7 +4666,7 @@ function display_gm_list ()
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Query for GMs failed", $sql);
+    return display_mysql_error ("Query for ".$gms." failed", $sql);
 
   if (0 != mysql_num_rows ($result))
   {
@@ -4770,7 +4697,7 @@ function display_gm_list ()
 	    (('Unpaid' == $row->CanSignup) || ('Alumni' == $row->CanSignup)))
 	{
 	  $comped = sprintf ('<a href="Schedule.php?action=%d&UserId=%d&' .
-			     'EventId=%d">Comp this GM</a>',
+			     'EventId=%d">Comp this '.$gms.'</a>',
 			     SCHEDULE_COMP_USER_FOR_EVENT,
 			     $row->UserId,
 			     $EventId);
@@ -4822,9 +4749,9 @@ function display_gm_list ()
   {
     echo "<b><font color=red>WARNING:</font></b>\n";
     if (1 == count ($unpaid_gms))
-      echo "The following GM's registration is unpaid:\n";
+      echo "The following ".$gms." registration is unpaid:\n";
     else
-      echo "The following GM's registrations are unpaid:\n";
+      echo "The following ".$gms." registrations are unpaid:\n";
     echo "<ul>\n";
     foreach ($unpaid_gms as $k=>$v)
       echo "<li>$v\n";
@@ -5025,7 +4952,7 @@ function select_user_as_gm ()
   if (isset($_REQUEST ['Role']))
     $link .= "&Role=".$_REQUEST ['Role'];
 
-  select_user ("Select User to be GM for <I>$Title</I>",
+  select_user ("Select User to run <I>$Title</I>",
 	       $link,
 	       FALSE,
 	       FALSE,
@@ -5406,232 +5333,5 @@ function confirm_freeze_gender_balance ()
     return true;
 }
 
-function show_iron_gm_team_list()
-{
-  $EventId = 0;
-  if (array_key_exists ('EventId', $_REQUEST))
-    $EventId = intval($_REQUEST['EventId']);
-
-  display_header('Iron GM Teams');
-
-  $sql = 'SELECT * FROM IronGmTeam ORDER BY Name';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for Iron GM Teams failed', $sql);
-
-  $count = 0;
-  while ($row = mysql_fetch_object ($result))
-  {
-    if (0 != $count)
-      echo "<hr>\n";
-
-    printf ('<a href="Schedule.php?action=%d&EventId=%d&TeamId=%d">' .
-	    "%s</a><br>\n",
-	    SCHEDULE_SHOW_IRON_GM_TEAM_FORM,
-	    $EventId,
-	    $row->TeamId,
-	    $row->Name);
-    $count++;
-
-    $sql = 'SELECT Users.FirstName, Users.LastName';
-    $sql .= ' FROM IronGm, Users';
-    $sql .= ' WHERE Users.UserId=IronGm.UserId';
-    $sql .= "   AND IronGm.TeamId=$row->TeamId";
-    $sql .= ' ORDER BY Users.LastName, Users.FirstName';
-
-    $gm_result = mysql_query($sql);
-    if (! $gm_result)
-      display_mysql_error ('Query for Iron GMs failed', $sql);
-
-    if (mysql_num_rows ($gm_result) > 0)
-    {
-      echo "<ul>\n";
-      while ($gm_row = mysql_fetch_object($gm_result))
-      {
-	echo "<li>$gm_row->LastName, $gm_row->FirstName\n";
-      }
-      echo "</ul>\n";
-    }
-
-    printf ('<p>&nbsp;&nbsp;&nbsp;<a href="Schedule.php?action=%d&EventId=%d&TeamId=%d">' .
-	    "Add new Iron GM for <i>%s</i></p>\n",
-	    SCHEDULE_SELECT_USER_FOR_IRON_GM,
-	    $EventId,
-	    $row->TeamId,
-	    $row->Name);
-  }
-
-  echo "<hr>\n";
-  printf ('<p><a href="Schedule.php?action=%d&EventId=%d">' .
-	  "Add new Iron GM team</a></p>\n",
-	  SCHEDULE_SHOW_IRON_GM_TEAM_FORM,
-	  $EventId);
-
-  if (0 != $EventId)
-    printf ('<p>Return to <a href="Schedule.php?action=%d&EventId=%d">' .
-	    "%s</a> page</p>\n",
-	    SCHEDULE_SHOW_GAME,
-	    $EventId,
-	    $_SESSION['GameTitle']);
-}
-
-function show_iron_gm_team_form()
-{
-  $EventId=$_REQUEST['EventId'];
-  $TeamId = 0;
-  $updater = '';
-  if (array_key_exists ('TeamId', $_REQUEST))
-  {
-    $TeamId = intval($_REQUEST['TeamId']);
-
-    $sql = 'SELECT IronGmTeam.*, Users.FirstName, Users.LastName';
-    $sql .= ' FROM IronGmTeam, Users';
-    $sql .= " WHERE TeamId=$TeamId";
-    $sql .= '   AND Users.UserId=IronGmTeam.UpdatedById';
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Query for Iron GM Team info failed', $sql);
-
-    $row = mysql_fetch_array ($result, MYSQL_ASSOC);
-    if (! $row)
-      $TeamId = 0;
-    else
-    {
-      foreach ($row as $k => $v)
-	$_POST[$k] = $v;
-      $updater = trim(sprintf ('%s %s', $row['FirstName'], $row['LastName']));
-    }
-  }
-
-  if (0 == $TeamId)
-  {
-    $_POST['TeamId'] = 0;
-    $_POST['Name'] = '';
-  }
-
-  if ('' == $_POST['Name'])
-    display_header ('Add New Iron GM Team');
-  else
-    display_header ('Edit Iron GM Team');
-
-  echo "<form method=\"post\" action=\"Schedule.php\">\n";
-  form_add_sequence();
-  form_hidden_value ('action', SCHEDULE_PROCESS_IRON_GM_TEAM_FORM);
-  form_hidden_value ('TeamId', $TeamId);
-  form_hidden_value ('EventId', $EventId);
-  echo "<table border=\"0\">\n";
-  form_text (64, 'Team Name', 'Name');
-  if ('' != $updater)
-  {
-    echo "  <tr>\n";
-    printf ("    <td colspan=\"2\">Last updated %s by %s</td>\n",
-	    $_POST['LastUpdated'],
-	    $updater);
-    echo "  </tr>\n";
-  }
-
-  if (0 == $TeamId)
-    form_submit ('Add New Team');
-  else
-    form_submit2 ('Update', 'Delete Team', 'Delete');
-
-  echo "</table>\n";
-  echo "</form>\n";
-
-  printf ('<p>Return to <a href="Schedule.php?action=%d&EventId=%d">' .
-	  "Iron GM Teams Page</a></p>\n",
-	  SCHEDULE_IRON_GM_TEAM_LIST,
-	  $EventId);
-}
-
-function process_iron_gm_team_form()
-{
-  // Check for a sequence error
-
-  if (out_of_sequence ())
-    return true;
-
-  $EventId = intval (trim ($_REQUEST ['EventId']));
-  $TeamId = intval (trim ($_REQUEST ['TeamId']));
-
-  if (array_key_exists ('Delete', $_REQUEST))
-  {
-    $sql = 'DELETE FROM IronGm';
-    $sql .= " WHERE TeamId=$TeamId";
-
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Failed to delete IronGm entries', $sql);
-
-    $sql = 'DELETE FROM IronGmTeam';
-    $sql .= " WHERE TeamId=$TeamId";
-
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Failed to delete IronGmTeam entry', $sql);
-
-    return true;
-  }
-
-  if (0 == $TeamId)
-    $sql = 'INSERT IronGmTeam SET ';
-  else
-    $sql = 'UPDATE IronGmTeam SET ';
-
-  $sql .= build_sql_string ('Name', '', false);
-  $sql .= sql_string_updated_by();
-
-  if (0 != $TeamId)
-    $sql .= " WHERE TeamId=$TeamId";
-
-  //  echo "$sql<p>\n";
-
-  $result = mysql_query($sql);
-  if (! $result)
-    return display_mysql_error ('Insert into IronGmTeam failed', $sql);
-
-  return true;
-}
-
-function select_user_for_iron_gm()
-{
-
-  $link = sprintf ('Schedule.php?action=%d&EventId=%d&TeamId=%d&Seq=%d',
-		   SCHEDULE_ADD_IRON_GM,
-		   $_REQUEST['EventId'],
-		   $_REQUEST['TeamId'],
-		   increment_sequence_number());
-  $highlight = array();
-
-  select_user ('Add User as Iron GM',
-	       $link,
-	       false,
-	       false,
-	       $highlight);
-}
-
-function add_iron_gm()
-{
-  // Check for a sequence error
-
-  if (out_of_sequence ())
-    return true;
-
-  $EventId = intval (trim ($_REQUEST ['EventId']));
-  $UserId = intval (trim ($_REQUEST ['UserId']));
-  $TeamId = intval (trim ($_REQUEST ['TeamId']));
-
-  // Make him (or her) an Iron GM
-
-  $sql = "INSERT INTO IronGm SET TeamId=$TeamId";
-  $sql .= ",UserId=$UserId";
-  $sql .= sql_string_updated_by();
-
-  $result = mysql_query($sql);
-  if (! $result)
-    return display_mysql_error ('Insert in IronGm table failed', $sql);
-
-  return true;
-}
 
 ?>
