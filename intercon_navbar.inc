@@ -242,7 +242,6 @@ function build_larps_subnavbar() {
   $larpSection->push(NavBarItem::newAction("Panels", "Schedule.php", LIST_GAMES,NULL,'Panel'));
   $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
   $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special'));
-  $larpSection->push(NavBarItem::newAction("Volunteer Opportunities", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   if (IRONGM_ENABLED)
     $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
@@ -255,23 +254,6 @@ function build_larps_subnavbar() {
   return $larpSection;
 }
 
-function build_precon_subnavbar() {
-  $thursdaySection = new SubNavBar("Pre-Convention");
-  $thursdaySection->push(NavBarItem::newAction('Pre-Convention Events', 'Thursday.php'));
-  if (user_has_priv(PRIV_PRECON_SCHEDULING))
-    $thursdaySection->push(NavBarItem::newAction('Manage PreCon Event Schedule', 'Thursday.php', PRECON_MANAGE_EVENTS));
-  if (user_has_priv(PRIV_REGISTRAR))
-    $thursdaySection->push(NavBarItem::newAction('Edit User PreCon Event Info', 'Thursday.php', THURSDAY_SELECT_USER));
-  return $thursdaySection;
-}
-
-function build_dead_dog_subnavbar() {
-  $deadDogSection = new SubNavBar("Dead Dog");
-  $deadDogSection->push(NavBarItem::newAction('Dead Dog Info', 'DeadDog.php'));
-  if (user_has_priv(PRIV_REGISTRAR))
-    $deadDogSection->push(NavBarItem::newAction('Edit User Dead Dog Info', 'DeadDog.php', DEAD_DOG_SELECT_USER));
-  return $deadDogSection;
-}
 
 function build_gm_subnavbar() {
   $gmSection = new SubNavBar("GM Information");
@@ -376,10 +358,6 @@ function build_print_materials_subnavbar() {
   $opsSection->push(NavBarItem::newAction('Games by Time', 'Reports.php', REPORT_GAMES_BY_TIME));
   $opsSection->push(NavBarItem::newAction('Users CSV', 'Reports.php', REPORT_USERS_CSV));
   $opsSection->push(NavBarItem::newAction('Registration Report', 'Reports.php', REPORT_REGISTRATION));
-  if (THURSDAY_ENABLED)
-    $opsSection->push(NavBarItem::newAction('PreCon Events Report', 'Thursday.php', THURSDAY_REPORT));
-  if (DEAD_DOG_ENABLED)
-    $opsSection->push(NavBarItem::newAction('Dead Dog Report', 'DeadDog.php', DEAD_DOG_REPORT));
   if (defined ('PROGRAM_PUB_PREFIX'))
   {
     $opsSection->push('Program Cover.pub', NavBarItem::newProgram(PROGRAM_PUB_PREFIX, 'Cover.pub'));
@@ -433,8 +411,7 @@ function build_participation_subnavbar() {
     $aboutSection->push(NavBarItem::newAction("Sit on a Panel", "Panels.php"));
     $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
   }
-
-  $aboutSection->push(NavBarItem::newStatic("Volunteer", "volunteering"));
+  $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Sell my Stuff", "https://burlesqueexpo.wufoo.com/forms/2013-vendor-application-form/"));
