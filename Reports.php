@@ -759,7 +759,8 @@ function report_volunteer_track ($is_ops)
 
   // Iterate over all runs for the volunteer track.
 
-  $sql = 'SELECT Events.Title, Runs.RunId, Runs.Day, Runs.StartHour';
+  $sql = 'SELECT Events.Title, Runs.RunId, Runs.Day, Runs.StartHour, Events.EventId,';
+  $sql .= ' Events.Author';
   $sql .= ' FROM Runs, Events';
   $sql .= ' WHERE Events.EventId=Runs.EventId';
   $sql .= '   AND SpecialEvent=0';
@@ -783,18 +784,41 @@ function report_volunteer_track ($is_ops)
 
     printf ("<p><font size=\"+1\"><b>%s %s</b></font><br>\n",
 	    $row->Day,
-    	    start_hour_to_24_hour ($row->StartHour));
+    	    start_hour_to_12_hour ($row->StartHour));
+    echo $row->Title."<br>";
+    echo "<b>Head of Area:</b>".$row->Author."<br>";
 
-    $sql = 'SELECT Users.FirstName, Users.LastName';
+    $sql = 'SELECT Users.DisplayName ';
+    $sql .= ' FROM GMs, Users';
+    $sql .= " WHERE GMs.EventId=$row->EventId";
+    $sql .= '   AND Users.UserId=GMs.UserId';
+    $sql .= ' ORDER BY DisplayName';
+    
+    $coordinator_result = mysql_query ($sql);
+    if (! $coordinator_result)
+      return display_mysql_error ('Failed to get list of players', $sql);
+
+    if (0 == mysql_num_rows ($coordinator_result))
+    {
+      echo "<font color=\"red\"><b>No coordinator</b></font>\n";
+      continue;
+    }
+    else
+    {
+      $coordinator = mysql_fetch_object ($coordinator_result);
+      echo "<b>Coordinator:</b> $coordinator->DisplayName<br>\n";
+    }
+
+    $sql = 'SELECT Users.DisplayName ';
     $sql .= ' FROM Signup, Users';
     $sql .= " WHERE Signup.RunId=$row->RunId";
     $sql .= "   AND Signup.State<>'Withdrawn'";
     $sql .= '   AND Users.UserId=Signup.UserId';
-    $sql .= ' ORDER BY LastName, FirstName';
+    $sql .= ' ORDER BY DisplayName';
 
     $run_result = mysql_query ($sql);
     if (! $run_result)
-      return display_mysql_error ('Failed to get list of players', $sql);
+      return display_mysql_error ('Failed to get list of volunteers', $sql);
 
     if (0 == mysql_num_rows ($run_result))
     {
@@ -804,7 +828,7 @@ function report_volunteer_track ($is_ops)
 
     while ($run_row = mysql_fetch_object ($run_result))
     {
-      echo "$run_row->LastName, $run_row->FirstName<br>\n";
+      echo "$run_row->DisplayName<br>\n";
     }
   }
   echo "    </td>\n  </tr>\n</table>\n";

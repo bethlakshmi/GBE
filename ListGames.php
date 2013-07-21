@@ -138,7 +138,7 @@ function list_games ($type = 0, $showOps=FALSE)
 
 function list_games_alphabetically ($showOps=FALSE)
 {
-  $sql = 'SELECT EventId, Title, Hours FROM Events';
+  $sql = 'SELECT EventId, GameType, Title, Hours FROM Events';
   $sql .= ' WHERE SpecialEvent=0';
   if ($showOps)
     $sql .= ' AND IsOps = \'Y\'';
@@ -200,11 +200,14 @@ function list_games_alphabetically ($showOps=FALSE)
       $action = LIST_OPS;
     else
       $action = ADD_RUN;
-    printf ("    <td rowspan=\"%d\"><a href=\"ListGames.php?action=%d&EventId=%d\">%s</a></td>\n",
+    printf ("    <td rowspan=\"%d\"><a href=\"ListGames.php?action=%d&EventId=%d\">%s</a>",
 	    $rowspan,
 	    $action,
 	    $game_row->EventId,
 	    $game_row->Title);
+
+    
+    printf("  </td>\n");
 
     printf ("    <td rowspan=\"%d\" align=\"center\">%d</td>\n",
 	    $rowspan,
@@ -916,6 +919,18 @@ function add_ops($type=0)
   form_text (64, 'Title', 'Title', 128, true);
   form_text (32, 'Contact Person (Staff)', 'Author');
   form_text (32, 'Contact Email (Staff)', 'GameEMail');
+
+  // editing the presenters of the event is limited to scheduling people 
+  if ($update)
+  {
+    global $GM_TYPES;
+    echo "<tr><td>";
+    printf ('<a href="Schedule.php?action=%d&EventId=%d">Edit %s</a>',
+	          DISPLAY_GM_LIST, $EventId, $GM_TYPES["Ops"]);
+	echo "</td><td>Coordinators are at the con running this ops track";
+	echo "</td></tr>";
+  }
+
   form_text (2, 'Length', 'Hours');
   form_players_entry ('Neutral',false);
 

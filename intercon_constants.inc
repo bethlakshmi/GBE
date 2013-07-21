@@ -289,7 +289,7 @@ $GM_TYPES = array();
 $GM_TYPES['Class'] = 'Teacher(s)';
 $GM_TYPES['Panel'] = 'Panelist(s)';
 $GM_TYPES['Show'] =  'Cast & Crew';
-$GM_TYPES['Special Event'] = 'Coordinator(s)';
+$GM_TYPES['Special Event'] = 'OnSite Coordinator(s)';
 $GM_TYPES['Ops'] = 'Coordinator(s)';
 
 global $PANELIST_TYPE;

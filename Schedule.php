@@ -1621,7 +1621,7 @@ function show_game ()
   echo "<table>\n";
 
     if ($volunteer_event)
-      display_one_col ('Dept. Head', $game_row->Author);
+      display_one_col ('Head of Area', $game_row->Author);
     //else
     //  display_one_col ('Author(s)', $game_row->Author);
 
@@ -1629,7 +1629,10 @@ function show_game ()
     if ('' != $game_row->GameEMail && $can_edit_game)
     {
       $email = mailto_or_obfuscated_email_address ($game_row->GameEMail);
-      display_one_col ('Head of '.$game_row->GameType, $email);
+      if ($volunteer_event)
+        display_one_col ('Email', $email);
+      else  
+        display_one_col ('Head of '.$game_row->GameType, $email);
     }
 
     // Fetch the list of GMs
