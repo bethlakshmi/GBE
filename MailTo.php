@@ -59,10 +59,6 @@ switch ($action)
     show_gm_lists ();
     break;
 
-  case MAIL_IRON_GM_LIST:
-    show_iron_gm_list();
-    break;
-
   case MAIL_BIO_LISTS:
     show_bio_lists ();
     break;
@@ -75,6 +71,10 @@ switch ($action)
      show_bid_submitters ();
      break;
 
+   case MAIL_SHOW_LISTS:
+     show_gm_lists ();
+     break;
+
   default:
     display_error ("Unknown action code: $action");
 }
@@ -85,7 +85,7 @@ html_end ();
 
 function show_form ()
 {
-  echo "<FONT SIZE=\"+2\"><B>Send Mail to Intercon Users</B></FONT>\n";
+  echo "<FONT SIZE=\"+2\"><B>Send Mail to ".CON_SHORT_NAME." Users</B></FONT>\n";
 
   // Get user information
 
@@ -272,7 +272,7 @@ function get_checkbox_setting ($key, &$settings, &$selections)
 
 function show_gm_lists ()
 {
-  echo "<font size=\"+2\"><b>Intercon GM Mailing List</b></font>\n";
+  echo "<font size=\"+2\"><b>".CON_SHORT_NAME." Conference Mailing List</b></font>\n";
 
   if (array_key_exists ('CSV', $_REQUEST))
     $bCSV = intval ($_REQUEST['CSV']);
@@ -332,9 +332,10 @@ function show_gm_lists ()
   echo "<FORM METHOD=POST ACTION=MailTo.php>\n";
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", MAIL_GM_LISTS);
 
-  echo "<INPUT TYPE=CHECKBOX NAME=ShowGames $games_checked VALUE=1> <B>Show Games</B><BR>\n";
+  echo "<INPUT TYPE=CHECKBOX NAME=ShowGames $games_checked VALUE=1> <B>Show Event Titles</B><BR>\n";
   echo "<INPUT TYPE=CHECKBOX NAME=ShowNames $names_checked VALUE=1> <B>Show Names</B><BR>\n";
-  echo "<INPUT TYPE=CHECKBOX NAME=ShowAll $all_gms_checked VALUE=1> <B>Show All GMs</B> - Ignore GM's setting for \"Receive Con EMail\" flag<BR>\n";
+  echo "<INPUT TYPE=CHECKBOX NAME=ShowAll $all_gms_checked VALUE=1> <B>Show All ";
+  echo "Conference Presenters</B> - Ignore setting for \"Receive Con EMail\" flag<BR>\n";
 
   echo "<TABLE>\n";
   echo "  <TR VALIGN=TOP>\n";
@@ -372,181 +373,6 @@ function show_gm_lists ()
 			   'CHECKED' == $all_gms_checked);
 }
 
-/*
- * show_iron_gm_lists
- *
- * Show the Iron GM mail list that the user has privilege to look at
- */
-
-function show_iron_gm_list ()
-{
-  echo "<font size=\"+2\"><b>Intercon Iron GM Mailing List</b></font>\n";
-
-  if (array_key_exists ('CSV', $_REQUEST))
-    $bCSV = intval ($_REQUEST['CSV']);
-  else
-    $bCSV = 0;
-
-  if (array_key_exists ('ShowNames', $_REQUEST))
-    $bNames = intval ($_REQUEST['ShowNames']);
-  else
-    $bNames = 0;
-
-  if (array_key_exists ('ShowTeams', $_REQUEST))
-    $bTeams = intval ($_REQUEST['ShowTeams']);
-  else
-    $bTeams = 0;
-
-  $bComma = true;
-  if (array_key_exists ('separator', $_REQUEST))
-    $bComma = ('comma' ==$_REQUEST['separator']);
-
-  $bIncludeNL=false;
-  if (array_key_exists ('IncludeNL', $_REQUEST))
-    $bIncludeNL = ('on' == $_REQUEST['IncludeNL']);
-
-  echo "<form method=\"post\" action=\"MailTo.php\">\n";
-  form_hidden_value ('action', MAIL_IRON_GM_LIST);
-  form_checkbox ('ShowTeams', $bTeams, 1);
-  echo "<b>Show Teams</b><br>\n";
-  form_checkbox ('ShowNames', $bNames, 1);
-  echo "<b>Show Names</b><br>\n";
-
-  echo "<table>\n";
-  echo "  <tr valign=\"top\">\n";
-  echo "    <td>Display As</td>\n";
-  echo "    <td><b>\n";
-  form_radio ('CSV', 0, ! $bCSV);
-  echo "HTML Table<br>\n";
-  form_radio ('CSV', 1, $bCSV);
-  echo "Comma Separated Values<br>\n";
-  echo "    </b></td>\n";
-  echo "  </tr>\n";
-
-  echo "  <tr valign=\"top\">\n";
-  echo "    <td>CSV Options</td>\n";
-  echo "    <td nowrap><b>\n";
-  form_checkbox ('IncludeNL', $bIncludeNL);
-  echo "&nbsp;Newline<br>\n";
-  form_radio ('separator', 'comma', $bComma);
-  echo "Comma separated<br>\n";
-  form_radio ('separator', 'semicolon', ! $bComma);
-  echo "Semicolon separated<br>\n";
-  echo "    </b></td>\n";
-  echo "  </tr>\n";
-  echo "</table>\n";
-  echo "<input type=\"submit\" value=\"&nbsp;Display Mail List&nbsp;\">\n";
-  echo "</form>\n";
-
-  if ($bComma)
-    $separator = ',';
-  else
-    $separator = ';';
-
-  // Now go through the GMs
-
-  $sql = 'SELECT Users.FirstName, Users.LastName, Users.EMail,';
-  $sql .= ' IronGmTeam.Name AS Team';
-  $sql .= ' FROM Users, IronGmTeam, IronGm';
-  $sql .= ' WHERE Users.UserId=IronGm.UserId';
-  $sql .= '   AND IronGmTeam.TeamId=IronGm.TeamId';
-
-  if ($bNames)
-    $sql .= ' ORDER BY Users.LastName, Users.FirstName';
-  else
-    $sql .= ' ORDER BY Users.EMail';
-
-  // Fetch the information from the database
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for Iron GMs failed');
-
-  if (0 == mysql_num_rows ($result))
-    return display_error ('No matching users found');
-
-  // Are we displaying as a CSV (suitable for importing to Excel) or a table?
-
-  if ($bCSV)
-  {
-    $last_name = '';
-    echo "<div nowrap>";
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
-      if ($last_name == $name)
-      {
-	if ($bTeams)
-	  printf ('"%s"%s ', $row->Team, $separator);
-      }
-      else
-      {
-	if ($bIncludeNL)
-	  echo "\n<br>";
-
-	if ($bNames)
-	  printf ('"%s"%s ', $name, $separator);
-
-	printf ('%s%s ', $row->EMail, $separator);
-	if ($bTeams)
-	  printf ('"%s"%s ', $row->Team, $separator);
-      }
-      $last_name = $name;
-    }
-    echo "\n<br>\n</div>\n";
-  }
-  else
-  {
-    // Display what we've got in a table
-
-    echo "<table>\n";
-    echo "  <tr valign=\"top\">\n";
-
-    $last_email = '';
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
-
-      if ($last_email == $row->EMail)
-      {
-	if ($bTeams)
-	  echo ",<BR>$row->Team";
-      }
-      else
-      {
-	if ($last_email != '')
-	{
-	  if ($bTeams)
-	    echo "\n    </td>\n";
-	}
-
-	echo "  </tr>\n";
-	echo "  <tr valign=\"top\">\n";
-	if ($bNames)
-	  echo "    <td>$name&nbsp;&nbsp;&nbsp;</td>\n";
-
-	echo "    <td>$row->EMail&nbsp;&nbsp;&nbsp;</td>\n";
-
-	if ($bTeams)
-	{
-	  echo "    <td>\n";
-	  echo "      $row->Team";
-	}
-      }
-
-      $last_email = $row->EMail;
-    }
-
-    if ($bTeams)
-      echo "\n    </td>\n";
-    echo "  </tr>\n";
-    echo "</table>\n";
-  }
-
-  return true;
-}
 
 /*
  * show_bid_submitters
@@ -556,7 +382,7 @@ function show_iron_gm_list ()
 
 function show_bid_submitters ()
 {
-  echo "<FONT SIZE=\"+2\"><B>Intercon Bid Submitters Mailing List</B></FONT>\n";
+  echo "<FONT SIZE=\"+2\"><B>".CON_SHORT_NAME." Bid Submitters Mailing List</B></FONT>\n";
 
   if (array_key_exists ('CSV', $_REQUEST))
     $bCSV = intval ($_REQUEST['CSV']);
@@ -615,17 +441,17 @@ function show_bid_submitters ()
   echo "    </B></TD>\n";
   echo "  </TR>\n";
   echo "</TABLE>\n";
-  echo "<INPUT TYPE=CHECKBOX NAME=ShowGames $games_checked VALUE=1> <B>Show Games</B><BR>\n";
+  echo "<INPUT TYPE=CHECKBOX NAME=ShowGames $games_checked VALUE=1> <B>Show Bids</B><BR>\n";
   echo "<INPUT TYPE=CHECKBOX NAME=ShowNames $names_checked VALUE=1> <B>Show Names</B><BR>\n";
   echo "<INPUT TYPE=CHECKBOX NAME=ShowStatus $status_checked VALUE=1> <B>Show Bid Status</B><BR>\n";
   echo "<INPUT TYPE=SUBMIT VALUE=\"&nbsp;Display Mail List&nbsp;\">\n";
   echo "</FORM>\n";
 
-  $sql = 'SELECT Users.FirstName, Users.LastName, Users.EMail,';
-  $sql .= ' Bids.Title, Bids.Status';
+  $sql = 'SELECT Users.DisplayName, Users.EMail,';
+  $sql .= ' Bids.Title, Bids.Status, Bids.GameType';
   $sql .= ' FROM Users, Bids';
   $sql .= ' WHERE Users.UserId=Bids.UserId';
-  $sql .= ' ORDER BY Users.LastName, Users.FirstName, Bids.Title';
+  $sql .= ' ORDER BY Users.DisplayName, Bids.Title';
 
   // Fetch the information from the database
 
@@ -644,11 +470,11 @@ function show_bid_submitters ()
     echo "<DIV NOWRAP>";
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
       if ($last_name == $name)
       {
 	if ($bGames)
-	  echo "\"$row->Title\",";
+	  echo "\"<b>$row->GameType</b> - $row->Title\",";
 	if ($bStatus)
 	  echo "\"$row->Status\"";
       }
@@ -659,7 +485,7 @@ function show_bid_submitters ()
 	  echo "\"$name\",";
 	echo "$row->EMail,";
 	if ($bGames)
-	  echo "\"$row->Title\",";
+	  echo "\"<b>$row->GameType</b> - $row->Title\",";
 	if ($bStatus)
 	  echo "\"$row->Status\"";
       }
@@ -678,12 +504,12 @@ function show_bid_submitters ()
 
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if ($last_email == $row->EMail)
       {
 	if ($bGames)
-	  echo ",<BR>$row->Title";
+	  echo ",<BR><b>$row->GameType</b> - $row->Title";
 	if ($bStatus)
 	  echo " ($row->Status)";
       }
@@ -705,7 +531,7 @@ function show_bid_submitters ()
 	if ($bGames)
 	{
 	  echo "    <TD>\n";
-	  echo "      $row->Title";
+	  echo "      <b>$row->GameType</b> - $row->Title";
 	  if ($bStatus)
 	    echo " ($row->Status)";
 	}
@@ -731,7 +557,7 @@ function show_bid_submitters ()
 
 function show_mail_lists ()
 {
-  echo "<FONT SIZE=\"+2\"><B>Intercon Users Mailing Lists</B></FONT>\n";
+  echo "<FONT SIZE=\"+2\"><B>".CON_SHORT_NAME." Users Mailing Lists</B></FONT>\n";
 
   //  dump_array ('REQUEST', $_REQUEST);
 
@@ -851,7 +677,7 @@ function show_mail_lists ()
   if (0 == $num_set)
     return true;
 
-  $sql = 'SELECT FirstName, LastName, EMail';
+  $sql = 'SELECT DisplayName, EMail';
   $sql .= ', DATE_FORMAT(LastLogin, "%Y-%m-%d") AS LastLogin';
   $sql .= ' FROM Users';
 
@@ -875,9 +701,9 @@ function show_mail_lists ()
   }
 
   if ($settings['Alumni'])
-    $sql .= ' ORDER BY LastLogin DESC, LastName, FirstName';
+    $sql .= ' ORDER BY LastLogin DESC, DisplayName, ';
   else
-    $sql .= ' ORDER BY LastName, FirstName';
+    $sql .= ' ORDER BY DisplayName';
 
   // Fetch the information from the database
 
@@ -897,7 +723,7 @@ function show_mail_lists ()
 
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if ('Admin,' != $name)
       {
@@ -940,7 +766,7 @@ function show_mail_lists ()
 
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if ('Admin,' != $name)
       {
@@ -1027,7 +853,7 @@ function show_user_list ($to, $bCSV)
       break;
 
     case MAIL_LIST_ALUMNI:
-      $title = 'Intercon Alumni';
+      $title = CON_SHORT_NAME.' Alumni';
       $where = 'WHERE CanSignup="Alumni"';
       break;
 
@@ -1209,7 +1035,7 @@ function show_gms_by_name ($bCSV, $bGames, $bNames, $bIncludeNL, $bComma, $bAllG
     return display_mysql_error ('Query for game email addresses failed');
 
   if (0 != mysql_num_rows($result))
-    echo "<b>Addresses for games that elected to send con mail to the game mail address</b><br>\n";
+    echo "<b>Addresses for event that elected to send con mail to the event mail address</b><br>\n";
 
   if ($bCSV)
   {
@@ -1240,18 +1066,20 @@ function show_gms_by_name ($bCSV, $bGames, $bNames, $bIncludeNL, $bComma, $bAllG
 
   // Now go through the GMs
 
-  $sql = 'SELECT Users.FirstName, Users.LastName, Users.EMail,';
+  $sql = 'SELECT Users.DisplayName, Users.EMail,';
   $sql .= ' Events.Title';
   $sql .= ' FROM Users, GMs, Events';
   $sql .= ' WHERE Users.UserId=GMs.UserId';
   $sql .= '   AND Events.EventId=GMs.EventId';
-  $sql .= '   AND Events.ConMailDest="GMs"';
 
   if (! $bAllGMs)
+  {
     $sql .= ' AND GMs.ReceiveConEMail="Y"';
-
+    $sql .= '   AND Events.ConMailDest="GMs"';
+  }
+  
   if ($bNames)
-    $sql .= ' ORDER BY Users.LastName, Users.FirstName, Events.Title';
+    $sql .= ' ORDER BY Users.DisplayName, Events.Title';
   else
     $sql .= ' ORDER BY Users.EMail';
 
@@ -1274,7 +1102,7 @@ function show_gms_by_name ($bCSV, $bGames, $bNames, $bIncludeNL, $bComma, $bAllG
 
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
       if ($last_name == $name)
       {
 	if ($bGames)
@@ -1299,8 +1127,11 @@ function show_gms_by_name ($bCSV, $bGames, $bNames, $bIncludeNL, $bComma, $bAllG
   else
   {
     // Display what we've got in a table
+    if (! $bAllGMs)
+      echo "<b>Address for presenters who've elected to receive mail</b>\n";
+    else
+      echo "<b>Address for all the presenters</b>\n";
 
-    echo "<b>Address for GMs who've elected to receive Con mail</b>\n";
     echo "<table>\n";
     echo "  <tr valign=\"top\">\n";
 
@@ -1308,34 +1139,34 @@ function show_gms_by_name ($bCSV, $bGames, $bNames, $bIncludeNL, $bComma, $bAllG
 
     while ($row = mysql_fetch_object ($result))
     {
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if ($last_email == $row->EMail)
       {
-	if ($bGames)
-	  echo ",<BR>$row->Title";
+	    if ($bGames)
+	      echo ",<BR>$row->Title";
       }
       else
       {
-	if ($last_email != '')
-	{
-	  if ($bGames)
-	    echo "\n    </TD>\n";
-	}
+	    if ($last_email != '')
+	    {
+	      if ($bGames)
+	        echo "\n    </TD>\n";
+	    }
 
-	echo "  </TR>\n";
-	echo "  <TR VALIGN=TOP>\n";
-	if ($bNames)
-	  echo "    <TD>$name&nbsp;&nbsp;&nbsp;</TD>\n";
+	    echo "  </TR>\n";
+	    echo "  <TR VALIGN=TOP>\n";
+	    if ($bNames)
+	      echo "    <TD>$name&nbsp;&nbsp;&nbsp;</TD>\n";
 
-	echo "    <TD>$row->EMail&nbsp;&nbsp;&nbsp;</TD>\n";
+	    echo "    <TD>$row->EMail&nbsp;&nbsp;&nbsp;</TD>\n";
 
-	if ($bGames)
-	{
-	  echo "    <TD>\n";
-	  echo "      $row->Title";
-	}
-      }
+	    if ($bGames)
+	    {
+	       echo "    <TD>\n";
+	       echo "      $row->Title";
+	    }
+      } // if new row.
 
       $last_email = $row->EMail;
     }
@@ -1377,7 +1208,8 @@ function show_bio_lists ()
   {
     echo '<FONT="+1"><B>Mail List of Users Who Should to Submit Bios</B></FONT><BR>';
     echo "Users who have submitted bios are in black<BR>\n";
-    echo "Users who have <b>not</b> submitted bios are in <font color=red>red</font><P>\n";
+    echo "Users who have <b>not</b> submitted bios are in <font color=red>red</font>.  ";
+    echo "We will spank them like a bad, bad donkey.<P>\n";
   }
 
   echo "<FORM METHOD=POST ACTION=MailTo.php>\n";
@@ -1392,7 +1224,7 @@ function show_bio_lists ()
 
   // Start by gathering the list of GMs
 
-  $sql = 'SELECT DISTINCT Users.UserId, Users.FirstName, Users.LastName,';
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName,';
   $sql .= ' Users.EMail';
   $sql .= ' FROM GMs, Users';
   $sql .= ' WHERE Users.UserId=GMs.UserId';
@@ -1403,12 +1235,12 @@ function show_bio_lists ()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $bio_users[$row->UserId] = "$row->LastName|$row->FirstName|$row->EMail";
+    $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
   // Now add the con staff.  Don't forget to skip Admin (UserId==1)
 
-  $sql = 'SELECT UserId, FirstName, LastName, EMail';
+  $sql = 'SELECT UserId, DisplayName, EMail';
   $sql .= ' FROM Users';
   $sql .= ' WHERE ""<>Priv';
 
@@ -1419,7 +1251,7 @@ function show_bio_lists ()
   while ($row = mysql_fetch_object ($result))
   {
     if (1 != $row->UserId)
-      $bio_users[$row->UserId] = "$row->LastName|$row->FirstName|$row->EMail";
+      $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
   // Sort the array BY THE VALUE (as opposed to the key)
@@ -1435,9 +1267,8 @@ function show_bio_lists ()
   foreach ($bio_users as $user_id => $v)
   {
     $tmp = explode ('|', $v);
-    $last_name = $tmp[0];
-    $first_name = $tmp[1];
-    $email = $tmp[2];
+    $display_name = $tmp[0];
+    $email = $tmp[1];
 
     //    echo "first_name: $first_name<br>\n";
     //    echo "last_name: $last_name<br>\n";
@@ -1477,7 +1308,7 @@ function show_bio_lists ()
       echo "<FONT COLOR=red>";
 
     if ($bNames)
-      echo "\"$last_name, $first_name\" ";
+      echo "\"$display_name\" ";
 
     echo "&lt;$email&gt;";
 
@@ -1490,11 +1321,11 @@ function show_bio_lists ()
 
 function show_waitlisted_players ()
 {
-  echo '<h1>Mail Lists of Waitlisted Players</h1>';
+  echo '<h1>Mail Lists of Waitlisted Volunteers</h1>';
 
   // Gather the list of waitlisted players
 
-  $sql = 'SELECT Users.FirstName, Users.LastName, Users.EMail,';
+  $sql = 'SELECT Users.DisplayName, Users.EMail,';
   $sql .= ' Events.Title, Runs.Day, Runs.StartHour, Runs.RunId';
   $sql .= ' FROM Users, Events, Runs, Signup';
   $sql .= ' WHERE Signup.State="Waitlisted"';
@@ -1515,14 +1346,14 @@ function show_waitlisted_players ()
     {
       printf ("<br><b>%s %s - %s</b><p>\n",
 	      $row->Day,
-	      start_hour_to_24_hour($row->StartHour),
+	      start_hour_to_12_hour($row->StartHour),
 	      $row->Title);
       $cur_run_id = $row->RunId;
     }
 
     //    echo "\"$row->LastName, $row->FirstName\" ";
     //    echo "&lt;$row->EMail&gt;,<br>";
-    echo "$row->EMail,<br>";
+    echo "$row->DisplayName - $row->EMail<br>";
   }
 }
 

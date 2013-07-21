@@ -330,14 +330,13 @@ function build_attendees_subnavbar() {
 
 function build_mail_subnavbar() {
   $mailSection = new SubNavBar('Mail');
-  $mailSection->push(NavBarItem::newAction('Show Lists', 'MailTo.php', MAIL_LISTS));
-  $mailSection->push(NavBarItem::newAction('GM Lists', 'MailTo.php', MAIL_GM_LISTS));
-  if (IRONGM_ENABLED)
-    $mailSection->push(NavBarItem::newAction('Iron GM List', 'MailTo.php', MAIL_IRON_GM_LIST));
+  $mailSection->push(NavBarItem::newAction('Payment Lists', 'MailTo.php', MAIL_LISTS));
+  $mailSection->push(NavBarItem::newAction('Conference Lists', 'MailTo.php', MAIL_GM_LISTS));
+  $mailSection->push(NavBarItem::newAction('Show Lists', 'MailTo.php', MAIL_SHOW_LISTS));
   $mailSection->push(NavBarItem::newAction('Bid Submitters', 'MailTo.php', MAIL_BID_SUBMITTERS));
   $mailSection->push(NavBarItem::newAction('Bio Lists', 'MailTo.php', MAIL_BIO_LISTS));
-  $mailSection->push(NavBarItem::newAction('Waitlisted Players', 'MailTo.php', MAIL_WAITLISTED));
-  $mailSection->push(NavBarItem::newAction('Who\'s Not Playing When', 'Reports.php', REPORT_WHOS_NOT_PLAYING_FORM));
+  $mailSection->push(NavBarItem::newAction('Waitlisted Volunteers', 'MailTo.php', MAIL_WAITLISTED));
+  $mailSection->push(NavBarItem::newAction('Who\'s Free?', 'Reports.php', REPORT_WHOS_NOT_PLAYING_FORM));
   
   return $mailSection;
 }

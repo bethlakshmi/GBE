@@ -198,6 +198,7 @@ define (MAIL_BIO_LISTS, 74);
 define (MAIL_WAITLISTED, 75);
 define (MAIL_BID_SUBMITTERS, 76);
 define (MAIL_IRON_GM_LIST, 77);
+define (MAIL_SHOW_LISTS, 78);
 
 // Action values in ConStatus.php
 

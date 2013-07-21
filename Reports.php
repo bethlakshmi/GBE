@@ -818,7 +818,8 @@ function report_volunteer_track ($is_ops)
 
 function whos_not_playing_when_form ()
 {
-  echo "<h1>Who's Not Playing When</h1>\n";
+  echo "<h1>Who's Free When?</h1>\n";
+  echo "NOTE:  Does not show unpaid users\n";
 
   if (! array_key_exists ('Day', $_POST))
   {
@@ -984,7 +985,7 @@ function whos_not_playing_when ()
     if (0 == $v)
       continue;
 
-    $sql = "SELECT FirstName, LastName, EMail FROM Users WHERE UserId=$k";
+    $sql = "SELECT DisplayName, EMail FROM Users WHERE UserId=$k";
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ("Query failed for user information for $k",
@@ -992,13 +993,13 @@ function whos_not_playing_when ()
 
     $row = mysql_fetch_object ($result);
     if (! $row)
-      return display_error ("Failed to get user information informatio for $k",
+      return display_error ("Failed to get user information information for $k",
 			    $sql);
 
     if ($bCSV)
       $index = "$row->EMail";
     else
-      $index = "\"$row->LastName, $row->FirstName\" &lt;$row->EMail&gt;";
+      $index = "\"$row->DisplayName &lt;$row->EMail&gt;";
 
     $names[$index] = $v;
 
@@ -1013,8 +1014,8 @@ function whos_not_playing_when ()
   {
     printf ("<b>%d Users are available during the whole period, %s - %s</b><br>\n",
 	    $fully_available,
-	    start_hour_to_24_hour ($StartHour),
-	    start_hour_to_24_hour ($StartHour + $Hours));
+	    start_hour_to_12_hour ($StartHour),
+	    start_hour_to_12_hour ($StartHour + $Hours));
 
     reset ($names);
     foreach ($names as $k => $v)
@@ -1065,7 +1066,7 @@ function whos_not_playing_when ()
   echo "  <th align=left>Name, EMail</th>\n";
   for ($i = 0; $i < $Hours; $i++)
   {
-    printf ("    <th>%s</th>\n", start_hour_to_24_hour ($i + $StartHour));
+    printf ("    <th>%s</th>\n", start_hour_to_12_hour ($i + $StartHour));
   }
   echo "  </tr>\n";
 
