@@ -2182,7 +2182,7 @@ function display_user_form_for_others ()
     }
 
     $text = 'Update Registration for ';
-    $text .= $_POST['FirstName'] . ' ' . $_POST['LastName'];
+    $text .= $_POST['DisplayName'];
   }
 
   $seq = increment_sequence_number();
@@ -2345,7 +2345,7 @@ function display_user_form_for_others ()
       echo "<P>Created $Created\n";
     else
     {
-      $sql = 'SELECT FirstName, LastName FROM Users WHERE UserId=' .
+      $sql = 'SELECT DisplayName FROM Users WHERE UserId=' .
 	     mysql_real_escape_string ($_POST['ModifiedBy']);
       $result = mysql_query ($sql);
       if (! $result)
@@ -2353,14 +2353,14 @@ function display_user_form_for_others ()
 
       $row = mysql_fetch_object ($result);
 
-      echo "<P>Last modified by $row->FirstName $row->LastName, $Modified\n";
+      echo "<P>Last modified by $row->DisplayName, $Modified\n";
     }
 
     $StatusModified = timestamp_to_datetime ($_POST['CanSignupModified']);
 
     if (0 != $_POST['CanSignupModifiedId'])
     {
-      $sql = 'SELECT FirstName, LastName FROM Users WHERE UserId=' .
+      $sql = 'SELECT DisplayName FROM Users WHERE UserId=' .
 	     mysql_real_escape_string ($_POST['CanSignupModifiedId']);
       $result = mysql_query ($sql);
       if (! $result)
@@ -2368,7 +2368,7 @@ function display_user_form_for_others ()
 
       $row = mysql_fetch_object ($result);
 
-      echo "<P>Payment status last modified by $row->FirstName $row->LastName, $StatusModified\n";
+      echo "<P>Payment status last modified by $row->DisplayName, $StatusModified\n";
       echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
     }
   }
@@ -2380,7 +2380,7 @@ function display_user_form_for_others ()
 
     echo "<P>\n";
 
-    $name = trim ($_POST['FirstName'] . ' ' . $_POST['LastName']);
+    $name = trim ($_POST['DisplayName']);
 
     show_games ($UserId, "$name is", 'signed up', 'Confirmed');
     show_games ($UserId, "$name is", 'wait listed', 'Waitlisted');
@@ -3110,7 +3110,7 @@ function show_user_to_delete ()
 
   $UserId = intval ($_REQUEST['UserId']);
 
-  $sql = 'SELECT FirstName, LastName, CanSignup, EMail FROM Users';
+  $sql = 'SELECT DisplayName, CanSignup, EMail FROM Users';
   $sql .= "  WHERE UserId=$UserId";
 
   $result = mysql_query ($sql);
@@ -3124,7 +3124,7 @@ function show_user_to_delete ()
 
   $row = mysql_fetch_object ($result);
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
 
   echo "<H2>User to delete: $name</H2>\n";
   echo "<B>Status:</B>: $row->CanSignup<P>\n";
@@ -3200,7 +3200,7 @@ function delete_user ()
 
   // Fetch the user name yet again...
 
-  $sql = 'SELECT FirstName, LastName, Gender FROM Users';
+  $sql = 'SELECT DisplayName, Gender FROM Users';
   $sql .= "  WHERE UserId=$UserId";
 
   $result = mysql_query ($sql);
@@ -3214,7 +3214,7 @@ function delete_user ()
 
   $row = mysql_fetch_object ($result);
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
   $pronoun = gender_to_pronoun ($row->Gender);
     
   // Remove the user as a GM from any games
@@ -3230,7 +3230,7 @@ function delete_user ()
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ('Query for games user will GM failed', $sql);
+    return display_mysql_error ('Query for games user will present failed', $sql);
 
   //  echo "GM: $gm_count<BR>\n";
 
@@ -3244,7 +3244,7 @@ function delete_user ()
 
     $delete_result = mysql_query ($sql);
     if (! $delete_result)
-      return display_mysql_error ("Failed to delete GM record $row->GMId",
+      return display_mysql_error ("Failed to delete presenter record $row->GMId",
 				  $sql);
 
     $gm_count++;
@@ -3261,7 +3261,7 @@ function delete_user ()
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Failed to get list of games", $sql);
+    return display_mysql_error ("Failed to get list of events", $sql);
 
   while ($row = mysql_fetch_object ($result))
   {
@@ -3279,17 +3279,17 @@ function delete_user ()
 				$sql);
 
   if (1 == $gm_count)
-    $gm_count .= ' game';
+    $gm_count .= ' conference item';
   else
-    $gm_count .= ' games';
+    $gm_count .= ' conference items';
 
   if (1 == $game_count)
-    $game_count .= ' game';
+    $game_count .= ' ops track';
   else
-    $game_count .= ' games';
+    $game_count .= ' ops tracks';
 
   echo "<H2>$name has been removed from the database</H2>\n";
-  echo "$pronoun has been removed as GM from $gm_count\n";
+  echo "$name has been removed as teacher/panelist from $gm_count\n";
   echo "and withdrawn from $game_count<P>\n";
 }
 
@@ -3505,7 +3505,7 @@ function display_password_form_for_user ()
 
   // Fetch the user information
 
-  $sql = 'SELECT FirstName, LastName FROM Users WHERE UserId=' . $UserId;
+  $sql = 'SELECT DisplayName FROM Users WHERE UserId=' . $UserId;
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Query for UserId $UserId failed", $sql);
@@ -3514,7 +3514,7 @@ function display_password_form_for_user ()
   if (! $row)
     return display_error ("Failed to find user record with UserID=$UserId");
 
-  $full_name = trim ("$row->FirstName $row->LastName");
+  $full_name = trim ("$row->DisplayName");
   display_header ("Set password for $full_name");
   echo "&nbsp;<br>\n";
 
