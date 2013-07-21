@@ -2822,7 +2822,7 @@ function confirm_withdraw_from_game ()
   $start_time = start_hour_to_24_hour ($row->StartHour);
   $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
 
-  echo "<H1>Confirm Withdrawal From Game</H1>\n";
+  echo "<H1>Confirm Withdrawal</H1>\n";
   echo "<FORM METHOD=POST ACTION=index.php>\n";
   form_add_sequence ();
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
@@ -2830,13 +2830,13 @@ function confirm_withdraw_from_game ()
   printf ("<INPUT TYPE=HIDDEN NAME=SignupId VALUE=%d>\n",
 	  $SignupId);
   echo "Are you sure that you want to withdraw from <I>$row->Title</I>\n";
-  echo "being played on <NOBR>$row->Day, $start_time - $end_time?</NOBR><p>\n";
+  echo "being held on <NOBR>$row->Day, $start_time - $end_time?</NOBR><p>\n";
   echo "If you withdraw ";
   if ('Waitlisted' == $row->State)
     echo "you will lose your place in the waitlist.\n";
   else
   {
-    echo "and the game is full, you may not be able get into the game\n";
+    echo "and if the slot is full, you may not be able get into the slot\n";
     echo "at a future time.<p>\n";
   }
   echo "<CENTER><INPUT TYPE=SUBMIT VALUE=\"Confirm Withdrawal\"></CENTER>\n";

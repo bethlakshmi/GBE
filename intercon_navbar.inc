@@ -302,13 +302,7 @@ function build_acts_subnavbar() {
     if (user_has_priv(PRIV_GM_LIAISON))
       $bidsSection->push(NavBarItem::newStatic("Show Commmittee Responsibilities", "ShowCommittee"));
   }
-  
-  if (user_has_priv (PRIV_SCHEDULING))
-    $bidsSection->push(NavBarItem::newAction('Manage Act Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
-
-  // Having this commented out was breaking my side in the navbar. -MDB
-  $bidsSection->push(NavBarItem::newAction("Bid an Act!", "biddingAGame.php"));
-    
+      
   return $bidsSection;
 }
 
@@ -460,7 +454,7 @@ function display_main_navbar() {
 
   if ( user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
     $navbar->push(build_bids_subnavbar());
-  if ( user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
+  if ( user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON) )
     $navbar->push(build_acts_subnavbar());
   if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());

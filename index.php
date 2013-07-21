@@ -4504,7 +4504,7 @@ function confirm_withdraw_user_from_all_games ()
 
   // Fetch the user's name
 
-  $sql = "SELECT FirstName, LastName, Gender FROM Users WHERE UserId=$UserId";
+  $sql = "SELECT DisplayName, Gender FROM Users WHERE UserId=$UserId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Query for user information failed', $sql);
@@ -4513,7 +4513,7 @@ function confirm_withdraw_user_from_all_games ()
   if (! $row)
     return display_error ('Failed to find user record');
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
   if ('Male' == $row->Gender)
     $pronoun = 'he';
   else
@@ -4540,7 +4540,7 @@ function confirm_withdraw_user_from_all_games ()
     return false;
   }
 
-  echo "<h1>Confirm withdrawing user from ALL games</h1>\n";
+  echo "<h1>Confirm Removal from ALL events</h1>\n";
   echo "<b>$name</b> is signed up for the following games:<br>\n";
 
   echo "<table>\n";
@@ -4551,8 +4551,8 @@ function confirm_withdraw_user_from_all_games ()
     echo "    <td>$row->State</td>\n";
     printf ("    <td>&nbsp;%s&nbsp;%s&nbsp;-&nbsp;%s&nbsp;</td>\n",
 	    $row->Day,
-	    start_hour_to_24_hour ($row->StartHour),
-	    start_hour_to_24_hour ($row->StartHour + $row->Hours));
+	    start_hour_to_12_hour ($row->StartHour),
+	    start_hour_to_12_hour ($row->StartHour + $row->Hours));
     echo "    <td>$row->Title</td>\n";
     echo "  </tr>\n";
   }
@@ -4560,9 +4560,9 @@ function confirm_withdraw_user_from_all_games ()
 
   echo "<p>Are you sure you want to withdraw $name from\n";
   if ($count > 1)
-    echo 'all the games';
+    echo 'all the events';
   else
-    echo 'the game';
+    echo 'the event';
   echo " that $pronoun is signed up for?</p>\n";
 
   echo "<form method=post action=index.php>\n";
@@ -4574,7 +4574,7 @@ function confirm_withdraw_user_from_all_games ()
   echo "<center><input type=submit value=\"Confirm Withdrawal\"></center>\n";
   echo "</form>\n";
 
-  echo "<p>Note that this will not remove the user from GM-ship in any games\n";
+  echo "<p>Note that this will not remove the user from running, presenting or performing in any classses, panels or shows.\n";
   return true;
 }
 
@@ -4606,7 +4606,7 @@ function withdraw_user_from_all_games ()
   // So build an array of all the information we'll need...
 
   $sql = 'SELECT Signup.SignupId, Signup.State, Signup.Counted,';
-  $sql .= ' Signup.Gender, Users.FirstName, Users.LastName, Users.EMail';
+  $sql .= ' Signup.Gender, Users.DisplayName, Users.EMail';
   $sql .= ' FROM Signup, Users';
   $sql .= " WHERE Signup.UserId=$UserId";
   $sql .= '   AND Signup.State<>"Withdrawn"';
@@ -4621,7 +4621,7 @@ function withdraw_user_from_all_games ()
   while ($row = mysql_fetch_object ($result))
   {
     $prev_state = strtolower ($row->State);
-    $name = trim ("$row->FirstName $row->LastName");
+    $name = trim ("$row->DisplayName");
 
     $a[] = "$row->SignupId|$name|$row->EMail|$prev_state|$row->Gender|$row->Counted";
   }
