@@ -124,6 +124,7 @@ CREATE TABLE `BidFeedback` (
   `UserId` int(10) unsigned NOT NULL DEFAULT '0',
   `Vote` enum('Strong Yes','Yes','Weak Yes','No Comment','Weak No','No','Strong No','Undecided','Author') NOT NULL DEFAULT 'Undecided',
   `Issues` char(64) NOT NULL DEFAULT '',
+  `ShowPref` SET( 'The Rhinestone Review', 'The Last Chance Casino Party', 'The Main Event (Competition)', 'The Main Event (Not in Competition)', 'The Newcomer\'s Showcase', 'The Sideshow Ball' )  NULL DEFAULT NULL,
   PRIMARY KEY (`FeedbackId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

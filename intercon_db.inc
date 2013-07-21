@@ -152,7 +152,7 @@ define (SPECIAL_EVENT_FORM, 40);
 define (SPECIAL_EVENT_ADD, 41);
 define (SPECIAL_EVENT_LIST, 42);
 
-// Action values in Bids.php & Action.php & Panels.php
+// Action values in Bids.php & Acts.php & Panels.php
 
 define (BID_GAME, 50);
 define (BID_PROCESS_FORM, 51);
@@ -3684,10 +3684,20 @@ function form_checkboxYN ($name)
   echo "<input type=\"checkbox\" name=\"$name\" value=\"Y\" $checked>\n";
 }
 
-function form_single_select($text, $name, $VALUE_LIST, $choice=" ")
+function form_single_select($text, $name, $VALUE_LIST, $choice=" ", $neutralOn=FALSE)
 {
   echo $text;
   echo "      <SELECT NAME=$name SIZE=1>\n";
+
+  if ( $neutralOn )
+  {
+   if ($choice == " ")
+       echo "        <option value=\" \" selected>Don't Care</option>\n";
+       
+   else
+       echo "        <option value=\" \">Don't Care</option>\n";
+  }
+  
   foreach ($VALUE_LIST as $value)
    if ($choice == $value)
      echo "        <option value=\"$value\" selected>$value</option>\n";
@@ -3708,6 +3718,58 @@ function form_radio ($name, $value, $checked)
   echo "<input type=\"radio\" name=\"$name\" value=\"$value\" $chk>";
 }
 
+function form_issues($key)
+{
+  if (1 == get_magic_quotes_gpc())
+    $text = stripslashes ($_POST[$key]);
+  else
+    $text = $_POST[$key];
+
+  printf ('    <td><input type="text" name="%s" size="64" maxlength="64" ' .
+	  " value=\"%s\"></td>\n",
+	  $key,
+	  $text);
+}
+
+function form_vote ($key)
+{
+  $sy = '';
+  $y  = '';
+  $wy = '';
+  $nc = '';
+  $wn = '';
+  $n  = '';
+  $sn = '';
+  $u = '';
+  $a = '';
+
+  switch ($_POST[$key])
+  {
+    case 'Strong Yes':  $sy = 'selected'; break;
+    case 'Yes':         $y =  'selected'; break;
+    case 'Weak Yes':    $wy = 'selected'; break;
+    case 'No Comment':  $nc  = 'selected'; break;
+    case 'Weak No':     $wn = 'selected'; break;
+    case 'No':          $n =  'selected'; break;
+    case 'Strong No':   $sn = 'selected'; break;
+    case 'Undecided':   $u  = 'selected'; break;
+    case 'Author':      $a  = 'selected'; break;
+  }
+
+  echo "    <td>\n";
+  echo "      <select name=\"$key\" size=\"1\">\n";
+  echo "        <option value=\"Strong Yes\" $sy>Strong Yes&nbsp;&nbsp;</option>\n";
+  echo "        <option value=\"Yes\" $y>Yes&nbsp;&nbsp;</option>\n";
+  echo "        <option value=\"Weak Yes\" $wy>Weak Yes&nbsp;&nbsp;</option>\n";
+  echo "        <option value=\"No Comment\" $nc>No Comment&nbsp;&nbsp;</option>\n";
+  echo "        <option value=\"Weak No\" $wn>Weak No</option>\n";
+  echo "        <option value=\"No\" $n>No</option>\n";
+  echo "        <option value=\"Strong No\" $sn>Strong No</option>\n";
+  echo "        <option value=\"Undecided\" $u>Undecided&nbsp;&nbsp;</option>\n";
+  echo "        <option value=\"Author\" $a>Author&nbsp;&nbsp;</option>\n";
+  echo "      </select>\n";
+  echo "    </td>\n";
+}
 function pretty_rooms($str)
 {
   // Quick check for empty string - why waste time?

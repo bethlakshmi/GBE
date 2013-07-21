@@ -1563,7 +1563,7 @@ function display_bids_for_review ($isAct)
 
     echo "  <TR ALIGN=CENTER BGCOLOR=\"$bgcolor\">\n";
 
-    // If the status is "Pending" then folks with BidCom priv can know that
+    // If the status is "Pending" then folks with ShowCom priv can know that
     // it's there, but they can't see the game.  The Bid Chair or the GM
     // Liaison can see bid.
 
@@ -1908,9 +1908,9 @@ function show_bid_feedback_summary()
 
   // Get the names of all Bid Committee members
 
-  $sql = "SELECT UserId, FirstName, LastName FROM Users";
-  $sql .= "  WHERE FIND_IN_SET('BidCom', Priv)";
-  $sql .= "  ORDER BY LastName, FirstName";
+  $sql = "SELECT UserId, DisplayName FROM Users";
+  $sql .= "  WHERE FIND_IN_SET('ShowCom', Priv)";
+  $sql .= "  ORDER BY DisplayName";
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -1925,10 +1925,10 @@ function show_bid_feedback_summary()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $name = trim ("$row->FirstName $row->LastName");
+    $name = trim ("$row->DisplayName");
     $committee[$name] = '';
     $committee_users[$name] = $row->UserId;
-    $committee_headers[$name] = trim ("$row->FirstName<br>$row->LastName");
+    $committee_headers[$name] = trim ("$row->DisplayName");
   }
 
   //  dump_array ('$committee', $committee);
@@ -1997,9 +1997,9 @@ function show_bid_feedback_summary()
 
     // Fetch committee votes from the database
 
-    $sql = 'SELECT Users.FirstName, Users.LastName,';
+    $sql = 'SELECT Users.DisplayName,';
     $sql .= ' BidFeedback.Vote, BidFeedback.Issues, BidFeedback.FeedbackId,';
-    $sql .= ' BidFeedback.UserId';
+    $sql .= ' BidFeedback.UserId, BidFeedback.ShowPref';
     $sql .= ' FROM Users, BidFeedback';
     $sql .= " WHERE BidFeedback.BidStatusId=$row->BidStatusId";
     $sql .= '   AND Users.UserId=BidFeedback.UserId';
@@ -2016,15 +2016,17 @@ function show_bid_feedback_summary()
     while ($committee_row = mysql_fetch_object ($committee_result))
     {
 
-      $name = trim ("$committee_row->FirstName $committee_row->LastName");
+      $name = trim ("$committee_row->DisplayName");
       if (user_has_priv (PRIV_SHOW_CHAIR))
 	$prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
 			   $committee_row->UserId);
-      $committee[$name] = "$prefix<nobr><b>$committee_row->Vote</b></nobr>$suffix";
+           $committee[$name] = "$prefix<nobr><b>$committee_row->Vote</b></nobr>$suffix";
+      if ($committee_row->ShowPref != NULL)
+	      $committee[$name] .= '<br><b>'.$committee_row->ShowPref.'</b>';
       if ('' != $committee_row->Issues)
-	$committee[$name] .= '<br>'.$committee_row->Issues;
+	      $committee[$name] .= '<br>'.$committee_row->Issues;
     }
 
     // If this is the bid chairman the feedback information can be edited
@@ -2359,58 +2361,6 @@ function display_bid_etc ()
     include ($page);
 }
 
-function form_vote ($key)
-{
-  $sy = '';
-  $y  = '';
-  $wy = '';
-  $nc = '';
-  $wn = '';
-  $n  = '';
-  $sn = '';
-  $u = '';
-  $a = '';
-
-  switch ($_POST[$key])
-  {
-    case 'Strong Yes':  $sy = 'selected'; break;
-    case 'Yes':         $y =  'selected'; break;
-    case 'Weak Yes':    $wy = 'selected'; break;
-    case 'No Comment':  $nc  = 'selected'; break;
-    case 'Weak No':     $wn = 'selected'; break;
-    case 'No':          $n =  'selected'; break;
-    case 'Strong No':   $sn = 'selected'; break;
-    case 'Undecided':   $u  = 'selected'; break;
-    case 'Author':      $a  = 'selected'; break;
-  }
-
-  echo "    <td>\n";
-  echo "      <select name=\"$key\" size=\"1\">\n";
-  echo "        <option value=\"Strong Yes\" $sy>Strong Yes&nbsp;&nbsp;</option>\n";
-  echo "        <option value=\"Yes\" $y>Yes&nbsp;&nbsp;</option>\n";
-  echo "        <option value=\"Weak Yes\" $wy>Weak Yes&nbsp;&nbsp;</option>\n";
-  echo "        <option value=\"No Comment\" $nc>No Comment&nbsp;&nbsp;</option>\n";
-  echo "        <option value=\"Weak No\" $wn>Weak No</option>\n";
-  echo "        <option value=\"No\" $n>No</option>\n";
-  echo "        <option value=\"Strong No\" $sn>Strong No</option>\n";
-  echo "        <option value=\"Undecided\" $u>Undecided&nbsp;&nbsp;</option>\n";
-  echo "        <option value=\"Author\" $a>Author&nbsp;&nbsp;</option>\n";
-  echo "      </select>\n";
-  echo "    </td>\n";
-}
-
-function form_issues($key)
-{
-  if (1 == get_magic_quotes_gpc())
-    $text = stripslashes ($_POST[$key]);
-  else
-    $text = $_POST[$key];
-
-  printf ('    <td><input type="text" name="%s" size="64" maxlength="64" ' .
-	  " value=\"%s\"></td>\n",
-	  $key,
-	  $text);
-}
 
 /*
  * update_feedback_by_game
@@ -2421,6 +2371,8 @@ function form_issues($key)
 
 function update_feedback_by_game ()
 {
+  global $SHOW_NAMES;
+  
   // Only the bid chair may access this page
 
   if (! user_has_priv (PRIV_SHOW_CHAIR))
@@ -2454,9 +2406,9 @@ function update_feedback_by_game ()
 
   // Get the names of all Bid Committee members
 
-  $sql = "SELECT UserId, FirstName, LastName FROM Users";
-  $sql .= "  WHERE FIND_IN_SET('BidCom', Priv)";
-  $sql .= "  ORDER BY FirstName";
+  $sql = "SELECT UserId, DisplayName FROM Users";
+  $sql .= "  WHERE FIND_IN_SET('ShowCom', Priv)";
+  $sql .= "  ORDER BY DisplayName";
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -2469,11 +2421,13 @@ function update_feedback_by_game ()
   $user_id = array ();
   $issues = array ();
   $feedback_ids = array ();
+  $show = array();
 
   while ($row = mysql_fetch_object ($result))
   {
-    $name = trim ("$row->FirstName $row->LastName");
+    $name = trim ("$row->DisplayName");
     $committee[$name] = 'Undecided';
+    $show[$name] = " ";
     $user_id[$name] = $row->UserId;
     $issues[$name] = '';
     $feedback_ids[$name] = 0;
@@ -2488,12 +2442,13 @@ function update_feedback_by_game ()
 
     // Fetch committee votes from the database
 
-    $sql = 'SELECT Users.UserId, Users.FirstName, Users.LastName,';
-    $sql .= ' BidFeedback.Vote, BidFeedback.Issues, BidFeedback.FeedbackId';
+    $sql = 'SELECT Users.UserId, Users.DisplayName, ';
+    $sql .= ' BidFeedback.Vote, BidFeedback.Issues, BidFeedback.FeedbackId,';
+    $sql .= ' BidFeedback.ShowPref';
     $sql .= ' FROM Users, BidFeedback';
     $sql .= " WHERE BidFeedback.BidStatusId=$BidStatusId";
     $sql .= '   AND Users.UserId=BidFeedback.UserId';
-    $sql .= ' ORDER BY Users.FirstName';
+    $sql .= ' ORDER BY Users.DisplayName';
 
     echo "<!-- $sql -->\n";
 
@@ -2503,8 +2458,9 @@ function update_feedback_by_game ()
 
     while ($committee_row = mysql_fetch_object ($committee_result))
     {
-      $name = trim ("$committee_row->FirstName $committee_row->LastName");
+      $name = trim ("$committee_row->DisplayName");
       $committee[$name] = $committee_row->Vote;
+      $show[$name] = $committee_row->ShowPref;
       $user_id[$name] = $committee_row->UserId;
       $issues[$name] = $committee_row->Issues;
       $feedback_ids[$name] = $committee_row->FeedbackId;
@@ -2552,6 +2508,9 @@ function update_feedback_by_game ()
     form_vote ("vote_$i");
     form_issues ("issues_$i");
     echo "  </tr>\n";
+    echo "  <tr><td>&nbsp;</td><td colspan=2>\n";
+    form_single_select('','ShowPref_'.$i, $SHOW_NAMES, $show[$k], TRUE);
+    echo "  </td></tr>\n";
   }
 
   echo "  <tr><td>&nbsp;</td></tr>\n";
@@ -2628,6 +2587,7 @@ function process_feedback_by_game ()
 
     $sql .= build_sql_string ('Vote', $_POST["vote_$i"], FALSE);
     $sql .= build_sql_string ('Issues', $issues);
+    $sql .= build_sql_string ('ShowPref', $_POST["ShowPref_".$i]);
 
     if (0 == $id)
     {
@@ -2669,7 +2629,7 @@ function show_bid_feedback_entry_form()
   if ($UserId < 1)
     return display_error ("Invalid value for $$UserId: $UserId");
 
-  $sql = "SELECT FirstName, LastName FROM Users WHERE UserId=$UserId";
+  $sql = "SELECT DisplayName FROM Users WHERE UserId=$UserId";
   $result = mysql_query($sql);
   if (! $result)
     return display_mysql_error ('Query for User Name failed', $sql);
@@ -2678,7 +2638,7 @@ function show_bid_feedback_entry_form()
   if (! $row)
     return display_error ("Failed to find user for $$UserId: $UserId");
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
 
   $BidStatusId = 0;
   $FeedbackId = 0;
@@ -2689,11 +2649,12 @@ function show_bid_feedback_entry_form()
   $Vote = 'Undecided';
   $Title = 'Unknown';
   $Issues = '';
+  $Show = 'No Clue';
 
   if (0 != $FeedbackId)
   {
     $sql = 'SELECT BidFeedback.Vote, BidFeedback.Issues,';
-    $sql .= ' BidFeedback.BidStatusId, Bids.Title';
+    $sql .= ' BidFeedback.BidStatusId, BidFeedback.ShowPref, Bids.Title';
     $sql .= ' FROM Bids, BidStatus, BidFeedback';
     $sql .= " WHERE BidFeedback.FeedbackId=$FeedbackId";
     $sql .= '   AND BidStatus.BidStatusId=BidFeedback.BidStatusId';
@@ -2708,6 +2669,7 @@ function show_bid_feedback_entry_form()
 
     $row = mysql_fetch_object($result);
     $Vote = $row->Vote;
+    $Show = $row->ShowPref;
     $Issues = $row->Issues;
     $Title = $row->Title;
     $BidStatusId = $row->BidStatusId;
@@ -2756,10 +2718,18 @@ function show_bid_feedback_entry_form()
   form_hidden_value ('BidStatusId', $BidStatusId);
   form_hidden_value ('UserId', $UserId);
 
+  global $SHOW_NAMES;
+  
   echo "<table>\n";
   echo "  <tr>\n";
   echo "    <th align=\"right\">Vote:&nbsp;&nbsp;</th>\n";
   form_vote('Vote');
+  echo "  </tr>\n";
+  echo "  <tr>\n";
+  echo "    <th align=\"right\">Show Recommendation:&nbsp;&nbsp;</th>\n";
+  echo "    <td>";
+  form_single_select('','ShowPref', $SHOW_NAMES, $Show, TRUE);
+  echo "    </td>";
   echo "  </tr>\n";
   echo "  <tr>\n";
   echo "    <th align=\"right\">Issues:&nbsp;&nbsp;</th>\n";
@@ -2784,6 +2754,7 @@ function process_feedback_for_entry()
   $BidStatusId = intval ($_POST['BidStatusId']);
   $FeedbackId = intval ($_POST['FeedbackId']);
   $UserId = intval ($_POST['UserId']);
+  $ShowPref = $_POST['ShowPref'];
 
   if (0 == $FeedbackId)
     $sql = 'INSERT INTO BidFeedback SET ';
@@ -2792,6 +2763,12 @@ function process_feedback_for_entry()
 
   $sql .= build_sql_string ('Vote', $_POST['Vote'], false);
   $sql .= build_sql_string ('Issues');
+  if ($ShowPref == " ")
+  {
+    $sql .= build_sql_string ('ShowPref', "NULL");
+  }
+  else
+    $sql .= build_sql_string ('ShowPref');
 
   if (0 == $FeedbackId)
   {
@@ -2800,6 +2777,7 @@ function process_feedback_for_entry()
   }
   else
     $sql .= " WHERE FeedbackId=$FeedbackId";
+
 
   //  echo "$sql<p>\n";
 
@@ -2812,6 +2790,9 @@ function process_feedback_for_entry()
 
 function show_bid_feedback_by_user_form()
 {
+  global $submitFilter;
+  global $SHOW_NAMES;
+  
   // Only the bid chair may access this page
 
   if (! user_has_priv (PRIV_SHOW_CHAIR))
@@ -2828,7 +2809,7 @@ function show_bid_feedback_by_user_form()
 
   // Get the ConCom member's name
 
-  $sql = "SELECT FirstName, LastName FROM Users WHERE UserId=$UserId";
+  $sql = "SELECT DisplayName FROM Users WHERE UserId=$UserId";
   $result = mysql_query($sql);
   if (! $result)
     return display_mysql_error ('Query for User Name failed', $sql);
@@ -2837,7 +2818,7 @@ function show_bid_feedback_by_user_form()
   if (! $row)
     return display_error ("Failed to find user for $$UserId: $UserId");
 
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
 
   display_header ("Committee Feedback for $name");
 
@@ -2854,6 +2835,7 @@ function show_bid_feedback_by_user_form()
     $sql .= ' FROM BidStatus,Bids';
     $sql .= ' WHERE Consensus="Discuss"';
     $sql .= '   AND Bids.BidId=BidStatus.BidId';
+    $sql .= $submitFilter;
     $sql .= ' ORDER BY Bids.Title';
 
     $result = mysql_query($sql);
@@ -2866,6 +2848,7 @@ function show_bid_feedback_by_user_form()
       return display_error ('There are no submissions under discussion');
 
     $bids = array();
+    $show = array();
     $b = 1;
 
     while ($row = mysql_fetch_object($result))
@@ -2873,12 +2856,13 @@ function show_bid_feedback_by_user_form()
       $_POST["BidStatusId_$b"] = $row->BidStatusId;
       $_POST["Title_$b"] = $row->Title;
       $bids[$row->BidStatusId] = $b;
+      $show[$b] = " ";
       $b++;
     }
 
     // Now gather any existing Feedback
 
-    $sql = 'Select BidFeedback.Vote, BidFeedback.Issues,';
+    $sql = 'Select BidFeedback.Vote, BidFeedback.Issues, BidFeedback.ShowPref, ';
     $sql .= 'BidFeedback.FeedbackId, BidFeedback.BidStatusId';
     $sql .= ' FROM BidFeedback, BidStatus';
     $sql .= " WHERE BidFeedback.UserId=$UserId";
@@ -2888,7 +2872,7 @@ function show_bid_feedback_by_user_form()
     $result = mysql_query($sql);
     if (! $result)
       return display_mysql_error ('Failed to fetch feedback', $sql);
-
+    
     while ($row = mysql_fetch_object($result))
     {
       $b = $bids[$row->BidStatusId];
@@ -2897,6 +2881,7 @@ function show_bid_feedback_by_user_form()
       $_POST["FeedbackId_$b"] = $row->FeedbackId;
       $_POST["BidStatusId_$b"] = $row->BidStatusId;
       $bids[$row->BidStatusId] = 0;
+      $show[$b] = $row->ShowPref;
     }
 
     // Now deal with any new entries
@@ -2925,8 +2910,9 @@ function show_bid_feedback_by_user_form()
   form_hidden_value ('BidCount', $BidCount);
   echo "<table>\n";
   echo "  <tr>\n";
-  echo "    <th>Game</th>\n";
+  echo "    <th>Act</th>\n";
   echo "    <th>Vote</th>\n";
+  echo "    <th>Show Recommend</th>";
   echo "    <th>Issue(s)</th>\n";
   echo "  </tr>\n";
 
@@ -2935,6 +2921,10 @@ function show_bid_feedback_by_user_form()
     echo "  <tr>\n";
     printf ("    <td>%s</td>\n", $_POST["Title_$b"]);
     form_vote ("Vote_$b");
+    echo "  <td>\n";
+    form_single_select('','ShowPref_'.$b, $SHOW_NAMES, $show[$b], TRUE);
+    echo "  </td>\n";
+
     form_issues ("Issues_$b");
     form_hidden_value ("Title_$b", $_POST["Title_$b"]);
     form_hidden_value ("FeedbackId_$b", $_POST["FeedbackId_$b"]);
@@ -2988,6 +2978,7 @@ function process_feedback_for_user()
 
     $sql .= build_sql_string ('Vote', $_POST["Vote_$b"], false);
     $sql .= build_sql_string ('Issues', $issues);
+    $sql .= build_sql_string ('ShowPref', $_POST["ShowPref_".$b]);
 
     if (0 == $FeedbackId)
     {

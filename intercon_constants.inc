@@ -237,9 +237,9 @@ $SHOW_NAMES['Friday_After Midnight'] = 'The Last Chance Casino Party';
 
 $SHOW_NAMES['Saturday_Evening'] = 'The Main Event (Competition)';
 
-$SHOW_NAMES['Saturday_After Midnight'] = ' The Main Event (Not in Competition)';
+$SHOW_NAMES['Saturday_After Midnight'] = 'The Main Event (Not in Competition)';
 
-$SHOW_NAMES['Sunday_Evening'] = ' The Newcomer\'s Showcase';
+$SHOW_NAMES['Sunday_Evening'] = 'The Newcomer\'s Showcase';
 
 $SHOW_NAMES['Sunday_After Midnight'] = 'The Sideshow Ball';
 
