@@ -498,7 +498,13 @@ function display_links_navbar() {
 
 function display_navbar() {
   echo "<div class=navbar>\n";
-  
+  echo "<p><a href=\"http://www.BrownPaperTickets.com\">";
+  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/02/BPT_burlesque_banner.jpg\" alt=\"BrownPaperTickets.com: Ticket Your Tease!\" width=\"160\" /></a>";
+  echo "<a href=\"http://houseofgorejess.com/\">";
+  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/02/Gorejess-Web-Banner.jpg\" alt=\"House of Gorejess\" width=\"160\" /></a>";
+  echo "<a href=\"http://jacquelinehydeemporium.com\">";
+  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/03/Jac-Hyde-Banner-2.jpg\" alt=\"Jacqueline Hyde Emporium\" width=\"160\" /></a></p>";
+
   display_account_control_navbar();
   display_main_navbar();
   if (NAV_SHOW_LINKS)
