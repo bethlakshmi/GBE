@@ -4673,14 +4673,14 @@ function display_gm_list ()
 
   if (0 != mysql_num_rows ($result))
   {
-    $role = "";
+    $text = "Submitted Bid";
     if ($event_row->GameType == "Panel")
-      $role = "for Role";
+      $text = "Current Role";
     echo "<TABLE BORDER=1 CELLPADDING=5>\n";
     echo "  <TR VALIGN=BOTTOM>\n";
     echo "    <TH>#</TH>\n";
     echo "    <TH>Name</TH>\n";
-    echo "    <TH>Submitted Bid $role</TH>\n";
+    echo "    <TH>$text</TH>\n";
     echo "    <TH>Display with Event</TH>\n";
     echo "    <TH>Display EMail Address</TH>\n";
     echo "    <TH>Receive EMail From Con</TH>\n";
