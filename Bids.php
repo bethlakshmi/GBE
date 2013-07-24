@@ -350,11 +350,6 @@ function show_bid ()
   if ($gametype == 'Class')
     show_players ($bid_row, 1);
 
-  //show_text ('Genre', $bid_row['Genre']);
-  //show_text ('Ongoing Campaign', $bid_row['OngoingCampaign']);
-/*  show_text ('LARPA Small Game<br>Contest Entry',
-	     $bid_row['IsSmallGameContestEntry']); */
-  //show_text ('Basic Premise', $bid_row['Premise']);
   show_text ('Run Before', $bid_row['RunBefore']);
   if ($gametype=='Class')
   {
@@ -380,6 +375,11 @@ function show_bid ()
     // show_text ('Can Play Concurrently', $bid_row['CanPlayConcurrently']);
     show_text ('Other Constraints', $bid_row['SchedulingConstraints']);
     show_text ('Other Details', $bid_row['OtherDetails']);
+    
+    
+  bid_involve($UserId, $bid_row[BidId]);
+
+
   }
   
   show_section ('Advertising Information');

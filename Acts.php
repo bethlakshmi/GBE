@@ -376,7 +376,9 @@ function show_bid ()
   show_section("Participation");
   foreach ($PARTICIPATION as $item)
     show_text ($item, $BidChoice[$item]);
-
+    
+  bid_involve($UserId, $bid_row[BidId]);
+  
   show_section ('Advertising Information');
 
   show_text ('Short Sentence', $bid_row['ShortSentence']);

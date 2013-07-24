@@ -100,6 +100,58 @@ function show_bid_faq()
   echo "</td></tr></table>\n";
 }
 
+function bid_involve($UserId, $BidId)
+{
+  if (0 != $UserId)
+  {
+      show_text ('Other Submissions', '');
+      
+      $sql = 'SELECT * FROM Bids WHERE UserId=' . $UserId;
+      $sql .= ' AND BidId !='.$BidId.' AND GameType != \'Panel\'';
+      
+      $result = mysql_query ($sql);
+      if (! $result)
+        return display_mysql_error ("Query for UserId $UserId failed");
 
+      if (0 == mysql_num_rows ($result))
+        return display_error ("Failed to find user $UserId");
+
+      while ($user_bid = mysql_fetch_object ($result))
+	  {
+ 	      show_text (' - ', $user_bid->GameType.' - '.$user_bid->Title.' - '.$user_bid->Status);
+	  }      
+	  
+      show_text ('Panel Volunteering', '');
+      $sql = 'SELECT Bids.Title, PanelBids.Interest FROM Bids, PanelBids ';
+      $sql .= 'WHERE PanelBids.UserId=' . $UserId.' AND Bids.BidId = PanelBids.BidId';
+      $result = mysql_query ($sql);
+      if (! $result)
+        return display_mysql_error ("Query for UserId $UserId failed");
+
+      if (0 == mysql_num_rows ($result))
+        return display_error ("Failed to find user $UserId");
+
+      while ($user_bid = mysql_fetch_object ($result))
+	  {
+ 	      show_text (' - ', $user_bid->Title.' - '.$user_bid->Interest);
+	  }      
+
+      show_text ('Other Volunteering', '');
+      $sql = 'SELECT Events.Title, Events.Hours, Runs.Day, Runs.StartHour FROM Signup, Runs, Events ';
+      $sql .= 'WHERE Signup.UserId=' . $UserId.' AND Runs.RunId = Signup.RunId';
+      $sql .= ' AND Signup.State = \'Withdrawn\' AND Runs.EventId = Events.EventId';
+      $result = mysql_query ($sql);
+      if (! $result)
+        return display_mysql_error ("Query for UserId $UserId failed");
+
+      if (0 == mysql_num_rows ($result))
+        return display_error ("Failed to find user $UserId");
+
+      while ($user_bid = mysql_fetch_object ($result))
+	  {
+ 	      show_text (' - ', $user_bid->Title.' - '.$user_bid->Hours.' hours - '.$user_bid->Day." ".$user_bid->StartHour);
+	  }      
+  }// there is a user
+}
 
 ?>
