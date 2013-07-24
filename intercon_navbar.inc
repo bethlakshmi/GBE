@@ -399,10 +399,10 @@ function build_participation_subnavbar() {
   
   if ( accepting_bids() )
   {
-    $aboutSection->push(NavBarItem::newAction("Submit an Act", "biddingAGame.php", BAG_ACT_PAGE));
-    $aboutSection->push(NavBarItem::newAction("Submit a Class", "biddingAGame.php", BAG_BID_PAGE));
+    $aboutSection->push(NavBarItem::newAction("Submit an Act", "Acts.php", BID_GAME));
+    $aboutSection->push(NavBarItem::newAction("Submit a Class", "Bids.php", BID_GAME));
     $aboutSection->push(NavBarItem::newAction("Sit on a Panel", "Panels.php"));
-    $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "biddingAGame.php", BAG_PANEL_PAGE));
+    $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "Bids.php", BID_GAME."&GameType=Panel"));
   }
   $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));

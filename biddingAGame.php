@@ -1,5 +1,5 @@
 <?php
-include ("intercon_db.inc");
+include ("sharedBidding.php");
 
 // Connect to the database
 
@@ -52,85 +52,29 @@ switch ($action)
 
 html_end ();
 
-function bidfaq_link ($hash, $text)
-{
-  printf ("<p><a href=\"Static.php?page=bidFAQ#%s\">%s</a></p>\n",
-	  $hash,
-	  $text);
-}
 
-function static_link ($page, $text)
-{
-  echo "<p><a href=\"Static.php?page=$page\">$text</a></p>\n"; 
-}
+
 
 function display_bid_intro ($area)
 {
-  $sql = 'SELECT * FROM BidInfo';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Error querying Bid Info', $sql);
-
-  $row = mysql_fetch_object ($result);
-  if (! $row)
-    return display_error ('Failed to find Bid Info.  The Bid Chair needs to set it.');
-
   echo "<table cellspacing=\"2\" cellPadding=\"2\" width=\"100%\" border=\"0\">\n";
   echo "  <tr>\n";
   echo "    <td width=\"60%\" valign=\"top\">\n";
   echo "      <h3>Applying to ".CON_NAME." ".$area."</h3>\n";
-  echo CON_SHORT_NAME."...";
+
   if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
 	include(TEXT_DIR.'/'.$area.'bidding1.html');	
-  echo "      <h3><a name=\"deadlines\">Bid Deadlines</a></h3>\n";
+  
   if (user_has_priv (PRIV_SCHEDULING))
   {
     printf ("<p>[<a href=\"biddingAGame.php?action=%d\">Edit Bid Deadline Info</a>]</p>\n",
 	    BAG_SHOW_FORM);
   }
 
-  echo "$row->BidInfo\n";
+  show_bid_schedule();
 
-  if (('' != $row->FirstBid) && ('' != $row->FirstDecision))
-  {
-    echo "<div align=\"center\">\n";
-    echo "<table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#4B067A\">\n";
-    echo "<tr bgcolor=\"#cc99ff\" align=\"center\">\n";
-    echo "<th>Round</th>\n";
-    echo "<th>Bid Deadline</th>\n";
-    echo "<th>Decision Date</th></tr>\n";
-    echo "<tr bgColor=\"white\" vAlign=\"bottom\" align=\"center\">\n";
-    echo "<th>First</th>\n";
-    echo "<td>&nbsp;$row->FirstBid&nbsp;</td>\n";
-    echo "<td>&nbsp;$row->FirstDecision&nbsp;</td>\n";
-    echo "</tr>\n";
-    if (('' != $row->SecondBid) && ('' != $row->SecondDecision))
-    {
-      echo "<tr bgColor=\"white\" valign=\"bottom\" align=\"center\">\n";
-      echo "<th>Second</th>\n";
-      echo "<td>&nbsp;$row->SecondBid&nbsp;</td>\n";
-      echo "<td>&nbsp;$row->SecondDecision&nbsp;</td>\n";
-      echo "</tr>\n";
-      if (('' != $row->ThirdBid) && ('' != $row->ThirdDecision))
-      {
-	echo "<tr bgColor=\"white\" valign=\"bottom\" align=\"center\">\n";
-	echo "<th>Third</th>\n";
-	echo "<td>&nbsp;$row->ThirdBid&nbsp;</td>\n";
-	echo "<td>&nbsp;$row->ThirdDecision&nbsp;</td>\n";
-	echo "</tr>\n";
-      }
-    }
-    echo "</table>\n";
-    echo "</div>\n";
-    if (('' != $row->ThirdBid) && ('' != $row->ThirdDecision))
-    {
-      echo "<p>\n";
-      echo CON_NAME . " actively solicits bids in the months leading up to the\n";
-      echo "Expo. As the attendance grows, based on\n";
-      echo "registration numbers, we may need a additional round of bids to fill\n";
-      echo "in the slate of games already accepted for the convention.\n";
-    }
-  }
+ if (file_exists(TEXT_DIR.'/'.$area.'bidding2.html'))
+	include(TEXT_DIR.'/'.$area.'bidding2.html');	
 
   echo "<p>\n";
   if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
@@ -178,28 +122,12 @@ function display_bid_intro ($area)
   echo "</td>\n";
 
   echo "<td valign=\"top\" width=\"40%\">\n";
-  echo "<table width=\"100%\" cellpadding=\"2\" cellspacing=\"2\" bgcolor=\"#4B067A\">\n";
-  echo "<tr>\n";
-  echo "<td bgcolor=\"white\">\n";
-  echo "<h3>Questions?</h3>\n";
-  bidfaq_link ('gamekind', 'What kind of events are you looking for?');
-  bidfaq_link ('audience', "What kind of attendees come to ".CON_NAME."?");
-  echo "<p><A href=\"#deadlines\">When do I have to get my bid in?</a></p>\n";
-  static_link ('bidFollowup', 'What happens when I submit my bid?');
-  bidfaq_link ('', 'Other Frequently Asked Questions About Bidding');
+  show_bid_faq();
 
-  echo "<h3>What do I have to know if I become a teacher or panelist?</h3>\n";
-  static_link ('GMPolicies', 'GBE Policies and Services');
-  echo "</td></tr></table>\n";
-
-  echo "<table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#4B067A\">\n";
-  echo "<tr bgcolor=\"white\">\n";
-  echo "<td>\n";
-    if (file_exists(TEXT_DIR.'/bidearly.html'))
-	include(TEXT_DIR.'/bidearly.html');	
-  echo "</td></tr></table>\n";
   echo "</td></tr></table>\n";
 }
+
+
 
 function show_bidinfo_form()
 {

@@ -1,5 +1,5 @@
 <?php
-include ("intercon_db.inc");
+include ("sharedBidding.php");
 //include ("display_common.php");
 $submitFilter = ' AND (Bids.GameType = \'Panel\' OR Bids.GameType = \'Class\')';
 
@@ -359,10 +359,10 @@ function show_bid ()
   if ($gametype=='Class')
   {
     show_text ('Class Type', $bid_row['GameSystem']);
-    //show_text ('Space Requirements', $bid_row['SpaceRequirements']);
 
     show_section ('Restrictions');
-  
+    
+    show_text ('Movement Floor', $bid_row['SpaceRequirements']);
     show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
    }
    
@@ -371,7 +371,6 @@ function show_bid ()
    // create schedule preference table
    display_schedule_pref ($BidId, $gametype=='Panel');  
 
-    echo "      </TABLE>\n";
     echo "    </TD>\n";
     echo "  </tr>\n";
     
@@ -406,7 +405,7 @@ function display_choose_form ()
 {
   // Make sure that the user is logged in
   global $BID_TYPES;
-
+  
   if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
     return display_error ('You must login before submitting a bid');
   
@@ -443,6 +442,38 @@ function display_bid_form ($first_try)
   $EditGameInfo = 1;
   
   global $BID_TYPES;
+  $MOVEMENT_OPTIONS=array("Don't Care","Carpet","Dance Floor", "Both");
+
+  if (array_key_exists ('GameType', $_REQUEST))
+      $gametype=$_REQUEST['GameType'];
+  else
+      $gametype = $BID_TYPES[0];
+
+  echo "<h2>2014 {$gametype} Application</h2>";
+  echo "<table><tr><td valign=\"top\">";
+  echo "<big>Thank you for your interest in contributing to " . CON_NAME ;
+  echo ".  </big><br /><br />";
+  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
+  echo "<br /><br />";
+
+  if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
+	include(TEXT_DIR.'/'.$area.'bidding1.html');	
+
+  if (file_exists(TEXT_DIR.'/'.$area.'bidding2.html'))
+	include(TEXT_DIR.'/'.$area.'bidding2.html');	
+  
+  if (file_exists(TEXT_DIR.'/'.$gametype.'text.html'))
+	include(TEXT_DIR.'/'.$gametype.'text.html');	
+
+  
+  echo "</td><td width=30%>";
+
+  show_bid_schedule();
+
+  show_bid_faq();
+
+  echo "</td></tr></table>";
+  
 
   // Make sure that the user is logged in
 
@@ -455,42 +486,7 @@ function display_bid_form ($first_try)
     $BidId = 0;
   else
     $BidId = intval (trim ($_REQUEST['BidId']));
-  
-  if (array_key_exists ('GameType', $_REQUEST))
-      $gametype=$_REQUEST['GameType'];
-  else
-      $gametype = $BID_TYPES[0];
 
-  echo "<h2>2014 {$gametype} Application</h2>";
-  echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
-  echo ".  </big><br /><br />";
-  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
-  echo "<br /><br />";
-
-  if ($gametype == 'Class') 
-  {
-	  echo "This form is for submitting <i>Lectures</i> and <i>Workshops</i>.  ";
-	  echo "If you want to sit on a <i>Panel</i>, please ";
-	  echo "<a href=\"Bids.php?GameType=Panel&Seq=9&action=50\">click here</a>.";
-	  echo "<br /><br />";
-	  echo "A <i>Lecture</i> is a class taught by one or two people in which the ";
-	  echo "information flows primarily from the instructor(s) to the students.";  
-	  echo "They can be intellectual or physical.  An example of a lecture might be ";
-	  echo "\"The History of Burlesque\", \"Taxes for Performers\", \"Chair Dance Basics\",";
-	  echo " or \"Designing a Costume\".<br /><br />";
-	  echo "A <i>Workshop</i> is a hands-on, practical, class, usually two-hours long.";
-	  echo "Participants in workshops learn a skill or craft that is taught through ";
-	  echo "doing.  Workshops often have a materials fee associated with them.  ";
-	  echo "Examples of a workshop might be \"Making a Tiny Little Top Hat\" or ";
-	  echo "\"How to Decorate a Bra\".<br />";
-	  echo "<br />";
-	  echo "<hr /><br />";
-//	  echo "This form will allow you to submit up to five (5) class suggestions.  ";
-//	  echo "If you want to submit more than five, please contact the teacher ";
-//	  echo "coordinator, ";
-//	  echo "<a href=" . EMAIL_BID_CHAIR . ">" . NAME_BID_CHAIR . "</a>.";
-//	  echo "<br /><br />";
-  }
 
   // Output the note about comps, so nobody can say that they didn't
   // see it
@@ -647,7 +643,7 @@ function display_bid_form ($first_try)
     $eventlengthtext .= ' Length (hours):';
     if ($gametype == 'Class')
     {
-	$HOURS = array('1','2');
+	    $HOURS = array('1','2');
         $choice = $_POST['Hours'];
         echo "  <tr>\n";
         echo "    <td align=\"right\">$eventlengthtext </td>\n";
@@ -778,18 +774,7 @@ function display_bid_form ($first_try)
   form_yn ('Is this game entered in the LARPA Small Game Contest?',
 	   'IsSmallGameContestEntry');
 */
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-      $text = "<b>GMs for your game.</b>  Note that the GMs listed here are only for\n";
-      $text .= "the purpose of evaluating your bid.  If your bid is accepted,\n";
-      $text .= "you'll be able to select GMs from the users registered for\n";
-      $text .= CON_NAME . ".\n";
-      /*$text .= "Each accepted bid is allowed two comp'd attendees\n";
-      $text .= "for the con.  You will be responsible for determing which of\n";
-      $text .= "your GMs will be comp'd.\n";*/
-      form_textarea ($text, 'GMs', 2);
-  }
-  else if ($gametype == 'Class' )
+  if ($gametype == 'Class' )
   {
       $text = "<b>Teachers & Assistant Teachers.</b>  This is a preliminary list.\n";
       $text .= "You'll be asked to confirm fellow teachers if the class is confirmed.\n";
@@ -807,12 +792,6 @@ function display_bid_form ($first_try)
       $text .= "recommendations.\n";
       form_textarea ($text, 'GMs', 2);
   }
-  else if ($gametype == 'Performance')
-  {
-      $text = "<b>Fellow performers</b>  Please list other people involved/required for this\n";
-      $text .= "act.\n";
-      form_textarea ($text, 'GMs', 2);
-  }
   else
   {
       $text = "<b>Leaders & Assistants.</b>  Note that the people listed here are only for\n";
@@ -822,33 +801,13 @@ function display_bid_form ($first_try)
 
 
 
-  if ($gametype == "LARP")
-  {
-      form_textarea ('Basic Premise', 'Premise', 3, TRUE, TRUE);
-  }
-  else
-  {
-      form_hidden_value ('Premise', 'X');
-  }
+  form_hidden_value ('Premise', 'X');
 
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-      $text = CON_NAME ." is looking for games that are new and games that\n";
-      $text .= "have run before, either at a convention, or elsewhere.\n";
-      $text .= "If this game has run before, where was that";
-      form_text_one_col (80, $text, 'RunBefore', 128);
-  }
-  else if ($gametype == 'Class' || $gametype == 'Panel')
+ if ($gametype == 'Class' || $gametype == 'Panel')
   {
       $text = CON_NAME ." is looking for convention content that is new and that\n";
       $text .= "have successfully presented before, either at a convention, or elsewhere.\n";
       $text .= "If this content has run before, where & when was that";
-      form_text_one_col (80, $text, 'RunBefore', 128);
-  }
-  else if ($gametype == 'Performance' )
-  {
-      $text = "Has this act been performed at other major conventions?  If so - \n";
-      $text .= "where and when\n";
       form_text_one_col (80, $text, 'RunBefore', 128);
   }
   else
@@ -856,35 +815,14 @@ function display_bid_form ($first_try)
       form_hidden_value ('RunBefore', '');
   }
   
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-      form_text (64, 'Game System', 'GameSystem', 128);
-  }
-  else if ($gametype == 'Board Game')
-  {
-      form_text (64, 'Game Name', 'GameSystem', 128);
-  }
-  else if ($gametype != 'Class')
+ if ($gametype != 'Class')
   {
       form_hidden_value ('GameSystem', '');
   }
   
-  if ($gametype == 'LARP')
-  {
-      form_combat ('CombatResolution', 'How combat will be resolved');
-
-  }
-  else
-  {
-      form_hidden_value ('CombatResolution', 'NoCombat');
-  }
+  form_hidden_value ('CombatResolution', 'NoCombat');
   
-  if ($gametype == 'LARP')
-  {
-      form_textarea ('What other LARPs have your written or run?  Where and when were they run?',
-                     'OtherGames', 5);
-  }
-  else if ($gametype == 'Class')
+ if ($gametype == 'Class')
   {
        form_textarea ('What other classes have you taught?  What is your basis of expertise in this area?',
                      'OtherGames', 5);
@@ -902,53 +840,26 @@ function display_bid_form ($first_try)
   if ($gametype != 'Panel')
       form_section ('Restrictions');
 
-/*  echo "  <TR>\n";
-  echo "    <TD COLSPAN=2>\n";
-  echo "     ".CON_NAME." appeals to a diverse group of participants of all \n";
-  echo "     ethnicities, belief systems, sexual preferences, physical\n";
-  echo "     capabilities, experience, etc.\n";
-  echo "     In order for the expo staff to balance these potentially\n";
-  echo "     opposing requirements, please answer the following questions.\n";
-  echo "     <p>\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-
-  $text = "Are there any components of your {$thingstring} that might offend or upset\n";
-  $text .= "some group of attendees?  For example, adult themes, potentially\n";
-  $text .= "offensive story arcs, etc.  If so, please explain.";
-  form_textarea ($text, 'Offensive', 5); */
-
-  if ($gametype == 'LARP' || $gametype == 'Other' || $gametype == 'Class')
+  if ($gametype == 'Class')
   {
+  	  $floorchoice = $_POST['SpaceRequirements'];
+      echo "  <tr>\n";
+      echo "    <td align=\"right\">Movement Class </br>Floor Preference:</td>\n";
+      echo '    <td align="left">';
+      form_single_select("","SpaceRequirements",$MOVEMENT_OPTIONS,$floorchoice);
+      echo "    </td>\n";
+      echo "  </tr>\n";
+  
       $text = "Are there any physical restrictions imposed by your {$thingstring}?  For\n";
       $text .= "example, level of dance experience, musical knowledge, computer skills, etc. \n";
       $text .= "explain.";
       form_textarea ($text, 'PhysicalRestrictions', 5);
   }
-  else if ($gametype == 'Performance')
-  {
-      $text = "What does your performance require from the stage?  Are there minimum space limitations?\n";
-      $text .= "Is a table or chair required?  Please note, the expo cannot meet an unlimited number \n";
-      $text .= "of prop requirements - if you require an unusual item, you will need to make special\n";
-      $text .= "arrangements.\n";
-      form_textarea ($text, 'PhysicalRestrictions', 5);
-
-  }
   else
       form_hidden_value ('PhysicalRestrictions', '');
   
-/*  $text = "Are there any components of your {$thingstring} that might be illegal for\n";
-  $text .= "attendees under the age of 18?  For example, props or items that\n";
-  $text .= "are illegal for a minor to possess, alchol, etc.  If so, please\n";
-  $text .= "explain.";
-  form_textarea ($text, 'AgeRestrictions', 5); */
- 
-  
-/* if (ALLOW_EVENT_FEES )
-    form_yn ("&nbsp;<BR>Do you wish to charge a fee for your {$thingstring}?  This applies only to workshops.  If so, con will be in touch to discuss this.",
-           'Fee');
- else*/
-    form_hidden_value ('Fee', 'N');
+
+  form_hidden_value ('Fee', 'N');
 
   // We don't offer a choice of scheduling for performances - they get what we give them
   // or panels, which must fit the presenter's schedules.
@@ -1028,8 +939,6 @@ function display_bid_form ($first_try)
   
 
 
-
-/*  form_textarea ('Space Requirements', 'SpaceRequirements', 2); */
   
   form_yn ("Are you willing to hold this {$thingstring} more than once at this convention?",
 	   'MultipleRuns');

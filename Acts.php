@@ -1,5 +1,5 @@
 <?php
-include ("intercon_db.inc");
+include ("sharedBidding.php");
 include ("files.php");
 //include ("display_common.php");
 
@@ -453,6 +453,32 @@ function display_bid_form ($first_try)
   foreach ($PARTICIPATION as $part) 
       $BidChoice[$part] = $PARTICIPATE_SET[2];
 
+
+  if (array_key_exists ('GameType', $_REQUEST))
+      $gametype=$_REQUEST['GameType'];
+  else
+      $gametype = 'Performance';
+
+  echo "<h2>2014 {$gametype} Application</h2>";
+  echo "<table><tr><td valign=\"top\">";
+  echo "<big>Thank you for your interest in contributing to " . CON_NAME ;
+  echo ".  </big><br /><br />";
+  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
+  echo "<br /><br />";
+
+  if (file_exists(TEXT_DIR.'/actinstruct.html'))
+	include(TEXT_DIR.'/actinstruct.html');	
+  
+  
+  echo "</td><td width=30% valign=top>";
+
+  show_bid_schedule();
+
+  //show_bid_faq();
+
+  echo "</td></tr></table>";
+  
+
   // Make sure that the user is logged in
 
   if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
@@ -465,20 +491,7 @@ function display_bid_form ($first_try)
   else
     $BidId = intval (trim ($_REQUEST['BidId']));
   
-  if (array_key_exists ('GameType', $_REQUEST))
-      $gametype=$_REQUEST['GameType'];
-  else
-      $gametype = 'Performance';
 
-  echo "<h2>2014 {$gametype} Application</h2>";
-  echo "<div><big>Thank you for your interest in presenting at " . CON_NAME ;
-  echo ".  </big><br /><br />";
-  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
-  echo "<br /><br />";
-
-
-  if (file_exists(TEXT_DIR.'/actinstruct.html'))
-	include(TEXT_DIR.'/actinstruct.html');	
 
 
   // Output the note about comps, so nobody can say that they didn't

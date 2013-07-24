@@ -282,7 +282,7 @@ function process_bid_panel_form ()
   // Make sure that the user is logged in
 
   if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
-    return display_error ('You must login before submitting a class, panel or performance.');
+    return display_error ('You must <a href="index.php">login</a> or <a href="/index.php?action=5">register</a> before submitting a panel.');
 
 
   // Always hopeful...
