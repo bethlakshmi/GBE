@@ -300,6 +300,12 @@ define (DEAD_DOG_NEW_USER, 255);
 define (DEAD_DOG_CREATE_USER, 256);
 define (DEAD_DOG_PAYPAL_REDIRECT, 257);
 
+// Action Values for TicketAdmin.hph
+
+define (TICKETITEM_LIST, 300);
+define (TICKETITEM_EDIT, 301);
+define (TICKETITEM_EDIT_PROCESS, 302);
+
 // List types
 
 define (LIST_UNDEFINED, 0);

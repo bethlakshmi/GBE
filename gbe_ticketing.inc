@@ -72,6 +72,29 @@ class TicketItem
 		$this->Userstamp = (int)$row->Userstamp;
 	}
 	
+	/* function convert_from_array
+	 * 
+	 * Used override the object contents with the given array, possibly from a POST object.
+	 *
+	 * $array: an array with entries for each of the properties of the TickeItem
+	 * Returns: true if successful.
+	 */
+	function convert_from_array($array)
+	{		
+		$this->ItemId = (int)$array['ItemId'];
+		$this->Title = (string)$array['Title'];
+		$this->Description = (string)$array['Description'];
+		if (array_key_exists('Active', $array))
+			$this->Active = (bool)$array['Active'];	
+		else
+			$this->Active = false;
+		$this->Cost = (float)$array['Cost'];
+		
+		return true;
+	}
+	
+	/* we need a convert-from-array here for _POST stuff */
+
 	/* function save_to_db
 	 * 
 	 * Used to save the current status of the ticket item to the database.	 
@@ -82,12 +105,14 @@ class TicketItem
 	{	
 		// Sanitize database input.  Note, the build_sql_string uses mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->ItemId))
+		if (!is_integer($this->ItemId) || ($this->ItemId <= 0))
 			return display_error("Ticket Item ID is not in a valid format.");
 		if (!is_bool($this->Active))
-			return display_error("Ticket Item active state is not in a valid format");	
-		if (!is_double($this->Cost))
-			return display_error("Ticket Item cost is not in a valid format");	
+			return display_error("Ticket Item active state is not in a valid format.");	
+		if ((!is_double($this->Cost)) || ($this->Cost < 0))
+			return display_error("Ticket Item purchase price is not in a valid format.");	
+		if (strlen($this->Title) <= 0)
+			return display_error("Required Ticket Item field \"Title\" is missing.");	
 		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
 			return display_error("Cannot save TicketItem to DB:  not logged in.");	
 				
@@ -126,8 +151,6 @@ class TicketItem
 			
 		if (mysql_num_rows($result) == 1)
 			$sql .= sprintf(" where ItemId = '%d'", $this->ItemId);
-			
-		echo $sql;
 		
 		$result = mysql_query($sql);
 		if (!$result)
@@ -455,6 +478,35 @@ class EventTicketLink
 			return display_mysql_error ('Cannot execute query', $sql);
 	}
 }
+
+/* function get_ticketitem_list
+ * 
+ * Used to obtain an array of the current ticket items
+ *
+ * $TicketItems - an array of TicketItem objects in the DB.
+ * Returns: nothing.
+ */
+function get_ticketitem_list(&$TicketItems)
+{
+	$sql = sprintf("select * from TicketItems");
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are not TicketItems to list at this time.  Please add.");
+	
+	$TicketItems = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$item = new TicketItem();
+		$item->convert_from_sql_row($row);
+		array_push($TicketItems, $item);
+	} 
+}
+
 
 ?>
 
