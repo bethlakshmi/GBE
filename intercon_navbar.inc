@@ -238,12 +238,12 @@ function build_larps_subnavbar() {
     if (user_has_priv(PRIV_CON_COM))
       $larpSection->push(NavBarItem::newAction("Schedule with Counts", "Schedule.php", SCHEDULE_WITH_COUNTS));            
   }
-  $larpSection->push(NavBarItem::newAction("Classes", "Schedule.php", LIST_GAMES,NULL,'Class'));
-  $larpSection->push(NavBarItem::newAction("Panels", "Schedule.php", LIST_GAMES,NULL,'Panel'));
+  $larpSection->push(NavBarItem::newAction("Master Classes", "Schedule.php", LIST_GAMES,NULL,'MasterClass'));
+  $larpSection->push(NavBarItem::newAction("The Conference", "Schedule.php", LIST_GAMES,NULL,'Conference'));
+  $larpSection->push(NavBarItem::newAction("Drop-In Classes", "Schedule.php", LIST_GAMES,NULL,'Drop-In'));
   $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
+  $larpSection->push(NavBarItem::newAction("Shopping", "Schedule.php", LIST_GAMES,NULL,'Vendors'));
   $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special'));
-  if (IRONGM_ENABLED)
-    $larpSection->push(NavBarItem::newExternal('Iron GM Contest', 'http://irongm.rachl.in'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
     $larpSection->push(NavBarItem::newAction('Player Signups', 'UserSignupScan.php'));
     $larpSection->push(NavBarItem::newAction('Last 100 Signups', 'SignupSpy.php'));    
@@ -380,15 +380,12 @@ function build_schedule_subnavbar() {
 
 function build_about_subnavbar() {
   $aboutSection = new SubNavBar("About <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
-  $aboutSection->push(NavBarItem::newStatic("Frequently Asked Questions", "faq"));
-  $aboutSection->push(NavBarItem::newStatic("Convention Rules", "ConRules"));
+  $aboutSection->push(NavBarItem::newStatic("Welcome", "welcome"));
   if (NAV_SHOW_COST)
     $aboutSection->push(NavBarItem::newAction("What Does It Cost?", "cost.php"));
   $aboutSection->push(NavBarItem::newAction("Contacts", "Contacts.php"));
   $aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
   $aboutSection->push(NavBarItem::newAction("Who's Who", "index.php", WHO_IS_WHO));
-  //$aboutSection->push(NavBarItem::newStatic("Volunteering", "volunteering"));
-  //$aboutSection->push(NavBarItem::newAction("ConCom Schedule", "ConComSchedule.php"));
   if (NAV_SHOW_FLYER)
     $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).' Flyer', 'InterconFlyer.pdf'));
   
@@ -407,7 +404,8 @@ function build_participation_subnavbar() {
   $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", LIST_GAMES,NULL,'Ops'));
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
-  $aboutSection->push(NavBarItem::newExternal("Sell my Stuff", "https://burlesqueexpo.wufoo.com/forms/2013-vendor-application-form/"));
+  $aboutSection->push(NavBarItem::newStatic("Sell my Stuff", "VendorPackage"));
+  $aboutSection->push(NavBarItem::newStatic("Advertise", "AdPackage"));
   $aboutSection->push(NavBarItem::newExternal("Reserve a Hotel Room", "https://resweb.passkey.com/go/e7faff68"));
   $aboutSection->push(NavBarItem::newStatic("Buy Tickets", "comingsoon"));
   
@@ -497,14 +495,10 @@ function display_links_navbar() {
 }
 
 function display_navbar() {
-  echo "<div class=navbar>\n";
-  echo "<p><a href=\"http://www.BrownPaperTickets.com\">";
-  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/02/BPT_burlesque_banner.jpg\" alt=\"BrownPaperTickets.com: Ticket Your Tease!\" width=\"160\" /></a>";
-  echo "<a href=\"http://houseofgorejess.com/\">";
-  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/02/Gorejess-Web-Banner.jpg\" alt=\"House of Gorejess\" width=\"160\" /></a>";
-  echo "<a href=\"http://jacquelinehydeemporium.com\">";
-  echo "<img src=\"http://www.firstladyofburlesque.com/wordpress/wp-content/uploads/2013/03/Jac-Hyde-Banner-2.jpg\" alt=\"Jacqueline Hyde Emporium\" width=\"160\" /></a></p>";
 
+  echo "<div class=navbar>\n";
+  if (file_exists(TEXT_DIR.'/TopOfNav.html'))
+	include(TEXT_DIR.'/TopOfNav.html');	
   display_account_control_navbar();
   display_main_navbar();
   if (NAV_SHOW_LINKS)

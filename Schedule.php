@@ -3137,19 +3137,26 @@ function display_game_form ()
 
 function list_games_alphabetically ($GameType="")
 {
+  if (file_exists(TEXT_DIR.'/'.$GameType.'intro.html'))
+	include(TEXT_DIR.'/'.$GameType.'intro.html');	
+  
   // Always shill for games!
-  if (accepting_bids())
+  if (accepting_bids() && ($GameType == "Conference" || $GameType == "Show"))
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
 	include(TEXT_DIR.'/acceptingbids.html');	
   }
+  
+  $whereclause ="";
+  if ($GameType != "")
+    $whereclause = " WHERE GameType='".$GameType."'";
+  if ( $GameType == "Conference" )
+    $whereclause = " WHERE GameType='Panel' OR GameType='Class'";
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
   $sql .= ' LENGTH(Description) AS DescLen';
-  $sql .= ' FROM Events';
-  if ($GameType != "")
-    $sql .= ' WHERE GameType=\''.$GameType.'\'';
+  $sql .= ' FROM Events'.$whereclause;
   $sql .= ' ORDER BY Title';
 
   $result = mysql_query ($sql);
@@ -3173,13 +3180,16 @@ function list_games_alphabetically ($GameType="")
 	continue;
 
       // If there's no long description, don't offer a link
-
+	 $title = $row->Title;
+     if ($row->GameType == "Panel")
+	   $title = "PANEL:  ".$row->Title;
+	   
       echo "<p>\n";
       if ($row->DescLen > 0 && SELECTEVENTS_ENABLED)
 	printf ("<a href=\"Schedule.php?action=%d&EventId=%d\">%s</a> \n",
 		SCHEDULE_SHOW_GAME,
 		$row->EventId,
-		$row->Title);
+		$title);
       else
 	echo "<b>$row->Title</b> \n";
 
@@ -3188,7 +3198,7 @@ function list_games_alphabetically ($GameType="")
 
 
 	// get the teachers or panelists 
-	if ($GameType == "Class")
+	if ($GameType == "Conference" )
 	{	  
 	  $sql = 'SELECT DISTINCT Users.DisplayName';
 	  $sql .= ' FROM GMs, Users';
@@ -3218,12 +3228,6 @@ function list_games_alphabetically ($GameType="")
 
       echo "</p>\n";
 
-      if ('Y' == $row->IsSmallGameContestEntry)
-      {
-	echo "<p>\n";
-	echo "<img src=\"LittleLARPA.gif\" width=\"61\" height=\"19\" align=\"left\">\n";
-	echo "This is a LARPA Small Game Contest entry.</p>\n";
-      }
     }
   }
 
