@@ -360,8 +360,6 @@ class EventTicketLink
 	public $EventID;
 	public $TicketItemID;
 	public $Description;
-	public $Active;
-	public $Datetamp;
 	public $Userstamp;
 
 	/* function load_from_index
@@ -401,8 +399,6 @@ class EventTicketLink
 		$this->ETIndex = (int)$row->ETIndex;
 		$this->EventID = (int)$row->EventID;
 		$this->TicketItemID = (int)$row->TicketItemID;
-		$this->Description = (string)$row->Description;	
-		$this->Active = (bool)$row->Active;
 		$this->Datestamp = (string)$row->Datestamp;
 		$this->Userstamp = (int)$row->Userstamp;
 	}
@@ -422,8 +418,6 @@ class EventTicketLink
 			return display_error("Transaction Event ID is not in a valid format.");
 		if (!is_integer($this->TicketItemID))
 			return display_error("Transaction Item ID is not in a valid format.");				
-		if (!is_bool($this->Active))
-			return display_error("Transaction active state is not in a valid format");	
 		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
 			return display_error("Cannot save TicketItem to DB:  not logged in.");	
 			
@@ -445,8 +439,6 @@ class EventTicketLink
 		
 		$sql .= build_sql_string('EventID', $this->EventID, false);
 		$sql .= build_sql_string('TicketItemID', $this->TicketItemID);
-		$sql .= build_sql_string('Description', $this->Description);
-		$sql .= build_sql_string('Active', $this->Active);
 		$sql .= build_sql_string('Datestamp', $this->Datestamp);
 		$sql .= build_sql_string('Userstamp', $this->Userstamp);
 
@@ -493,9 +485,9 @@ function get_ticketitem_list(&$TicketItems)
 	$result = mysql_query($sql);
 		
 	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
+		return display_mysql_error('Cannot execute query', $sql);
 	if (0 == mysql_num_rows($result))
-		return display_error("There are not TicketItems to list at this time.  Please add.");
+		return display_error("There are no TicketItems to list at this time.  Please add.");
 	
 	$TicketItems = array();
 	
@@ -507,35 +499,53 @@ function get_ticketitem_list(&$TicketItems)
 	} 
 }
 
-/* function get_ticket_event_join_list
+/* function get_event_list
  * 
- * Used to obtain a list of events, and if or if not each known event
- * can be paid by the given ticket item. 
+ * Used to obtain an array of the current ticket items
  *
- * $EventArray - an array of Events in the system.
+ * $Events - an array of Events in the DB, with the Event ID and Title in the subarray.
  * Returns: nothing.
  */
-function get_ticket_event_join_list(&$EventArray)
+function get_event_list(&$Events)
 {
-	$sql = sprintf("select * from Events");
+	$sql = sprintf("select * from Events order by EventId");
 		 
 	$result = mysql_query($sql);
 		
 	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
+		return display_mysql_error('Cannot execute query', $sql);
 	if (0 == mysql_num_rows($result))
-		return display_error("There are not TicketItems to list at this time.  Please add.");
+		return display_error("There are no Events to list at this time.  Please add.");
 	
-	$EventArray = array();
+	$Events = array();
 	
 	while ($row = mysql_fetch_object($result)) 
 	{
 		$event = array();
 		$event['EventId'] = (int)$row->EventId;
 		$event['Title'] = $row->Title;
-		array_push($EventArray, $event);
+		array_push($Events, $event);
 	}
-	
+}
+
+/* function ticket_authorizes_event
+ * 
+ * Function returns true of the given TicketItemId authorizes the given EventId.
+ *
+ * $TicketItemId = unique ID number for the TicketItem
+ * $EventId = unique ID number for the Event 
+ * Returns: true if the TicketItem authorizes the Event.  
+ */
+function ticket_authorizes_event($TicketItemId, $EventId)
+{
+	$sql = sprintf("select * from eventticketlink where EventID = '%d' and TicketItemID = '%d'",
+		$EventId, $TicketItemId);
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	return (mysql_num_rows($result) > 0);
 }
 
 ?>

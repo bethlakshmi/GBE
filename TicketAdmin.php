@@ -180,27 +180,26 @@ function display_ticket_item_edit_form()
  * Used to display a a table with events to be associated with ticket items.
  * Function must be called within the context of a table.
  *  
+ * $TicketItemId - The ID of the TicketItem being displayed.
  * Returns: nothing.
  */
-function display_ticket_item_events()
+function display_ticket_item_events($TicketItemId)
 {
-	get_ticket_event_join_list($EventArray);
+	get_event_list($Events);
 	
 	echo "<tr><td><br>Events Purchased by This Item:<br></td></tr>";
 	
-	if (1 == true)
-		$checked = "checked";
-	else
-		$checked = "";	
-	
-	foreach ($EventArray as $event)
+	foreach ($Events as $event)
 	{
-		printf("<tr><td align=\"right\"><input type=\"checkbox\" name=\"%d\" value=\"%d\" $checked></td>",
+		if (ticket_authorizes_event($TicketItemId))
+			$checked = "checked";
+		else
+			$checked = "";	
+		
+		printf("<tr><td align=\"right\"><input type=\"checkbox\" name=\"Event:%d\" value=\"%d\" $checked></td>",
 			$event['EventId'], $event['EventId']);
 		printf("<td align=\"left\">Event ID %d:  %s</td></tr>\n", $event['EventId'], $event['Title']);	
 	}
-
-	//echo serialize($EventArray);
 }
 
 /* function process_ticket_item_edit
@@ -224,6 +223,8 @@ function process_ticket_item_edit()
 	$Item = new TicketItem();
 	$Item->convert_from_array($_POST);
 	$Item->save_to_db();
+	
+	echo serialize($_POST);
 }
 
 /* function process_ticket_item_delete
@@ -246,6 +247,9 @@ function process_ticket_item_delete()
 	
 	// NOTE:  we need to add something that prevents a delete of the ticket item 
 	// has been already purchased by a user.
+	
+	// NOTE:  you will also have to remove anything in the EventTicketLink 
+	// table for this event.
 	
 	$Item = new TicketItem();
 	$Item->convert_from_array($_POST);
