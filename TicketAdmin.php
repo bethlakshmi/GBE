@@ -45,17 +45,22 @@ switch ($action)
 	break;
 
  case TICKETITEM_EDIT_PROCESS:
-    if (!process_ticket_item_edit())
-		display_ticket_item_edit_form();
-	else
+	if (array_key_exists('Delete', $_POST))
+	{
+		process_ticket_item_delete();
 		list_ticket_items();
+	}
+	else if (array_key_exists('Close', $_POST))
+	{
+		list_ticket_items();
+	}
+	else
+	{
+		process_ticket_item_edit();
+		list_ticket_items();
+	}
 	break;	
-	
- /*
-    if (! process_edit_user ())
-      display_user_form_for_others ();
- 
-*/ 
+
  default:
    echo "Unknown action code: $action\n";
 }
@@ -77,7 +82,7 @@ function list_ticket_items($edit_mode = false)
 	}
 	
 	echo "<b>\n";
-	echo "Click on a special event title to edit or delete it.<br>\n";
+	echo "Click on a type of ticket to edit or delete it, or click the button below to add.<br>\n";
 	echo "</b><br>\n";
 	echo "<table border=\"1\">\n";
 	echo "  <tr>\n";
@@ -104,12 +109,15 @@ function list_ticket_items($edit_mode = false)
 			echo "  <td align=\"left\">Yes</td>\n";
 		else
 			echo "  <td align=\"left\">No</td>\n";
-		echo "  <td align=\"left\">$Item->Cost</td>\n";
+		printf("  <td align=\"left\">%0.2f</td>\n", $Item->Cost);
 		echo "  <td align=\"left\">$Item->Datestamp</td>\n";
 		echo "</tr>\n";
 	}
+	echo "</table><br>\n";
 	
-	echo "</table><br><br>\n";
+	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d\">", 
+		TICKETITEM_EDIT);
+	echo "<INPUT TYPE=\"submit\" VALUE=\"Add a Ticket Item\"></FORM><br>";
 }
 
 /* function display_ticket_item_edit_form
@@ -133,7 +141,7 @@ function display_ticket_item_edit_form()
 		$_POST[$k] = $v;
 	}
 	
-	display_header ("Editing Ticket Item $TicketItem->ItemId\n\n");
+	display_header("Editing Ticket Item $TicketItem->ItemId\n\n");
 	
 	echo "<P><FONT COLOR=RED>*</FONT> Indicates a required field\n";
 	print("<FORM METHOD=POST ACTION=TicketAdmin.php>\n");
@@ -154,19 +162,50 @@ function display_ticket_item_edit_form()
 		$checked = "";	
 		
     echo "<tr><td align=\"right\"><font color=\"red\">*</font>&nbsp;Active:</td>";
-    echo "<td align=\"left\"><input type=\"checkbox\" name=\"Active\" value=\"Active\" $checked></td></tr>\n";	
+    echo "<td align=\"left\"><input type=\"checkbox\" name=\"Active\" ";
+	echo "value=\"Active\" $checked></td></tr>\n";
 	
 	form_text(30, 'Cost', 'Cost', 0, TRUE);
-	form_submit('Add or Update Ticket Item');
-	echo "</table>\n";
-	echo "</form>\n";
+	display_ticket_item_events();
+	echo "<tr><td><br><br></td></tr>";
+	form_submit3("Update Ticket Item", "Delete Item", "Delete", "Close Form", "Close");	
+	echo "</table>\n</form>\n";
+	
 	
 	//http://test-expo.local/SpecialEvents.php?action=42
 }
 
+/* function display_ticket_item_events
+ * 
+ * Used to display a a table with events to be associated with ticket items.
+ * Function must be called within the context of a table.
+ *  
+ * Returns: nothing.
+ */
+function display_ticket_item_events()
+{
+	get_ticket_event_join_list($EventArray);
+	
+	echo "<tr><td><br>Events Purchased by This Item:<br></td></tr>";
+	
+	if (1 == true)
+		$checked = "checked";
+	else
+		$checked = "";	
+	
+	foreach ($EventArray as $event)
+	{
+		printf("<tr><td align=\"right\"><input type=\"checkbox\" name=\"%d\" value=\"%d\" $checked></td>",
+			$event['EventId'], $event['EventId']);
+		printf("<td align=\"left\">Event ID %d:  %s</td></tr>\n", $event['EventId'], $event['Title']);	
+	}
+
+	//echo serialize($EventArray);
+}
+
 /* function process_ticket_item_edit
  * 
- * Used to process updates to the TicketItem database
+ * Used to process updates to the TicketItem table
  *  
  * Returns: nothing.
  */
@@ -175,18 +214,42 @@ function process_ticket_item_edit()
 	// Make sure that only privileged users get here
 
 	if (!user_has_priv(PRIV_STAFF))
-		return display_access_error ();
+		return display_access_error();
 
 	// Check for sequence errors
 
 	if (out_of_sequence ())
-		return display_sequence_error (false);
+		return display_sequence_error(false);
 	
 	$Item = new TicketItem();
-	if (!$Item->convert_from_array($_POST))
-		return false;
+	$Item->convert_from_array($_POST);
 	$Item->save_to_db();
-	return true;
+}
+
+/* function process_ticket_item_delete
+ * 
+ * Used to delete items from the TicketItem table
+ *  
+ * Returns: nothing.
+ */
+function process_ticket_item_delete()
+{
+	// Make sure that only privileged users get here
+
+	if (!user_has_priv(PRIV_STAFF))
+		return display_access_error();
+
+	// Check for sequence errors
+
+	if (out_of_sequence ())
+		return display_sequence_error(false);
+	
+	// NOTE:  we need to add something that prevents a delete of the ticket item 
+	// has been already purchased by a user.
+	
+	$Item = new TicketItem();
+	$Item->convert_from_array($_POST);
+	$Item->remove_from_db();
 }
 
 html_end();

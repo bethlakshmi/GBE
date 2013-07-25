@@ -507,6 +507,36 @@ function get_ticketitem_list(&$TicketItems)
 	} 
 }
 
+/* function get_ticket_event_join_list
+ * 
+ * Used to obtain a list of events, and if or if not each known event
+ * can be paid by the given ticket item. 
+ *
+ * $EventArray - an array of Events in the system.
+ * Returns: nothing.
+ */
+function get_ticket_event_join_list(&$EventArray)
+{
+	$sql = sprintf("select * from Events");
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are not TicketItems to list at this time.  Please add.");
+	
+	$EventArray = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$event = array();
+		$event['EventId'] = (int)$row->EventId;
+		$event['Title'] = $row->Title;
+		array_push($EventArray, $event);
+	}
+	
+}
 
 ?>
 
