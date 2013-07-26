@@ -323,38 +323,24 @@ function get_con_price ($i, &$price, &$start_date, &$end_date)
 
     // The price is $25 until 20-Jul-2009 - Was end of Intercon/DEXPO, now just arbitrary date
     case 0:
-      $price = 25;
+      $price = 99;
       $start_date = 0;
-      $end_date = parse_date ('2009-07-20');
+      $end_date = parse_date ('2013-05-31');
       return true;
 
     // The price is $30 21-Jul-2009 - 12-Oct-2009 - End of Intercon Mid-Atlantic
     case 1:
-      $price = 30;
-      $start_date = parse_date ('2009-07-20');
-      $end_date = parse_date ('2009-10-12');
+      $price = 125;
+      $start_date = parse_date ('2013-05-31');
+      $end_date = parse_date ('2013-10-31');
       return true;
 
     // The price is $35 13-Oct-2009 - 20-Jan-2010
     // Wednesday after the end of Arisia '09
     case 2:
-      $price = 35;
-      $start_date = parse_date ('2009-10-12');
-      $end_date = parse_date ('2010-01-20');
-      return true;
-
-    // The price is $40 from 21-Jan-2010 - 28-Feb-2010 - End of Boskone '09
-    case 3:
-      $price = 40;
-      $start_date = parse_date ('2010-01-21');
-      $end_date = parse_date ('2010-02-28');
-      return true;
-
-    // The price is $45 from 29-Feb-2010 until the end of Intercon I
-    case 4:
-      $price = 45;
-      $start_date = parse_date ('2010-02-28');
-      $end_date = 0;
+      $price = 150;
+      $start_date = parse_date ('2013-10-31');
+      $end_date = parse_date ('2014-02-07');
       return true;
   }
 

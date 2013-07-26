@@ -256,8 +256,8 @@ function build_larps_subnavbar() {
 
 
 function build_gm_subnavbar() {
-  $gmSection = new SubNavBar("GM Information");
-  $gmSection->push(NavBarItem::newStatic("GM Benefits and Policies", "GMPolicies"));
+  $gmSection = new SubNavBar("Conference Information");
+  $gmSection->push(NavBarItem::newStatic("Teacher/Panelists Benefits and Policies", "ConfPolicies"));
   return $gmSection;
 }
 
@@ -455,8 +455,8 @@ function display_main_navbar() {
     $navbar->push(build_acts_subnavbar());
   if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());
-  if (is_logged_in() || user_has_priv(PRIV_CON_COM))
-    $navbar->push(build_shirts_subnavbar());
+//  if (is_logged_in() || user_has_priv(PRIV_CON_COM))
+//    $navbar->push(build_shirts_subnavbar());
   if (user_has_priv(PRIV_CON_COM))
     $navbar->push(build_attendees_subnavbar());
   if (user_has_any_mail_priv ())
