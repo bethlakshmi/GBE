@@ -373,7 +373,7 @@ class EventTicketLink
 	 */
 	function load_from_index($ETIndex)
 	{
-		$sql = sprintf("select * from EventTicketLink where ETIndex = '%d'", $ETIndex);
+		$sql = sprintf("select * from EventTicketLinks where ETIndex = '%d'", $ETIndex);
 		 
 		$result = mysql_query($sql);
 		
@@ -426,7 +426,7 @@ class EventTicketLink
 			
 		// Make sure this link doesn't exist already.
 	
-		$sql = sprintf("select * from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
+		$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
 			$this->EventId, $this->TicketItemId);
 		$result = mysql_query($sql);
 		
@@ -445,7 +445,7 @@ class EventTicketLink
 		$this->Datestamp = date("Y-m-d H:i:s", time());	
 		$this->Userstamp = $_SESSION[SESSION_LOGIN_USER_ID];
 		
-		$sql = "insert into EventTicketLink set ";	
+		$sql = "insert into EventTicketLinks set ";	
 		
 		$sql .= build_sql_string('EventId', $this->EventId, false);
 		$sql .= build_sql_string('TicketItemId', $this->TicketItemId);
@@ -454,7 +454,7 @@ class EventTicketLink
 		
 		$result = mysql_query($sql);
 		if (!$result)
-			return display_mysql_error ("Insert into EventTicketLink failed");
+			return display_mysql_error ("Insert into EventTicketLinks failed");
 		$this->ETIndex = mysql_insert_id();
 	}
 	
@@ -471,7 +471,7 @@ class EventTicketLink
 		if (!is_integer($this->TicketItemId))
 			return display_error("EventTicketLink Item ID is not in a valid format.");	
 
-		$sql = sprintf("delete from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
+		$sql = sprintf("delete from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
 			$this->EventId, $this->TicketItemId);
 
 		$result = mysql_query($sql);
@@ -546,7 +546,7 @@ function get_event_list(&$events)
  */
 function ticket_authorizes_event($TicketItemId, $EventId)
 {
-	$sql = sprintf("select * from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
+	$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
 		$EventId, $TicketItemId);
 		 
 	$result = mysql_query($sql);
@@ -591,7 +591,7 @@ function remove_all_event_ticket_auth($TicketItemId)
 	if (!is_integer($TicketItemId))
 		return display_error("Transaction Item ID is not in a valid format.");	
 
-	$sql = sprintf("delete from eventticketlink where TicketItemId = '%d'",
+	$sql = sprintf("delete from EventTicketLinks where TicketItemId = '%d'",
 		$TicketItemId);
 
 	$result = mysql_query($sql);
