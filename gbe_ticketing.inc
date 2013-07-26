@@ -2,7 +2,7 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 7/8/2013 by MDB
+ * Last Updated 7/25/2013 by MDB
  *
  */
  
@@ -33,7 +33,7 @@ class TicketItem
 	 * 
 	 * Used to load a particular ticket item by item id from the database. 
 	 *
-	 * $ItemID:  the Item ID to be loaded.
+	 * $ItemId:  the Item Id to be loaded.
 	 * Returns: nothing.
 	 */
 	function load_from_itemid($ItemId)
@@ -103,7 +103,8 @@ class TicketItem
 	 */
 	function save_to_db()
 	{	
-		// Sanitize database input.  Note, the build_sql_string uses mysql_real_escape_string() below.  
+		// Sanitize database input.  Note, the build_sql_string uses 
+		// mysql_real_escape_string() below.  
 		
 		if (!is_integer($this->ItemId) || ($this->ItemId <= 0))
 			return display_error("Ticket Item ID is not in a valid format.");
@@ -195,8 +196,8 @@ class Transaction
 	// These public properties represent the various columns in the table.
 	
 	public $TransIndex;
-	public $ItemID;
-	public $UserID;
+	public $ItemId;
+	public $UserId;
 	public $Amount;
 	public $Datestamp;
 	public $AdjustmentAmt;
@@ -242,8 +243,8 @@ class Transaction
 	function convert_from_sql_row($row)
 	{
 		$this->TransIndex = (int)$row->TransIndex;
-		$this->ItemID = (int)$row->ItemID;
-		$this->UserID = (int)$row->UserID;
+		$this->ItemId = (int)$row->ItemId;
+		$this->UserId = (int)$row->UserId;
 		$this->Amount = (float)$row->Amount;
 		$this->Datestamp = (string)$row->Datestamp;
 		$this->AdjustmentAmt = (float)$row->AdjustmentAmt;
@@ -265,11 +266,12 @@ class Transaction
 	 */
 	function save_to_db($OnlineTrans, $Update)
 	{	
-		// Sanitize database input.  Note, the build_sql_string uses mysql_real_escape_string() below.  
+		// Sanitize database input.  Note, the build_sql_string uses 
+		// mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->ItemID))
+		if (!is_integer($this->ItemId))
 			return display_error("Transaction Item ID is not in a valid format.");
-		if (!is_integer($this->UserID))
+		if (!is_integer($this->UserId))
 			return display_error("Transaction User ID is not in a valid format.");	
 		if (!is_double($this->Amount))
 			return display_error("Transaction Amount is not in a valid format");
@@ -293,8 +295,8 @@ class Transaction
 			$sql = "insert into Transactions set ";
 		}	
 		
-		$sql .= build_sql_string('ItemID', $this->ItemID, false);
-		$sql .= build_sql_string('UserID', $this->UserID);
+		$sql .= build_sql_string('ItemId', $this->ItemId, false);
+		$sql .= build_sql_string('UserId', $this->UserId);
 		$sql .= build_sql_string('Amount', $this->Amount);
 		$sql .= build_sql_string('Datestamp', $this->Datestamp);
 		$sql .= build_sql_string('AdjustmentAmt', $this->AdjustmentAmt);
@@ -357,8 +359,8 @@ class EventTicketLink
 	// These public properties represent the various columns in the table.
 	
 	public $ETIndex;
-	public $EventID;
-	public $TicketItemID;
+	public $EventId;
+	public $TicketItemId;
 	public $Description;
 	public $Userstamp;
 
@@ -378,9 +380,9 @@ class EventTicketLink
 		if (!$result)
 			return display_mysql_error ('Cannot execute query', $sql);
 		if (mysql_num_rows($result) > 1)
-			return display_error("Error:  multiple event ticket links found with same index");	
+			return display_error("Error:  multiple EventTicketLinks found with same index");	
 		if (1 != mysql_num_rows($result))
-			return display_error("Event ticket link not found:  $ETIndex");
+			return display_error("EventTicketLink not found:  $ETIndex");
 		
 		$row = mysql_fetch_object($result);
 		$this->convert_from_sql_row($row);
@@ -397,60 +399,63 @@ class EventTicketLink
 	function convert_from_sql_row($row)
 	{
 		$this->ETIndex = (int)$row->ETIndex;
-		$this->EventID = (int)$row->EventID;
-		$this->TicketItemID = (int)$row->TicketItemID;
+		$this->EventId = (int)$row->EventId;
+		$this->TicketItemId = (int)$row->TicketItemId;
 		$this->Datestamp = (string)$row->Datestamp;
 		$this->Userstamp = (int)$row->Userstamp;
 	}
 	
 	/* function save_to_db
 	 * 
-	 * Used to save the current status of the event ticket link to the database.	 
+	 * Used to save the current status of the event ticket link to the database.
+     * The ETIndex is ignored.  	 
 	 *
-	 * $Update: if true, attempt to update a transaction, not insert.
 	 * Returns: nothing.
 	 */
-	function save_to_db($Update)
+	function save_to_db()
 	{	
-		// Sanitize database input.  Note, the build_sql_string uses mysql_real_escape_string() below.  
+		// Sanitize database input.  Note, the build_sql_string uses 
+		// mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->EventID))
-			return display_error("Transaction Event ID is not in a valid format.");
-		if (!is_integer($this->TicketItemID))
-			return display_error("Transaction Item ID is not in a valid format.");				
+		if (!is_integer($this->EventId))
+			return display_error("EventTicketLink Event ID is not in a valid format.");
+		if (!is_integer($this->TicketItemId))
+			return display_error("EventTicketLink Item ID is not in a valid format.");				
 		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
-			return display_error("Cannot save TicketItem to DB:  not logged in.");	
+			return display_error("Cannot save EventTicketLink to DB:  not logged in.");	
 			
+		// Make sure this link doesn't exist already.
+	
+		$sql = sprintf("select * from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
+			$this->EventId, $this->TicketItemId);
+		$result = mysql_query($sql);
+		
+		if (!$result)
+			return display_mysql_error('Cannot execute query', $sql);
+			
+		if (mysql_num_rows($result) > 0)
+		{
+			$row = mysql_fetch_object($result);
+			$this->convert_from_sql_row($row);
+			return;
+		}
+			
+		// Update the database.
+				
 		$this->Datestamp = date("Y-m-d H:i:s", time());	
 		$this->Userstamp = $_SESSION[SESSION_LOGIN_USER_ID];
 		
-		// Update the database.
+		$sql = "insert into EventTicketLink set ";	
 		
-		if ($Update)
-		{
-			if (!is_integer($this->ETIndex))
-				return display_error("Event ticket link index is not in a valid format.");
-			$sql = "update EventTicketLink set ";
-		}
-		else
-		{
-			$sql = "insert into EventTicketLink set ";
-		}	
-		
-		$sql .= build_sql_string('EventID', $this->EventID, false);
-		$sql .= build_sql_string('TicketItemID', $this->TicketItemID);
+		$sql .= build_sql_string('EventId', $this->EventId, false);
+		$sql .= build_sql_string('TicketItemId', $this->TicketItemId);
 		$sql .= build_sql_string('Datestamp', $this->Datestamp);
 		$sql .= build_sql_string('Userstamp', $this->Userstamp);
-
-		if ($Update)
-			$sql .= sprintf(" where ETIndex = '%d'", $this->ETIndex);
 		
 		$result = mysql_query($sql);
 		if (!$result)
 			return display_mysql_error ("Insert into EventTicketLink failed");
-		
-		if (!$Update)
-			$this->ETIndex = mysql_insert_id();
+		$this->ETIndex = mysql_insert_id();
 	}
 	
 	/* function remove_from_db
@@ -461,10 +466,14 @@ class EventTicketLink
 	 */
 	function remove_from_db()
 	{
-		if (!is_integer($this->ETIndex))
-			return display_error("Event ticket index is not in a valid format.");
+		if (!is_integer($this->EventId))
+			return display_error("EventTicketLink Event ID is not in a valid format.");
+		if (!is_integer($this->TicketItemId))
+			return display_error("EventTicketLink Item ID is not in a valid format.");	
 
-		$sql = sprintf("delete from EventTicketLink where ETIndex = '%d'", $this->ETIndex);
+		$sql = sprintf("delete from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
+			$this->EventId, $this->TicketItemId);
+
 		$result = mysql_query($sql);
 		if (!$result)
 			return display_mysql_error ('Cannot execute query', $sql);
@@ -480,7 +489,7 @@ class EventTicketLink
  */
 function get_ticketitem_list(&$TicketItems)
 {
-	$sql = sprintf("select * from TicketItems");
+	$sql = sprintf("select * from TicketItems order by ItemId");
 		 
 	$result = mysql_query($sql);
 		
@@ -503,10 +512,11 @@ function get_ticketitem_list(&$TicketItems)
  * 
  * Used to obtain an array of the current ticket items
  *
- * $Events - an array of Events in the DB, with the Event ID and Title in the subarray.
+ * $events - an array of Events in the DB.  The array key is the event ID, and
+ * the value is another array containing the event title.   
  * Returns: nothing.
  */
-function get_event_list(&$Events)
+function get_event_list(&$events)
 {
 	$sql = sprintf("select * from Events order by EventId");
 		 
@@ -517,14 +527,12 @@ function get_event_list(&$Events)
 	if (0 == mysql_num_rows($result))
 		return display_error("There are no Events to list at this time.  Please add.");
 	
-	$Events = array();
-	
+	$events = array();
 	while ($row = mysql_fetch_object($result)) 
 	{
 		$event = array();
-		$event['EventId'] = (int)$row->EventId;
 		$event['Title'] = $row->Title;
-		array_push($Events, $event);
+		$events[(int)$row->EventId] = $event;
 	}
 }
 
@@ -532,13 +540,13 @@ function get_event_list(&$Events)
  * 
  * Function returns true of the given TicketItemId authorizes the given EventId.
  *
- * $TicketItemId = unique ID number for the TicketItem
- * $EventId = unique ID number for the Event 
+ * $TicketItemId - unique ID number for the TicketItem
+ * $EventId - unique ID number for the Event 
  * Returns: true if the TicketItem authorizes the Event.  
  */
 function ticket_authorizes_event($TicketItemId, $EventId)
 {
-	$sql = sprintf("select * from eventticketlink where EventID = '%d' and TicketItemID = '%d'",
+	$sql = sprintf("select * from eventticketlink where EventId = '%d' and TicketItemId = '%d'",
 		$EventId, $TicketItemId);
 		 
 	$result = mysql_query($sql);
@@ -548,6 +556,48 @@ function ticket_authorizes_event($TicketItemId, $EventId)
 	return (mysql_num_rows($result) > 0);
 }
 
+/* function set_ticket_event_auth
+ * 
+ * Function updates the EventTicketLink table to establish or remove the
+ * authorization relationship between the event and the ticket item.
+ *
+ * $TicketItemId - unique ID number for the TicketItem
+ * $EventId - unique ID number for the Event 
+ * $authorize - true if establishing the relationship, false if deleting it.
+ * Returns: nothing.
+ */
+function set_ticket_event_auth($TicketItemId, $EventId, $authorize)
+{
+	$link = new EventTicketLink();
+	$link->EventId = $EventId;
+	$link->TicketItemId = $TicketItemId;
+		
+	if ($authorize)
+		$link->save_to_db();
+	else 
+		$link->remove_from_db();
+}
+
+/* function remove_all_event_ticket_auth
+ * 
+ * Function removes all the event ticket authorizations for the given
+ * Ticket Item.
+ *
+ * $TicketItemId - unique ID number for the TicketItem
+ * Returns: nothing.
+ */
+function remove_all_event_ticket_auth($TicketItemId)
+{
+	if (!is_integer($TicketItemId))
+		return display_error("Transaction Item ID is not in a valid format.");	
+
+	$sql = sprintf("delete from eventticketlink where TicketItemId = '%d'",
+		$TicketItemId);
+
+	$result = mysql_query($sql);
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+}
 ?>
 
 

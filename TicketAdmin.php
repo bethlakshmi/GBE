@@ -2,7 +2,7 @@
 
 /* TicketItem.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 7/22/2013 by MDB
+ * Last Updated 7/25/2013 by MDB
  *
  */
  
@@ -22,14 +22,14 @@ html_begin ();
 
 // Everything in this file requires registration to run
 
-if (! user_has_priv (PRIV_REGISTRAR))
+if (!user_has_priv (PRIV_REGISTRAR))
 {
   display_access_error ();
   html_end ();
   exit ();
 }
 
-if (array_key_exists ('action', $_REQUEST))
+if (array_key_exists('action', $_REQUEST))
   $action = $_REQUEST['action'];
 else
   $action = TICKETITEM_LIST;
@@ -46,19 +46,10 @@ switch ($action)
 
  case TICKETITEM_EDIT_PROCESS:
 	if (array_key_exists('Delete', $_POST))
-	{
 		process_ticket_item_delete();
-		list_ticket_items();
-	}
-	else if (array_key_exists('Close', $_POST))
-	{
-		list_ticket_items();
-	}
-	else
-	{
+	else if (!array_key_exists('Close', $_POST))
 		process_ticket_item_edit();
-		list_ticket_items();
-	}
+	list_ticket_items();
 	break;	
 
  default:
@@ -86,7 +77,7 @@ function list_ticket_items($edit_mode = false)
 	echo "</b><br>\n";
 	echo "<table border=\"1\">\n";
 	echo "  <tr>\n";
-	echo "    <th>Item ID</th>\n";
+	echo "    <th>Item Id</th>\n";
 	echo "    <th>Title</th>\n";
 	echo "    <th>Description</th>\n";
 	echo "    <th>Active</th>\n";
@@ -97,7 +88,6 @@ function list_ticket_items($edit_mode = false)
 	foreach ($TicketItems as $Item)
 	{
 		echo "<tr valign=\"top\">\n";
-		
 	    printf ("  <td><a href=\"TicketAdmin.php?action=%d&TicketItemId=%d\">%s</a>\n",
 			TICKETITEM_EDIT, $Item->ItemId, $Item->ItemId);
 		echo "  <td align=\"left\">$Item->Title</td>\n";
@@ -131,15 +121,11 @@ function display_ticket_item_edit_form()
 	$TicketItem = new TicketItem();
 	
 	if ((array_key_exists('TicketItemId', $_REQUEST)) && ($_REQUEST['TicketItemId'] > 0))
-	{
 		$TicketItem->load_from_itemid($_REQUEST['TicketItemId']);
-	}
 	$seq = increment_sequence_number();
 	
 	foreach($TicketItem as $k => $v)
-	{
 		$_POST[$k] = $v;
-	}
 	
 	display_header("Editing Ticket Item $TicketItem->ItemId\n\n");
 	
@@ -166,13 +152,10 @@ function display_ticket_item_edit_form()
 	echo "value=\"Active\" $checked></td></tr>\n";
 	
 	form_text(30, 'Cost', 'Cost', 0, TRUE);
-	display_ticket_item_events();
+	display_ticket_item_events($TicketItem->ItemId);
 	echo "<tr><td><br><br></td></tr>";
 	form_submit3("Update Ticket Item", "Delete Item", "Delete", "Close Form", "Close");	
 	echo "</table>\n</form>\n";
-	
-	
-	//http://test-expo.local/SpecialEvents.php?action=42
 }
 
 /* function display_ticket_item_events
@@ -185,20 +168,22 @@ function display_ticket_item_edit_form()
  */
 function display_ticket_item_events($TicketItemId)
 {
-	get_event_list($Events);
+	get_event_list($events);
 	
-	echo "<tr><td><br>Events Purchased by This Item:<br></td></tr>";
+	echo "<tr><td><br>This Ticket Item Admits to These Events:<br></td></tr>";
 	
-	foreach ($Events as $event)
+	foreach ($events as $eventid => $event)
 	{
-		if (ticket_authorizes_event($TicketItemId))
+		if (ticket_authorizes_event($TicketItemId, $eventid))
 			$checked = "checked";
 		else
 			$checked = "";	
 		
-		printf("<tr><td align=\"right\"><input type=\"checkbox\" name=\"Event:%d\" value=\"%d\" $checked></td>",
-			$event['EventId'], $event['EventId']);
-		printf("<td align=\"left\">Event ID %d:  %s</td></tr>\n", $event['EventId'], $event['Title']);	
+		printf("<tr><td align=\"right\">");
+		printf("<input type=\"checkbox\" name=\"!!Event:%d\" value=\"%d\" $checked></td>",
+			$eventid, $event['Title']);
+		printf("<td align=\"left\">Event ID %d:  %s</td></tr>\n", 
+			$eventid, $event['Title']);	
 	}
 }
 
@@ -220,11 +205,28 @@ function process_ticket_item_edit()
 	if (out_of_sequence ())
 		return display_sequence_error(false);
 	
+	// Save or Update the Ticket Item.
+	
 	$Item = new TicketItem();
 	$Item->convert_from_array($_POST);
 	$Item->save_to_db();
 	
-	echo serialize($_POST);
+	// Save or Update Event Ticket Relationships. 
+	
+	get_event_list($events);
+	$auth_events = array();
+	
+	foreach($_POST as $k => $v)
+	{
+		if (substr($k, 0, 8) == "!!Event:")
+			array_push($auth_events, substr($k, 8));
+	}
+	
+	foreach ($events as $eventid => $event)
+	{
+		set_ticket_event_auth($Item->ItemId, $eventid, 
+			in_array($eventid, $auth_events));
+	}
 }
 
 /* function process_ticket_item_delete
@@ -242,22 +244,19 @@ function process_ticket_item_delete()
 
 	// Check for sequence errors
 
-	if (out_of_sequence ())
+	if (out_of_sequence())
 		return display_sequence_error(false);
 	
 	// NOTE:  we need to add something that prevents a delete of the ticket item 
 	// has been already purchased by a user.
 	
-	// NOTE:  you will also have to remove anything in the EventTicketLink 
-	// table for this event.
-	
 	$Item = new TicketItem();
 	$Item->convert_from_array($_POST);
+	remove_all_event_ticket_auth($Item->ItemId);
 	$Item->remove_from_db();
 }
 
 html_end();
-
 
 ?>
 
