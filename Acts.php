@@ -1024,7 +1024,7 @@ function process_bid_form ()
   // Game Details
 
   $form_ok &= validate_string ('Genre');
-  $form_ok &= validate_string ('Premise');
+  $form_ok &= validate_string ('Premise','Performer history');
 
   // Scheduling Information
   global $CON_DAYS;
@@ -1294,7 +1294,7 @@ function process_bid_form ()
     $path2 = process_file($file, "picture", "Bid-".$BidId );
     if ( strpos($path2,FILE_UPLOAD_LOC) === FALSE )
     {
-      return display_error ("Error_uploading the photo file.");
+      return display_error ("Error uploading the photo file.  File output is: ".$path2);
     }
   }
   else 
@@ -1325,6 +1325,8 @@ function process_bid_form ()
   }
   $sql .= 'PhotoSource="'.$path2.'"';
   $sql .= " WHERE BidId=".$BidId.";";
+  if ( strpos($path2,FILE_UPLOAD_LOC) === FALSE )
+
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Cannot query user information');
