@@ -67,6 +67,8 @@ html_end ();
 
 function display_special_event_form ()
 {
+  global $SPECIAL_EVENT_TYPES;
+
   $update = isset ($_REQUEST['RunId']);
   
   // If this is an update, load the $_POST array from the database
@@ -76,7 +78,7 @@ function display_special_event_form ()
     $RunId = intval (trim ($_REQUEST['RunId']));
 
     $sql = 'SELECT Events.Title, Events.Hours, Events.Description,';
-    $sql .= ' Events.ShortBlurb, Runs.*';
+    $sql .= ' Events.ShortBlurb, Events.GameType, Runs.*';
     $sql .= ' FROM Runs, Events';
     $sql .= " WHERE RunId=$RunId";
     $sql .= '   AND Events.EventId=Runs.Eventid';
@@ -102,19 +104,29 @@ function display_special_event_form ()
   echo "<form method=POST action=\"SpecialEvents.php\">\n";
   form_add_sequence ();
   form_hidden_value('action', SPECIAL_EVENT_ADD);
+  $type = $SPECIAL_EVENT_TYPES[0];
+  
   if ($update)
   {
     form_hidden_value('RunId', $RunId);
     form_hidden_value('EventId', $EventId);
+    $type = $_POST['GameType'];
   }
 
   echo "<table border=\"0\">\n";
-
+  
   form_text (64, 'Event Text', 'Title');
   form_day ('Day');
   form_start_hour ('Start Hour', 'StartHour');
   form_text (2, 'Hours');
-
+  
+  echo "  <tr>\n";
+  echo "    <td>\n";
+  echo "Event Type:";
+  echo "    </td><td>";
+  form_single_select('', 'GameType', $SPECIAL_EVENT_TYPES, $type);
+  echo "	</td></tr>\n";
+  
   echo "  <tr>\n";
   echo "    <td colspan=2>\n";
   echo "      Leave the descriptions blank if you don't want them included\n";
@@ -220,7 +232,7 @@ function process_special_event_form ()
     $Rooms = implode(',', $_POST['Rooms']);
 
   $sql = "$verb Events SET Title='$Title', SpecialEvent=1";
-  $sql .= build_sql_string ('GameType', 'Special');
+  $sql .= build_sql_string ('GameType');
   $sql .= build_sql_string ('Hours');
   $sql .= build_sql_string ('ShortBlurb');
   $sql .= build_sql_string ('Description');

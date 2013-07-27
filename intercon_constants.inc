@@ -202,8 +202,8 @@ define (PAGE_BANNER, 'PageBanner.png');
 
 // rooms at event - must match DB set in Runs  
 global $ROOM_LIST;
-$ROOM_LIST = array('Dance Space', 'Lecture Space A', 'Lecture Space B', 
-		'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool');
+$ROOM_LIST = array('Master/Drop-In Space', 'Dance Space', 'Lecture Space A', 
+ 		'Lecture Space B', 'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool');
 
 //Items for Bids/Schedule
 global $CON_DAYS;
@@ -282,14 +282,17 @@ $BID_TYPES = array('Class', 'Panel', 'Performance');
 //$BID_TYPES = array('LARP');
 
 global $EVENT_TYPES;
-$EVENT_TYPES = array('Class', 'Panel', 'Show', 'Special Event','Ops');
+$EVENT_TYPES = array('Class', 'Panel', 'Show', 'Special','Ops', 'Show','MasterClass','Drop-In');
+
+global $SPECIAL_EVENT_TYPES;
+$SPECIAL_EVENT_TYPES = array('Special','Show','MasterClass','Drop-In');
 
 global $GM_TYPES;
 $GM_TYPES = array();
 $GM_TYPES['Class'] = 'Teacher(s)';
 $GM_TYPES['Panel'] = 'Panelist(s)';
 $GM_TYPES['Show'] =  'Cast & Crew';
-$GM_TYPES['Special Event'] = 'OnSite Coordinator(s)';
+$GM_TYPES['Special'] = 'OnSite Coordinator(s)';
 $GM_TYPES['Ops'] = 'Coordinator(s)';
 
 global $PANELIST_TYPE;

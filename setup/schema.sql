@@ -678,7 +678,7 @@ CREATE TABLE `PreConRuns` (
   `PreConEventId` int(10) unsigned NOT NULL DEFAULT '0',
   `Day` enum('Thu','Fri') NOT NULL DEFAULT 'Fri',
   `StartHour` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `Rooms` SET( 'Dance Space', 'Lecture Space A', 'Lecture Space B', 'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool' ) NOT NULL DEFAULT '',
+  `Rooms` SET( 'Master/Drop-In Space','Dance Space', 'Lecture Space A', 'Lecture Space B', 'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool' ) NOT NULL DEFAULT '',
   `UpdatedById` int(10) unsigned NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`PreConRunId`)
@@ -736,7 +736,7 @@ CREATE TABLE `Runs` (
   `StartHour` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `TitleSuffix` char(32) DEFAULT '',
   `ScheduleNote` char(32) NOT NULL DEFAULT '',
-  `Rooms` set('Dance Space', 'Lecture Space A', 'Lecture Space B', 
+  `Rooms` set('Master/Drop-In Space','Dance Space', 'Lecture Space A', 'Lecture Space B', 
 		'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool') NOT NULL DEFAULT '',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

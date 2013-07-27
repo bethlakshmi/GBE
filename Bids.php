@@ -572,13 +572,17 @@ function display_bid_form ($first_try)
     if (! $can_update)
       return display_access_error ();
 
-  }
+  } 
 
 
 
   // Show the header - varies depending on update/submit and the nature of the submission
   if (0 == $BidId)
   {
+    $_POST['Author'] =   $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME];
+    $_POST['GameEMail'] = $_SESSION[SESSION_LOGIN_USER_EMAIL];
+
+  
     if ($gametype == 'Other')
         display_header ("Submit an event for " . CON_NAME);
     else
