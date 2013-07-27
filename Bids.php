@@ -635,6 +635,8 @@ function display_bid_form ($first_try)
     {
         echo "<tr><td align=right>Teacher:</td>\n";
         echo "<td>".$_POST['Author']."</td></tr>\n";
+        form_hidden_value ('Author', $_POST['Author']);
+
     }
     else
         form_hidden_value ('Author', 'X');
@@ -645,6 +647,7 @@ function display_bid_form ($first_try)
     }
     echo "<tr><td align=right>EMail for inquries/updates:</td>\n";
     echo "<td>".$_POST['GameEMail']."</td></tr>\n";
+    form_hidden_value ('GameEMail', $_POST['GameEMail']);
 
     $eventlengthtext = $gametype;
     $eventlengthtext .= ' Length (hours):';

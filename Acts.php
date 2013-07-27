@@ -670,13 +670,14 @@ function display_bid_form ($first_try)
   {
     form_text (64, $gametype, 'Title', 128, TRUE);
 
-    form_hidden_value ('Author', 'X');
+    form_hidden_value ('Author', $_POST['Author']);
 
     form_text (64, 'Stage Name or Troupe','Organization');
     form_text (64, 'Web Site', 'Homepage', 128);
 
     echo "<tr><td align=right>EMail for inquries/updates:</td>\n";
     echo "<td>".$_POST['GameEMail']."</td></tr>\n";
+    form_hidden_value ('GameEMail', $_POST['GameEMail']);
 
 	form_yn('Is this a Troupe Performance?', 'MultipleRuns');
 
