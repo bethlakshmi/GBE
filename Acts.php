@@ -539,6 +539,7 @@ function display_bid_form ($first_try)
         else
           $_POST[$key] = $value;
       }
+      $EventId = $row['EventId'];
 
       //Also get the bid slot data.
       $sql = "SELECT * FROM BidTimes WHERE BidId=$BidId;";
@@ -571,7 +572,6 @@ function display_bid_form ($first_try)
       // If the user or game IDs are in the record, then have the user
       // modify them using the Edit User or Edit Game links
 
-      $EventId = $row['EventId'];
 
       if (0 == $EventId)
 	$EditGameInfo = 1;
