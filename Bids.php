@@ -535,6 +535,7 @@ function display_bid_form ($first_try)
         else
           $_POST[$key] = $value;
       }
+      $EventId = $row['EventId'];
 
       //Also get the bid slot data.
       $sql = "SELECT * FROM BidTimes WHERE BidId=$BidId;";
@@ -552,8 +553,6 @@ function display_bid_form ($first_try)
 
       // If the user or game IDs are in the record, then have the user
       // modify them using the Edit User or Edit Game links
-
-      $EventId = $row['EventId'];
 
       if (0 == $EventId)
 	$EditGameInfo = 1;
@@ -633,7 +632,10 @@ function display_bid_form ($first_try)
   {
     form_text (64, $gametype, 'Title', 128, TRUE);
     if ($gametype == 'Class')
-        form_text (64, 'Teacher(s)', 'Author', 128, TRUE);
+    {
+        echo "<tr><td align=right>Teacher:</td>\n";
+        echo "<td>".$_POST['Author']."</td></tr>\n";
+    }
     else
         form_hidden_value ('Author', 'X');
     if ($gametype != 'Panel')
@@ -641,7 +643,8 @@ function display_bid_form ($first_try)
       form_text (64, 'Organization');
       form_text (64, 'Homepage', 'Homepage', 128);
     }
-    form_text (64, 'EMail for inquries/updates', 'GameEMail', 0, TRUE);
+    echo "<tr><td align=right>EMail for inquries/updates:</td>\n";
+    echo "<td>".$_POST['GameEMail']."</td></tr>\n";
 
     $eventlengthtext = $gametype;
     $eventlengthtext .= ' Length (hours):';
@@ -745,41 +748,17 @@ function display_bid_form ($first_try)
         form_hidden_value ('MaxPlayersNeutral', 0);            
         form_hidden_value ('PrefPlayersNeutral', 0);
     }
-  }
 
-    if ($gametype == 'Other')
-        form_section ('Other Event Information');
-    else if ($gametype == 'Panel')
-        form_section ('Other Panel Information');
-    else
-        form_section ('Other Game Information');
-
-
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-        form_text (64, 'Genre', '', 0, TRUE);
-        form_yn ('Is this game part of an ongoing campaign?', 'N');
-  }
-  else
-  {
-        form_hidden_value ('Genre', 'X');
-        form_hidden_value ('OngoingCampaign', 'N');
-  }
+    form_section ('Other Information');
+    form_hidden_value ('Genre', 'X');
+    form_hidden_value ('OngoingCampaign', 'N');
   
+    echo "  <tr>\n";
+    echo "    <td colspan=2>\n";
+    echo "&nbsp;<br>\n";
 
-  echo "  <tr>\n";
-  echo "    <td colspan=2>\n";
-  echo "&nbsp;<br>\n";
-/*  echo "<a href=\"http://www.larpaweb.net/larpa-contest-mainmenu-35\" target=\"_blank\">The\n";
-  echo "LARPA Small Game Contest</a> is a chance for you to win cash for\n";
-  echo "your game!\n";
-  echo "    </td>\n";
-  echo "  </tr>\n";
-  form_yn ('Is this game entered in the LARPA Small Game Contest?',
-	   'IsSmallGameContestEntry');
-*/
-  if ($gametype == 'Class' )
-  {
+    if ($gametype == 'Class' )
+    {
       $text = "<b>Teachers & Assistant Teachers.</b>  This is a preliminary list.\n";
       $text .= "You'll be asked to confirm fellow teachers if the class is confirmed.\n";
       $text .= CON_NAME . ".\n";
@@ -787,65 +766,63 @@ function display_bid_form ($first_try)
       $text .= "number of teachers for a single event is likely to diminish the discount\n";
       $text .= "level provided for the group.\n";
       form_textarea ($text, 'GMs', 2);
-  }
-  else if ($gametype == 'Panel')
-  {
+    }
+    else if ($gametype == 'Panel')
+    {
       $text = "<b>Recommended Panelists</b> It is far more likely that your panel may \n";
       $text .= "be run at " . CON_NAME;
       $text .= "if we can find qualified panelists and a moderator - let us know any\n";
       $text .= "recommendations.\n";
       form_textarea ($text, 'GMs', 2);
-  }
-  else
-  {
+    }
+    else
+    {
       $text = "<b>Leaders & Assistants.</b>  Note that the people listed here are only for\n";
       $text .= "the purpose of evaluating your bid.  If your bid is accepted,\n";
       $text .= "you'll be able to up this information.\n";
-  }
+    }
 
+    form_hidden_value ('Premise', 'X');
 
-
-  form_hidden_value ('Premise', 'X');
-
- if ($gametype == 'Class' || $gametype == 'Panel')
-  {
+    if ($gametype == 'Class' || $gametype == 'Panel')
+    {
       $text = CON_NAME ." is looking for convention content that is new and that\n";
       $text .= "have successfully presented before, either at a convention, or elsewhere.\n";
       $text .= "If this content has run before, where & when was that";
       form_text_one_col (80, $text, 'RunBefore', 128);
-  }
-  else
-  {
+    }
+    else
+    {
       form_hidden_value ('RunBefore', '');
-  }
+    }
   
- if ($gametype != 'Class')
-  {
+    if ($gametype != 'Class')
+    {
       form_hidden_value ('GameSystem', '');
-  }
+    }
   
-  form_hidden_value ('CombatResolution', 'NoCombat');
+    form_hidden_value ('CombatResolution', 'NoCombat');
   
- if ($gametype == 'Class')
-  {
+    if ($gametype == 'Class')
+    {
        form_textarea ('What other classes have you taught?  What is your basis of expertise in this area?',
                      'OtherGames', 5);
-  }
-  else
-  {
+    }
+    else
+    {
       form_hidden_value ('OtherGames', '');
-  }
+    }
 
-  if ($gametype == 'Class')
-    form_textarea ('Other Event Details (for example, materials fees or other needs)', 'OtherDetails', 5);
-  else  
-    form_textarea ('Other Event Details', 'OtherDetails', 5);
+    if ($gametype == 'Class')
+      form_textarea ('Other Event Details (for example, materials fees or other needs)', 'OtherDetails', 5);
+    else  
+      form_textarea ('Other Event Details', 'OtherDetails', 5);
   
-  if ($gametype != 'Panel')
+    if ($gametype != 'Panel')
       form_section ('Restrictions');
 
-  if ($gametype == 'Class')
-  {
+    if ($gametype == 'Class')
+    {
   	  $floorchoice = $_POST['SpaceRequirements'];
       echo "  <tr>\n";
       echo "    <td align=\"right\">Movement Class </br>Floor Preference:</td>\n";
@@ -858,139 +835,115 @@ function display_bid_form ($first_try)
       $text .= "example, level of dance experience, musical knowledge, computer skills, etc. \n";
       $text .= "explain.";
       form_textarea ($text, 'PhysicalRestrictions', 5);
-  }
-  else
+    }
+    else
       form_hidden_value ('PhysicalRestrictions', '');
   
 
-  form_hidden_value ('Fee', 'N');
+    form_hidden_value ('Fee', 'N');
 
-  // We don't offer a choice of scheduling for performances - they get what we give them
-  // or panels, which must fit the presenter's schedules.
-  if ($gametype != 'Performance' && $gametype != 'Panel')
-  {
-    form_section ('Scheduling Information');
-
-    echo "  <TR>\n";
-    echo "    <TD COLSPAN=2>\n";
-    echo "      The expo can schedule your {$thingstring} into the\n";
-    echo "      time slots available over the weekend.  The expo aims to\n";
-    echo "      create a power packed agenda of balanced content across a \n";
-    echo "      wide selection time slots.  Your flexibility in\n";
-    echo "      scheduling your {$thingstring} is vital.<p>\n";
-    echo "      Please pick your top three preferences for when you'd like to\n";
-    echo "      run your game and be conservative in the use of 'Prefer Not'.\n";
-    echo "    </TD>\n";
-    echo "  </TR>\n";
-  
-    global $CLASS_DAYS;
-    global $CLASS_DAYS;
-    global $BID_SLOTS;
-
-    if ($gametype == 'Class' || $gametype == 'Panel') 
-      $DAYS = $CLASS_DAYS;
-    else
-      $DAYS = $CLASS_DAYS;
-
-
-    echo "  <TR>\n";
-    echo "    <TD COLSPAN=2>\n";
-    echo "      <TABLE BORDER=1>\n";
-    echo "        <TR VALIGN=BOTTOM>\n";
-    echo "          <TH></TH>\n";
-    foreach ($DAYS as $day)
-  	  echo "          <TH>{$day}</TH>\n";
-    echo "        </tr>\n";
-    foreach ($BID_SLOTS['All'] as $main_slot) {
-	  echo "        <TR ALIGN=CENTER>\n";
-	  echo "          <TH>{$main_slot}</TH>\n";
-	  foreach ($DAYS as $day)
-	  	if (in_array($main_slot,$BID_SLOTS[$day]))
-	  		schedule_table_entry ("{$day}_{$main_slot}");
-		else
-	  		echo "          <TD>&nbsp;</TD>\n";
-	  echo "        </tr>\n";
-    }
-    echo "      </TABLE>\n";
-    echo "    </TD>\n";
-    echo "  </tr>\n";
-
-    echo "  <TR>\n";
-    echo "    <TD COLSPAN=2>\n";
-    echo "      While planning your {$thingstring}, please note that we \n";
-    echo "      expect classes to end 10 minutes before the hour - making a \n";
-    echo "      50, 80 or 110 minute class time.  This gives attendees time \n";
-    echo "      to organize and be on time to their next class.\n";
-    echo "    </TD>\n";
-    echo "  </TR>\n";
-
-   if ($gametype == 'LARP' || $gametype == 'Tabletop RPG' || $gametype == 'Board Game')
-   {
-      form_yn ("&nbsp;<BR>Can players play in your {$thingstring} and another event at the same time?",
-               'CanPlayConcurrently');
-    }
-    else 
+    // We don't offer a choice of scheduling for panels, 
+    // which must fit the presenter's schedules.
+    if ($gametype != 'Performance' && $gametype != 'Panel')
     {
-      //form_yn ("&nbsp;<BR>Can participants attend your {$thingstring} and another event at the same time?",
-      //         'CanPlayConcurrently');
+      form_section ('Scheduling Information');
+
+      echo "  <TR>\n";
+      echo "    <TD COLSPAN=2>\n";
+      echo "      The expo can schedule your {$thingstring} into the\n";
+      echo "      time slots available over the weekend.  The expo aims to\n";
+      echo "      create a power packed agenda of balanced content across a \n";
+      echo "      wide selection time slots.  Your flexibility in\n";
+      echo "      scheduling your {$thingstring} is vital.<p>\n";
+      echo "      Please pick your top three preferences for when you'd like to\n";
+      echo "      run your game and be conservative in the use of 'Prefer Not'.\n";
+      echo "    </TD>\n";
+      echo "  </TR>\n";
+  
+      global $CLASS_DAYS;
+      global $CLASS_DAYS;
+      global $BID_SLOTS;
+
+      if ($gametype == 'Class' || $gametype == 'Panel') 
+        $DAYS = $CLASS_DAYS;
+      else
+        $DAYS = $CLASS_DAYS;
+
+
+      echo "  <TR>\n";
+      echo "    <TD COLSPAN=2>\n";
+      echo "      <TABLE BORDER=1>\n";
+      echo "        <TR VALIGN=BOTTOM>\n";
+      echo "          <TH></TH>\n";
+      foreach ($DAYS as $day)
+    	  echo "          <TH>{$day}</TH>\n";
+      echo "        </tr>\n";
+      foreach ($BID_SLOTS['All'] as $main_slot) {
+ 	    echo "        <TR ALIGN=CENTER>\n";
+	    echo "          <TH>{$main_slot}</TH>\n";
+	    foreach ($DAYS as $day)
+	  	  if (in_array($main_slot,$BID_SLOTS[$day]))
+	  		schedule_table_entry ("{$day}_{$main_slot}");
+		  else
+	  		echo "          <TD>&nbsp;</TD>\n";
+	    echo "        </tr>\n";
+      }
+      echo "      </TABLE>\n";
+      echo "    </TD>\n";
+      echo "  </tr>\n";
+
+      echo "  <TR>\n";
+      echo "    <TD COLSPAN=2>\n";
+      echo "      While planning your {$thingstring}, please note that we \n";
+      echo "      expect classes to end 10 minutes before the hour - making a \n";
+      echo "      50, 80 or 110 minute class time.  This gives attendees time \n";
+      echo "      to organize and be on time to their next class.\n";
+      echo "    </TD>\n";
+      echo "  </TR>\n";
+
+      $text = "Are there any other scheduling constraints on your {$thingstring}?  For\n";
+      $text .= "example, are you proposing another class, panel, or performance? \n";
+      form_textarea ($text, 'SchedulingConstraints', 5);
     }
-
-    $text = "Are there any other scheduling constraints on your {$thingstring}?  For\n";
-    //$text .= "example, are you a GM for another game?  Any times your game\n";
-    $text .= "example, are you proposing another class, panel, or performance? \n";
-    form_textarea ($text, 'SchedulingConstraints', 5);
-  }
   
-
-
-  
-  form_yn ("Are you willing to hold this {$thingstring} more than once at this convention?",
+    form_yn ("Are you willing to hold this {$thingstring} more than once at this convention?",
 	   'MultipleRuns');
 
-  form_section ('Advertising Information');
+    form_section ('Advertising Information');
 
-  $text = "A short sentence for the {$thingstring} to be used to sell the {$thingstring} to the\n";
-  $text .= "general public.\n";
-  form_textarea ($text, 'ShortSentence', 2, TRUE, TRUE);
+    $text = "A short sentence for the {$thingstring} to be used to sell the {$thingstring} to the\n";
+    $text .= "general public.\n";
+    form_textarea ($text, 'ShortSentence', 2, TRUE, TRUE);
 
-  if ($gametype == 'LARP' || $gametype == 'Tabletop RPG')
-  {
-      $text = "Without giving away any secrets for the game (because we want to\n";
-      $text .= "play it too), are there any additional interesting things that\n";
-      $text .= "we can use when we do Shameless Plugs for the con?  Do you\n";
-      $text .= "have a Shameless Plug or advertising spiel you use when you\n";
-      $text .= "talk about the game that you can send or describe to us?";
-  }
-  else
-  {
-      $text = "Are there any additional interesting things that\n";
-      $text .= "we can use when we do Shameless Plugs for the expo?  Do you\n";
-      $text .= "have a plug or advertising spiel you use when you\n";
-      $text .= "talk about the {$thingstring} that you can send or describe to us?";
-  }
-  form_textarea ($text, 'ShamelessPlugs', 4);
+    $text = "Are there any additional interesting things that\n";
+    $text .= "we can use when we do Shameless Plugs for the expo?  Do you\n";
+    $text .= "have a plug or advertising spiel you use when you\n";
+    $text .= "talk about the {$thingstring} that you can send or describe to us?";
+    form_textarea ($text, 'ShamelessPlugs', 4);
 
-  $text = "Are you going to any shows, events or other conventions where\n";
-  $text .= "you will advertise your {$thingstring} for ".CON_NAME."?  If so, which ones?";
-  form_textarea ($text, 'GMGameAdvertising', 4);
+    $text = "Are you going to any shows, events or other conventions where\n";
+    $text .= "you will advertise your {$thingstring} for ".CON_NAME."?  If so, which ones?";
+    form_textarea ($text, 'GMGameAdvertising', 4);
 
-  $text = "Would you be willing to advertise ".CON_NAME." at these events, by\n";
-  $text .= "taking flyers, doing plugs for ".CON_NAME.", or doing plugs for\n";
-  $text .= "other events at ".CON_NAME."?  If so, what are you willing to do,\n";
-  $text .= "and when?";
-  form_textarea ($text, 'GMInterconAdvertising', 4);
+    $text = "Would you be willing to advertise ".CON_NAME." at these events, by\n";
+    $text .= "taking flyers, doing plugs for ".CON_NAME.", or doing plugs for\n";
+    $text .= "other events at ".CON_NAME."?  If so, what are you willing to do,\n";
+    $text .= "and when?";
+    form_textarea ($text, 'GMInterconAdvertising', 4);
 
-  form_yn ('Do you want us to send you flyers to distribute?',
+    form_yn ('Do you want us to send you flyers to distribute?',
 	   'SendFlyers');
 
-  if (0 == $BidId)
-    $text = 'Submit Bid';
-  else
-    $text = 'Update Bid';
-  form_submit ($text);
+    if (0 == $BidId)
+      $text = 'Submit Bid';
+    else
+      $text = 'Update Bid';
+    form_submit ($text);
 
-  echo "</TABLE>\n";
-  echo "</FORM>\n";
+    echo "</TABLE>\n";
+    echo "</FORM>\n";
+  } // not already accepted
+
 }
 
 

@@ -620,6 +620,9 @@ function display_bid_form ($first_try)
   // Show the header - varies depending on update/submit and the nature of the submission
   if (0 == $BidId)
   {
+    $_POST['Author'] =   $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME];
+    $_POST['GameEMail'] = $_SESSION[SESSION_LOGIN_USER_EMAIL];
+
     if ($gametype == 'Other')
         display_header ("Submit an event for " . CON_NAME);
     else
@@ -672,7 +675,8 @@ function display_bid_form ($first_try)
     form_text (64, 'Stage Name or Troupe','Organization');
     form_text (64, 'Web Site', 'Homepage', 128);
 
-    form_text (64, 'EMail for inquries/updates', 'GameEMail', 0, TRUE);
+    echo "<tr><td align=right>EMail for inquries/updates:</td>\n";
+    echo "<td>".$_POST['GameEMail']."</td></tr>\n";
 
 	form_yn('Is this a Troupe Performance?', 'MultipleRuns');
 
