@@ -343,7 +343,7 @@ function get_con_price ($i, &$price, &$start_date, &$end_date)
     case 2:
       $price = 150;
       $start_date = parse_date ('2013-10-31');
-      $end_date = parse_date ('2014-02-07');
+      $end_date = 0;
       return true;
   }
 
