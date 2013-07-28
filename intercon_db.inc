@@ -98,6 +98,7 @@ define (PAID_UP, 16);
 define (SHOW_COMPED_USERS, 17);
 define (SELECT_USER_TO_DELETE, 18);
 define (SHOW_USER_TO_DELETE, 19);
+define (LOGIN_OPENID, 20);
 define (DELETE_USER, 80);
 define (SELECT_USER_TO_VIEW, 81);
 define (VIEW_USER, 82);
@@ -344,6 +345,7 @@ define (SESSION_ATTENDENCE_SHOWN, 'AttendenceShown_' . CON_ID);
 define (SESSION_CON_LAST_UPDATED, 'ConLastUpdated_' . CON_ID);
 define (SESSION_SEQUENCE_NUMBER, 'SequenceNumber_' . CON_ID);
 define (SESSION_TIMEOUT, 'Timeout_' . CON_ID);
+define (SESSION_LOGIN_OPENID, 'LoginOpenID_' . CON_ID);
 
 // Raise the level of error reporting
 
@@ -2955,6 +2957,8 @@ function display_login_form ($error='', $dest='')
   }
 
   // Build the login form
+  	if (file_exists(TEXT_DIR.'/openidme.html'))
+		include(TEXT_DIR.'/openidme.html');	
 
   echo "<form method=POST action=\"index.php\">\n";
   form_add_sequence ();

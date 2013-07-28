@@ -1,6 +1,7 @@
 <?php
 include ("intercon_db.inc");
 include ("files.php");
+include ("login.php");
 
 // Connect to the database
 
@@ -96,6 +97,45 @@ switch ($action)
 	display_error ($result);
       break;
     }
+
+    // See if we're supposed to go somewhere else after logging in
+
+    $dest = '';
+    if (array_key_exists ('dest', $_REQUEST))
+      $dest = $_REQUEST['dest'];
+
+    if ('' != $dest)
+    {
+      header ("Location: $dest");
+      exit ();
+    }
+
+    // Normal login.  Just show the user's homepage
+
+    html_begin ();
+    show_user_homepage ();
+
+    break;
+    
+  case LOGIN_OPENID:
+    // Process the open id.  If it fails, try again
+    if (!test_auth())
+    {
+      html_begin ();
+      display_login_form ();
+      break;
+    }
+    // if there's no user, get them to register
+    $id = get_openid();
+    $_SESSION[SESSION_LOGIN_OPENID] = $id;
+    if (!test_reg($id))
+    {
+      html_begin ();
+      //echo $id;
+      display_user_form (FALSE);
+      break;
+    }
+
 
     // See if we're supposed to go somewhere else after logging in
 
@@ -380,169 +420,6 @@ function log_referrer ()
   return $referrer_id;
 }
 
-/*
- * process_login_form
- *
- * Process the login form filled out by the user.  Note that this function
- * is special in that it doesn't display any errors right away, but instead
- * saves them to be displayed later
- */
-
-function process_login_form ()
-{
-  // Check for a sequence error.
-
-  if (out_of_sequence ())
-    return 'Sequence Error.  Did you use the Back Button?';
-
-  // Extract the username and password and make sure they're not empty
-
-  $EMail = trim ($_POST['EMail']);
-  if (1 != get_magic_quotes_gpc())
-    $EMail = mysql_escape_string ($EMail);
-
-  $Password = trim ($_POST['Password']);
-  $HashedPassword = md5 ($Password);
-
-  $errors = '';
-
-  if ('' == $EMail)
-    $errors .= "You must specify an EMail address<P>\n";
-
-  if ('' == $Password)
-    $errors .= "You must specify a password<P>\n";
-
-  // If we're missing either string, give up
-
-  if ('' != $errors)
-    return $errors;
-
-  // Query the database for the EMail address and password
-
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
-  $sql .= ' FROM Users';
-  $sql .= " WHERE EMail='$EMail' AND HashedPassword='$HashedPassword'";
-
-  //  echo "$sql<p>\n";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot execute query', $sql);
-
-  // Make sure we've gotten a single match
-
-  if (0 == mysql_num_rows ($result))
-    return 'Failed to find matching EMail address / password';
-
-  if (1 != mysql_num_rows ($result))
-    return 'Found more than one matching EMail address';
-
-  // Extract the UserId for the user being logged in and decode the privileges
-
-  $row = mysql_fetch_object ($result);
-
-  return login_with_data ($row, $EMail);
-}
-
-function login_with_data ($row, $EMail)
-{
-  $UserId = $row->UserId;
-  $DisplayName = $row->DisplayName;
-  $name = trim ("$row->FirstName $row->LastName");
-
-  // Update the login time.  If the user was an Alumni, promote him or her to
-  // Unpaid, since he's expressed an interest in this con
-
-  $returning_alumni = false;
-
-  $sql = 'UPDATE Users SET LastLogin=NULL';
-  if ('Alumni' == $row->CanSignup)
-  {
-    $sql .= ', CanSignup="Unpaid", CanSignupModified=NULL';
-    $returning_alumni = true;
-  }
-  $sql .= " WHERE UserId=$UserId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    display_mysql_error ('Attempt to update user login time failed', $sql);
-
-  // Update the referrers table, if an entry was made
-
-  if (array_key_exists (SESSION_REFERRER_ID, $_SESSION))
-  {
-    $sql = "UPDATE Referrers SET UserId=$UserId WHERE ReferrerId=" .
-           $_SESSION[SESSION_REFERRER_ID];
-
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Attempt to update referrer record failed', $sql);
-  }
-
-  // Make sure the session is empty
-
-  session_unset ();
-
-  // Create the session variables and set them
-
-  $_SESSION[SESSION_LOGIN_USER_ID] = $UserId;
-  $_SESSION[SESSION_LOGIN_USER_PRIVS] = ",$row->Priv,";
-  $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
-  $_SESSION[SESSION_LOGIN_USER_NAME] = $name;
-  $_SESSION[SESSION_LOGIN_USER_EMAIL] = $EMail;
-  $_SESSION['IncludeAlumni'] = 0;
-
-  // Initialize the session information from the Con table
-
-  can_show_schedule ();
-
-  // Check whether this is a GM
-
-  $sql = 'SELECT GMId FROM GMs';
-  $sql .= " WHERE UserId=$UserId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Cannot query GM list");
-
-  $is_gm = mysql_num_rows($result);
-
-  // Check whether this is an Iron GM
-
-  $sql = 'SELECT IronGmId FROM IronGm';
-  $sql .= " WHERE UserId=$UserId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Cannot query IronGm list");
-
-  $is_gm += mysql_num_rows($result);
-
-  if (0 == $is_gm)
-    $_SESSION[SESSION_LOGIN_USER_GM] = 0;
-  else
-  {
-    $_SESSION[SESSION_LOGIN_USER_GM] = 1;
-
-    // If the user is a GM, he may be able to see the schedule now...
-
-    if (0 == $_SESSION[SESSION_CON_SHOW_SCHEDULE])
-    {
-      $result = mysql_query ('SELECT ShowSchedule FROM Con');
-      if ($result)
-      {
-	$row = mysql_fetch_object ($result);
-	if ('GMs' == $row->ShowSchedule)
-	  $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 1;
-      }
-    }
-  }
-
-  if ($returning_alumni)
-    return - $UserId;
-  else
-    return $UserId;
-}
 
 /*
  * is_user_gm_for_game
@@ -916,7 +793,7 @@ function show_user_homepage_gm ($UserId)
 
 function show_user_homepage_bids ($UserId)
 {
-  $sql = 'SELECT BidId, Status, Title FROM Bids';
+  $sql = 'SELECT BidId, Status, Title, GameType FROM Bids';
   $sql .= "  WHERE UserId=$UserId";
   $sql .= '  ORDER BY Title';
 
@@ -932,10 +809,14 @@ function show_user_homepage_bids ($UserId)
   echo "<TABLE CELLPADDING=2>\n";
   while ($row = mysql_fetch_object ($result))
   {
+    $type = "Bids";
+    if ($row->GameType == "Performance")
+      $type = "Acts";
     echo "  <TR>\n";
     echo "    <TD>$row->Status:</TD>\n";
-    printf ("    <TD>%s<A HREF=Bids.php?action=%d&BidId=%d>%s</A></TD>\n",
+    printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
     	$row->GameType,
+     	$type,
 	    BID_GAME,
 	    $row->BidId,
 	    $row->Title);
@@ -1676,9 +1557,10 @@ function show_user_homepage ()
 function add_user ()
 {
   $update = isset ($_SESSION[SESSION_LOGIN_USER_ID]);
+  $isOpenId = isset ($_SESSION[SESSION_LOGIN_OPENID]);
   
   // If this is a new registration, check the CAPTCHA
-  if (!$update) {
+  if (!$update && !$isOpenId) {
       require_once('recaptchalib.php');
       $resp = recaptcha_check_answer (RECAPTCHA_PRIVATE_KEY,
                                 $_SERVER["REMOTE_ADDR"],
@@ -1702,7 +1584,7 @@ function add_user ()
     else
     {
       foreach ($_POST as $k => $v)
-	$_POST[$k] = '';
+	    $_POST[$k] = '';
     }
 
     return '';
@@ -1744,45 +1626,50 @@ function add_user ()
   $errors = '';
 
   if ($email_in_use)
-    $errors = "Another user has already registered with an EMail address of \"$EMail\".  Please choose a different EMail address.<P>\n";
-
+  {
+    $errors = "Another user has already registered with an EMail address of \"$EMail\".";
+    $errors .= "  Please choose a different EMail address or login with a different method.<P>\n";
+	return $errors;
+  }
+  
   // Make sure we got the required information
-
-  $Password = trim ($_POST['Password']);
-  $HashedPassword = md5 ($Password);
-
-  if (0 == strlen ($Password))
-    $errors .= "You must enter the password to verify your identity<P>\n";
-
-  if (strlen ($Password) < 8)
-    $errors .= "Passwords must be at least 8 characters long<P>\n";
-
-  // If this is an update, see if the password is correct
-
-  if ($update)
+  if (!$isOpenId)
   {
-    $sql = 'SELECT EMail FROM Users';
-    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-    $sql .= " AND HashedPassword='$HashedPassword'";
+    $Password = trim ($_POST['Password']);
+    $HashedPassword = md5 ($Password);
 
-    $result = mysql_query ($sql);
-    if (! $sql)
-      return 'Password check query failed: ' . mysql_error();
+    if (0 == strlen ($Password))
+      $errors .= "You must enter the password to verify your identity<P>\n";
 
-    if (1 != mysql_num_rows ($result))
-      $errors .= "Incorrect password<P>\n";
-  }
+    if (strlen ($Password) < 8)
+      $errors .= "Passwords must be at least 8 characters long<P>\n";
 
-  if (! $update)
-  {
-    $Password2 = trim ($_POST['Password2']);
-    if ($Password != $Password2)
+    // If this is an update, see if the password is correct
+    if ($update)
     {
-      $_POST['Password'] = '';
-      $_POST['Password2'] = '';
-      $errors .= "The passwords do not match<P>\n";
+      $sql = 'SELECT EMail FROM Users';
+      $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+      $sql .= " AND HashedPassword='$HashedPassword'";
+
+      $result = mysql_query ($sql);
+      if (! $sql)
+        return 'Password check query failed: ' . mysql_error();
+
+      if (1 != mysql_num_rows ($result))
+        $errors .= "Incorrect password<P>\n";
     }
-  }
+
+    if (! $update)
+    {
+      $Password2 = trim ($_POST['Password2']);
+      if ($Password != $Password2)
+      {
+        $_POST['Password'] = '';
+        $_POST['Password2'] = '';
+        $errors .= "The passwords do not match<P>\n";
+      }
+    }
+  }// not open id
 
   if ('' == trim ($_POST['FirstName']))
     $errors .= "You must specify a first name<P>\n";
@@ -1832,6 +1719,7 @@ function add_user ()
   $sql .= build_sql_string ('BestTime');
   $sql .= build_sql_string ('HowHeard');
   $sql .= build_sql_string ('PreferredContact');
+  
   if ($update)
     $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
   else
@@ -1842,6 +1730,10 @@ function add_user ()
   {
     $sql .= ' WHERE UserId = ' . $_SESSION[SESSION_LOGIN_USER_ID];
     $sql .= " AND HashedPassword='$HashedPassword'";
+  }
+  else if ($isOpenId)
+  {
+    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
   }
   else
   {
@@ -1882,7 +1774,7 @@ function add_user ()
 
       $result = mysql_query ($sql);
       if (! $result)
-	display_mysql_error ('Attempt to update referrer record failed', $sql);
+	    display_mysql_error ('Attempt to update referrer record failed', $sql);
 
       session_unregister (SESSION_REFERRER_ID);
     }
@@ -1984,6 +1876,7 @@ function display_user_form ($returning_alumni, $errors='')
     display_error ($errors);
 
   $update = isset ($_SESSION[SESSION_LOGIN_USER_ID]);
+  $isOpenId = isset ($_SESSION[SESSION_LOGIN_OPENID]);
 
   if ($returning_alumni)
   {
@@ -2003,11 +1896,11 @@ function display_user_form ($returning_alumni, $errors='')
 
       $now = time ();
       if ($now > parse_date (CON_OVER))
-	$text = CON_NAME . ' is over';
+	    $text = CON_NAME . ' is over';
       else
       {
-	$text = 'Register for Intercon';
-	show_con_price ($now);
+	    $text = 'Register for Intercon';
+	    show_con_price ($now);
       }
     }
     display_header ($text);
@@ -2031,19 +1924,20 @@ function display_user_form ($returning_alumni, $errors='')
     $_POST['Password2'] = '';
   }
 
-  if (! $update)
+  if (!$update && !$isOpenId)
   {
     form_password (30, 'Password', '', 0, TRUE);
     form_password (30, 'Re-Enter Password', 'Password2', 0, TRUE);
     print ("  <tr><td colspan=\"2\">&nbsp;</td></tr>\n");
   }
-
+  if ($isOpenId)
+  {
+    echo "<i>You've logged in, but please register.</i>";
+  }
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
   form_text (64, 'Stage Name', 'StageName', 0);
   form_text (64, 'EMail', '', 0, TRUE);
-//  form_text (30, 'Nickname');
-//  form_birth_year_and_gender ('BirthYear', 'Gender');
   form_text (64, 'Address', 'Address1');
   form_text (64, '', 'Address2');
   form_text (64, 'City');
@@ -2056,7 +1950,7 @@ function display_user_form ($returning_alumni, $errors='')
   form_preferred_contact ('Preferred Contact', 'PreferredContact');
   form_text (64, 'How did you hear about ' . CON_NAME . '?', 'HowHeard');
   
-  if (! $update) {
+  if (! $update && !$isOpenId) {
       require_once('recaptchalib.php');
       echo "<tr><td></td><td>";
       echo recaptcha_get_html(RECAPTCHA_PUBLIC_KEY);
@@ -2065,7 +1959,7 @@ function display_user_form ($returning_alumni, $errors='')
 
   if (! $update)
     $button_title = 'Register Now!';
-  else
+  else if (!isOpenId)
   {
     $button_title = 'Update';
     echo "  <tr><td colspan=\"2\">\n";
