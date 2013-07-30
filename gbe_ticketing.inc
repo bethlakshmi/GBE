@@ -6,8 +6,6 @@
  *
  */
  
-include("intercon_db.inc");
-
 /* Class TicketItem 
  * 
  * This class represents something that you can purchase in the ticket system.
@@ -598,6 +596,8 @@ function remove_all_event_ticket_auth($TicketItemId)
 	if (!$result)
 		return display_mysql_error ('Cannot execute query', $sql);
 }
+
+
 ?>
 
 

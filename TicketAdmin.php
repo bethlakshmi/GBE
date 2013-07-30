@@ -1,11 +1,12 @@
 <?php
 
-/* TicketItem.php - contains GUI functions and interface for working with Ticketable Items.
+/* TicketAdmin.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 7/25/2013 by MDB
+ * Last Updated 7/29/2013 by MDB
  *
  */
  
+include("intercon_db.inc");
 include("gbe_ticketing.inc");
 
 // Connect to the database -- Really should require staff privilege
