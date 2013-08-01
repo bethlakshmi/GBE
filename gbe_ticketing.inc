@@ -132,12 +132,12 @@ class TicketItem
 			
 		else if (mysql_num_rows($result) == 1)
 		{
-			$sql = "update Ticketitems set ";
+			$sql = "update TicketItems set ";
 			$sql .= build_sql_string('Title', $this->Title, false);
 		}	
 		else
 		{
-			$sql = "insert into Ticketitems set ";
+			$sql = "insert into TicketItems set ";
 			$sql .= build_sql_string('ItemId', $this->ItemId, false);
 			$sql .= build_sql_string('Title', $this->Title);
 		}
