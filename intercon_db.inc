@@ -300,11 +300,15 @@ define (DEAD_DOG_NEW_USER, 255);
 define (DEAD_DOG_CREATE_USER, 256);
 define (DEAD_DOG_PAYPAL_REDIRECT, 257);
 
-// Action Values for TicketAdmin.hph
+// Action Values for TicketAdmin.php
 
 define (TICKETITEM_LIST, 300);
 define (TICKETITEM_EDIT, 301);
 define (TICKETITEM_EDIT_PROCESS, 302);
+define (POS_LISTUSERS, 303);
+define (POS_LISTTICKETS, 304);
+define (POS_RECEIPT, 305);
+define (POS_RECEIPT_ADD, 306);
 
 // List types
 
@@ -2014,8 +2018,8 @@ function select_user ($header,
 		      $show_new_user,
 		      $link_highlit_users,
 		      $highlight,
-		      $exclude_alumni = false,
-		      $show_payment = false)
+		      $exclude_alumni = false,  // Depreciated 
+		      $show_payment = false)    // Depreciated 
 {
   $priv = user_has_priv (PRIV_STAFF);
 
@@ -2045,11 +2049,8 @@ function select_user ($header,
 
   // Get a list of all users
 
-  $sql = 'SELECT UserId, DisplayName, LastName, EMail, CanSignup, Priv,';
-  $sql .= ' LastLogin, PaymentAmount';
+  $sql = 'SELECT UserId, DisplayName, LastName, EMail, Priv, LastLogin';
   $sql .= '  FROM Users';
-  if ($exclude_alumni)
-    $sql .= ' WHERE CanSignup<>"Alumni"';
   $sql .= '  ORDER BY DisplayName';
   $result = mysql_query ($sql);
   if (! $result)
@@ -2113,20 +2114,8 @@ function select_user ($header,
 	      $row->DisplayName);
 
     echo "    <TD><A HREF=mailto:$row->EMail>$row->EMail</A></TD>\n";
-
-    $status = $row->CanSignup;
-    switch ($status)
-    {
-      case 'Alumni':
-	$status = 'Alumni of ' . last_login_to_con ($row->LastLogin);
-        break;
-
-      case 'Paid':
-	if ($show_payment)
-	  $status = sprintf ('Paid $%d', $row->PaymentAmount / 100);
-	break;
-    }
-    echo "    <TD NOWRAP>$status</TD>\n";
+	
+	// Put Payment Status Here... in future?
 
     if ($priv)
     {

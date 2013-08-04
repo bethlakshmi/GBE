@@ -198,7 +198,6 @@ class Transaction
 	public $UserId;
 	public $Amount;
 	public $Datestamp;
-	public $AdjustmentAmt;
 	public $Status;
 	public $TenderType;
 	public $Reference;
@@ -245,7 +244,6 @@ class Transaction
 		$this->UserId = (int)$row->UserId;
 		$this->Amount = (float)$row->Amount;
 		$this->Datestamp = (string)$row->Datestamp;
-		$this->AdjustmentAmt = (float)$row->AdjustmentAmt;
 		$this->Status = (string)$row->Status;
 		$this->TenderType = (string)$row->TenderType;
 		$this->Reference = (string)$row->Reference;
@@ -272,14 +270,13 @@ class Transaction
 		if (!is_integer($this->UserId))
 			return display_error("Transaction User ID is not in a valid format.");	
 		if (!is_double($this->Amount))
-			return display_error("Transaction Amount is not in a valid format");
-		if (!is_double($this->AdjustmentAmt))
-			return display_error("Transaction Adj. Amount is not in a valid format");			
+			return display_error("Transaction Amount is not in a valid format");			
 		if (!is_bool($this->Override))
 			return display_error("Transaction override state is not in a valid format");					
 		$this->Datestamp = date("Y-m-d H:i:s", time());	
 		
 		$this->Userstamp = $_SESSION[SESSION_LOGIN_USER_ID];
+		
 		// Update the database.
 		
 		if ($Update)
@@ -297,7 +294,6 @@ class Transaction
 		$sql .= build_sql_string('UserId', $this->UserId);
 		$sql .= build_sql_string('Amount', $this->Amount);
 		$sql .= build_sql_string('Datestamp', $this->Datestamp);
-		$sql .= build_sql_string('AdjustmentAmt', $this->AdjustmentAmt);
 		$sql .= build_sql_string('Status', $this->Status);
 		$sql .= build_sql_string('TenderType', $this->TenderType);
 		$sql .= build_sql_string('Reference', $this->Reference);
@@ -507,31 +503,53 @@ function get_ticketitem_list(&$TicketItems)
 }
 
 /* function get_event_list
- * 
+ *
  * Used to obtain an array of the current ticket items
  *
- * $events - an array of Events in the DB.  The array key is the event ID, and
- * the value is another array containing the event title.   
+ * $events - an array of Events in the DB. The array key is the event ID, and
+ * the value is another array containing the event title.
  * Returns: nothing.
  */
 function get_event_list(&$events)
 {
 	$sql = sprintf("select * from Events order by EventId");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are no Events to list at this time. Please add.");
+
+	$events = array();
+	while ($row = mysql_fetch_object($result))
+	{
+		$event = array();
+		$event['Title'] = $row->Title;
+		$events[(int)$row->EventId] = $event;
+	}
+}
+
+/* function get_user
+ * 
+ * Used to obtain information about a user.
+ *
+ * $UserId - the ID of the user to retrieve. 
+ * $User - an array containing the user's information. 
+ * Returns: nothing.
+ */
+function get_user($UserId, &$User)
+{
+	$sql = sprintf("select * from Users where UserId = '%d'", $UserId);
 		 
 	$result = mysql_query($sql);
 		
 	if (!$result)
 		return display_mysql_error('Cannot execute query', $sql);
 	if (0 == mysql_num_rows($result))
-		return display_error("There are no Events to list at this time.  Please add.");
+		return display_error("The user with UserID $UserId doesn't exist");
 	
-	$events = array();
-	while ($row = mysql_fetch_object($result)) 
-	{
-		$event = array();
-		$event['Title'] = $row->Title;
-		$events[(int)$row->EventId] = $event;
-	}
+	$User = mysql_fetch_array($result);
 }
 
 /* function ticket_authorizes_event
@@ -596,6 +614,38 @@ function remove_all_event_ticket_auth($TicketItemId)
 	if (!$result)
 		return display_mysql_error ('Cannot execute query', $sql);
 }
+
+/* function get_transactions_for_user
+ * 
+ * Used to obtain a list of the transactions (tickets) purchased by a user.
+ *
+ * $UserId - the ID of the user in question.  
+ * $Transactions - an array of Transaction objects in the DB.
+ * Returns: nothing.
+ */
+function get_transactions_for_user($UserId, &$Transactions)
+{
+	$sql = "select * from Transactions, TicketItems ";
+	$sql .= "where TicketItems.ItemId = Transactions.ItemId "; 
+	$sql .= sprintf("and Transactions.UserId = '%d' ", $UserId);
+    $sql .= "order by Transactions.ItemId";
+	
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+
+	$Transactions = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$trans = new Transaction();
+		$trans->convert_from_sql_row($row);
+		$trans->Title = $row->Title;
+		array_push($Transactions, $trans);
+	} 
+}
+
 
 
 ?>

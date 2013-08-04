@@ -1,6 +1,7 @@
 <?php
 include ("intercon_db.inc");
 include ("files.php");
+include("gbe_ticketing.inc");
 
 // Connect to the database
 
@@ -3301,86 +3302,23 @@ function delete_user ()
 
 function select_user_to_view ()
 {
-  // Make sure that only users with ConCom priv view this page
+	// Make sure that only users with ConCom priv view this page
 
-  if (! user_has_priv (PRIV_CON_COM))
-    return display_access_error ();
+	if (! user_has_priv (PRIV_CON_COM))
+		return display_access_error ();
 
-  // Get the status for the admin so we can subtract him from the totals
+	// There are no highlit users in this display, so just pass an emtpy array
 
-  $sql = 'SELECT CanSignup FROM Users WHERE UserId=1';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query failed for admin status', $sql);
+	$highlight = array ();
 
-  $row = mysql_fetch_object ($result);
-  if (! $row)
-    return display_error ('Failed to find admin!');
-
-  $admin_status = $row->CanSignup;
-
-  // Get a summary of users
-
-  $sql = 'SELECT CanSignup, COUNT(*) AS Count FROM Users';
-  $sql .= '  GROUP BY CanSignup ORDER BY CanSignup';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get summary of users');
-
-  if (0 != mysql_num_rows ($result))
-  {
-    $summary = array ('Paid'=>0, 'Unpaid'=>0, 'Comp'=>0, 'Marketing'=>0);
-    $total = 0;
-    $attendees = 0;
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $summary[$row->CanSignup] = $row->Count;
-      $total += $row->Count;
-
-      if (('Unpaid' != $row->CanSignup) &&
-	  ('Alumni' != $row->CanSignup))
-	$attendees += $row->Count;
-    }
-
-    // Subtract the admin user
-
-    $total--;
-    $summary[$admin_status]--;
-
-    //    echo "Admin status: $admin_status<BR>\n";
-
-    display_header ('Summary:');
-
-    foreach ($summary as $key => $value)
-      echo "$key: <B>$value</B> &nbsp; &nbsp; &nbsp; \n";
-
-    printf ("<BR>Total Attending %s: <B>%d</B> (excludes Unpaid and Alumni)<BR>\n",
-	    CON_NAME,
-	    $attendees);
-    echo "Total Users: <B>$total</B><P>\n";
-  }
-
-  // There are no highlit users in this display, so just pass an emtpy array
-
-  $highlight = array ();
-
-  $link = sprintf ('index.php?action=%d&Seq=%d',
+	$link = sprintf ('index.php?action=%d&Seq=%d',
 		   VIEW_USER,
 		   increment_sequence_number());
 
-
-  // Display the form to allow the user to include the alumni in the list
-  // of users to choose from and allow them to select one
-
-  $alumni = include_alumni_form ('index.php', SELECT_USER_TO_VIEW);
-
-  select_user ('Select User To View',
-	       $link,
-	       false,
-	       TRUE,
-	       $highlight,
-	       0 == $alumni);
+	// Display the form to allow the user to include the alumni in the list
+	// of users to choose from and allow them to select one
+	
+	select_user('Select User To View', $link, false, TRUE, $highlight);
 }
 
 /*

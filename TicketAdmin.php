@@ -11,10 +11,10 @@ include("gbe_ticketing.inc");
 
 // Connect to the database -- Really should require staff privilege
 
-if (! intercon_db_connect ())
+if (!intercon_db_connect())
 {
-  display_mysql_error ('Failed to establish connection to the database');
-  exit ();
+	display_mysql_error ('Failed to establish connection to the database');
+	exit ();
 }
 
 // Standard header stuff
@@ -23,48 +23,64 @@ html_begin ();
 
 // Everything in this file requires registration to run
 
-if (!user_has_priv (PRIV_REGISTRAR))
+if (!user_has_priv(PRIV_REGISTRAR))
 {
-  display_access_error ();
-  html_end ();
-  exit ();
+	display_access_error ();
+	html_end ();
+	exit ();
 }
 
 if (array_key_exists('action', $_REQUEST))
-  $action = $_REQUEST['action'];
+	$action = $_REQUEST['action'];
 else
-  $action = TICKETITEM_LIST;
+	$action = TICKETITEM_LIST;
 
 switch ($action)
 {
- case TICKETITEM_LIST:
-   list_ticket_items();
-   break;
+	case TICKETITEM_LIST:
+		list_ticket_items();
+		break;
 
- case TICKETITEM_EDIT:
-	display_ticket_item_edit_form();
-	break;
+	case TICKETITEM_EDIT:
+		display_ticket_item_edit_form();
+		break;
 
- case TICKETITEM_EDIT_PROCESS:
-	if (array_key_exists('Delete', $_POST))
-		process_ticket_item_delete();
-	else if (!array_key_exists('Close', $_POST))
-		process_ticket_item_edit();
-	list_ticket_items();
-	break;	
+	case TICKETITEM_EDIT_PROCESS:
+		if (array_key_exists('Delete', $_POST))
+			process_ticket_item_delete();
+		else if (!array_key_exists('Close', $_POST))
+			process_ticket_item_edit();
+		list_ticket_items();
+		break;	
 
- default:
-   echo "Unknown action code: $action\n";
+	case POS_LISTUSERS:
+		list_users_for_pos();
+		break;
+	
+    case POS_LISTTICKETS:
+		list_tickets_for_user();
+		break;
+		
+	case POS_RECEIPT:
+		if (array_key_exists('Manual', $_POST))
+			show_ticket_receipt_form();
+		else if (array_key_exists('Close', $_POST))
+			list_users_for_pos();
+		else
+			header("Location: http://www.brownpapertickets.com/");
+		break;
+	
+	default:
+		echo "Unknown action code: $action\n";
 }
 
 /* function list_ticket_items
  * 
  * Used to display ticket items to the admin console.
  *  
- * $edit_mode:  if true, display the list with edit options (links).
  * Returns: nothing.
  */
-function list_ticket_items($edit_mode = false)
+function list_ticket_items()
 {
 	get_ticketitem_list($TicketItems);	
 	if (sizeof($TicketItems) == 0)
@@ -125,7 +141,7 @@ function display_ticket_item_edit_form()
 		$TicketItem->load_from_itemid($_REQUEST['TicketItemId']);
 	$seq = increment_sequence_number();
 	
-	foreach($TicketItem as $k => $v)
+	foreach ($TicketItem as $k => $v)
 		$_POST[$k] = $v;
 	
 	display_header("Editing Ticket Item $TicketItem->ItemId\n\n");
@@ -155,7 +171,7 @@ function display_ticket_item_edit_form()
 	form_text(30, 'Cost', 'Cost', 0, TRUE);
 	display_ticket_item_events($TicketItem->ItemId);
 	echo "<tr><td><br><br></td></tr>";
-	form_submit3("Update Ticket Item", "Delete Item", "Delete", "Close Form", "Close");	
+	form_submit3("Add/Update Ticket Item", "Delete Item", "Delete", "Close Form", "Close");	
 	echo "</table>\n</form>\n";
 }
 
@@ -255,6 +271,116 @@ function process_ticket_item_delete()
 	$Item->convert_from_array($_POST);
 	remove_all_event_ticket_auth($Item->ItemId);
 	$Item->remove_from_db();
+}
+
+/* function list_users_for_pos
+ * 
+ * Used to list the user table in anticipation of ticket receipting.
+ *  
+ * Returns: nothing.
+ */
+function list_users_for_pos()
+{
+	// There are no highlit users in this display, so just pass an emtpy array
+
+	$highlight = array ();
+
+	$link = sprintf('TicketAdmin.php?action=%d&Seq=%d',
+		   POS_LISTTICKETS,
+		   increment_sequence_number());
+
+	// Display the form to allow the user to include the alumni in the list
+	// of users to choose from and allow them to select one
+	
+	select_user('Select a User for Ticket Purchase or Modification<br>', $link, false, 
+		TRUE, $highlight);
+}
+
+/* function list_tickets_for_user
+ * 
+ * Used to list the tickets purchased by this user.
+ *  
+ * Returns: nothing.
+ */
+function list_tickets_for_user()
+{
+	if ((!array_key_exists('UserId', $_REQUEST)) || ($_REQUEST['UserId'] <= 0))
+		return display_error("Cannot list tickets purchased: no user selected.");
+	
+	$UserId = $_REQUEST['UserId'];
+	get_user($UserId, $User);
+	
+	echo "<b>\n";
+	printf("Tickets Purchased for User ID %s:  %s %s (%s)<br>\n", $UserId, 
+		$User['FirstName'], $User['LastName'], $User['DisplayName']);
+	echo "</b><br>\n";
+	
+	get_transactions_for_user($UserId, $Transactions);
+	if (sizeof($Transactions) == 0)
+		echo "This user has not purchased any tickets.<br>\n";
+	
+	echo "You can purchase tickets with a credit card through Brown Paper Tickets, ";
+	echo "or manually receipt tickets using cash or check below.\n";
+	echo "<br><br>\n";
+		
+	if (sizeof($Transactions) > 0)
+	{
+		echo "<table border=\"1\">\n";
+		echo "  <tr>\n";
+		echo "    <th>Ticket Item</th>\n";
+		echo "    <th>Ticket Description</th>\n";
+		echo "    <th>Amount Paid</th>\n";
+		echo "    <th>Date Stamp</th>\n";
+		echo "    <th>Status</th>\n";
+		echo "    <th>Tender Type</th>\n";
+		echo "    <th>Payment Reference</th>\n";
+		echo "    <th>Cashier's Memo</th>\n";
+		echo "  </tr>\n";
+
+		foreach ($Transactions as $trans)
+		{
+			echo "<tr valign=\"top\">\n";
+			echo "  <td align=\"left\">$trans->ItemId</td>\n";
+			echo "  <td align=\"left\">$trans->Title</td>\n";
+			printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+			echo "  <td align=\"left\">$trans->Datestamp</td>\n";
+			echo "  <td align=\"left\">$trans->Status</td>\n";
+			echo "  <td align=\"left\">$trans->TenderType</td>\n";
+			echo "  <td align=\"left\">$trans->Reference</td>\n";
+			echo "  <td align=\"left\">$trans->Memo</td>\n";
+			echo "</tr>\n";
+		}
+		echo "</table><br>\n";
+	}
+	
+	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d&UserId=%d\">", 
+		POS_RECEIPT, $UserId);
+	form_submit3("Receipt with BPT", "Manually Receipt", "Manual", "Close Form", "Close");	
+	echo "</FORM>\n";
+}
+
+/* function show_ticket_receipt_form
+ * 
+ * Used to receipt in new transactions (purchase tickets manually).
+ *  
+ * Returns: nothing.
+ */
+function show_ticket_receipt_form()
+{
+	display_header("Ticket Receipting (Point of Sale)<br>");
+
+	if ((!array_key_exists('UserId', $_REQUEST)) || ($_REQUEST['UserId'] <= 0))
+		return display_error("Cannot list tickets purchased: no user selected.");
+	
+	$UserId = $_REQUEST['UserId'];
+	get_user($UserId, $User);
+	
+	echo "<b>\n";
+	printf("Tickets Purchased for User ID %s:  %s %s (%s)<br>\n", $UserId, 
+		$User['FirstName'], $User['LastName'], $User['DisplayName']);
+	echo "</b><br>\n";
+	
+	echo "This feature has not been implemented yet.<br><br>\n";
 }
 
 html_end();
