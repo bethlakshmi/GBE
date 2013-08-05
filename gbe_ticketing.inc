@@ -2,7 +2,7 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 7/25/2013 by MDB
+ * Last Updated 8/5/2013 by MDB
  *
  */
  
