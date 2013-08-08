@@ -11,12 +11,19 @@ function getOpenIDURL() {
         include 'index.php';
         exit(0);
     }
-
-    return $_GET['openid_identifier'];
+    else {
+      $workingURL = $_GET['openid_identifier'];
+      if (isset($_GET['username']))
+      {
+        $workingURL = str_replace('$username',$_GET['username'],$_GET['openid_identifier']);
+      }
+    }
+    return $workingURL;
 }
 
 function run() {
     $openid = getOpenIDURL();
+    echo $openid;
     $consumer = getConsumer();
 
     // Begin the OpenID authentication process.

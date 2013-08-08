@@ -1,5 +1,5 @@
  Save yourself another password, and login using these services:
-     <table>
+  <table>
      <tr><td>
       <form method="get" action="try_auth.php">
         <input type="hidden" name="action" value="verify" />
@@ -13,34 +13,22 @@
 	    <input type="image" src="yahoo.png" name="image" >
       </form>
      </td></tr>
-     </table>
-     <!--
+     <tr> 
+     <td align=right>Username:&nbsp;</td>
+     <td valign=top>
       <form method="get" action="try_auth.php">
         <input type="hidden" name="action" value="verify" />
-        <input type="hidden" name="openid_identifier" value="http://www.flickr.com/username" />
-        <input type="submit" value="Login with Flickr" />
+        <input type="text" name="username" />
+     </td>
+     <tr><td>&nbsp;</td>
+     <td>
+        <input type="submit" name="openid_identifier" value="http://www.flickr.com/$username" />
+        <input type="submit" name="openid_identifier" value="http://$username.livejournal.com" />
+        <input type="submit" name="openid_identifier" value="https://$username.wordpress.com/" />
+        <input type="submit" name="openid_identifier" value="myspace.com/$username" />
       </form>
-      <form method="get" action="try_auth.php">
-        <input type="hidden" name="action" value="verify" />
-        <input type="hidden" name="openid_identifier" value="http://www.livejournal.com/openid/server.bml" />
-        <input type="submit" value="Login with LiveJournal" />
-      </form>
-      <form method="get" action="try_auth.php">
-        <input type="hidden" name="action" value="verify" />
-        <input type="hidden" name="openid_identifier" value="https://username.wordpress.com/" />
-        <input type="submit" value="Login with WordPress" />
-      </form>
-      <form method="get" action="try_auth.php">
-        <input type="hidden" name="action" value="verify" />
-        <input type="hidden" name="openid_identifier" value="https://www.x.com/developers/paypal/documentation-tools/quick-start-guides/standard-openid-integration-paypal-access" />
-        <input type="submit" value="Login with PayPal" />
-      </form>
-      <form method="get" action="try_auth.php">
-        <input type="hidden" name="action" value="verify" />
-        <input type="hidden" name="openid_identifier" value="myspace.com/username" />
-        <input type="submit" value="Login with MySpace" />
-      </form>
-      -->
+     </td></tr>
+  </table>
 <hr>
 Or... create a regular username and password for our site only.
 </br></br>
