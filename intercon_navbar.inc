@@ -306,6 +306,18 @@ function build_acts_subnavbar() {
   return $bidsSection;
 }
 
+function build_ticketing_subnavbar()
+{
+	$ticketSection = new SubNavBar("Ticketing", true);
+	
+	if (user_has_priv(PRIV_REGISTRAR))
+	{
+		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
+		$ticketSection->push(NavBarItem::newAction("Receipt Tickets", "TicketAdmin.php", POS_LISTUSERS));
+	}
+	return $ticketSection;
+}
+
 function build_attendees_subnavbar() {
   $usersSection = new SubNavBar("Attendees");
   $usersSection->push(NavBarItem::newAction("View User", "index.php", SELECT_USER_TO_VIEW));
@@ -459,6 +471,8 @@ function display_main_navbar() {
 //    $navbar->push(build_shirts_subnavbar());
   if (user_has_priv(PRIV_CON_COM))
     $navbar->push(build_attendees_subnavbar());
+  if (user_has_priv(PRIV_REGISTRAR))
+    $navbar->push(build_ticketing_subnavbar());
   if (user_has_any_mail_priv ())
     $navbar->push(build_mail_subnavbar());
   if (user_has_priv (PRIV_CON_COM))
