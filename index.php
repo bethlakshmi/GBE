@@ -1,11 +1,8 @@
 <?php
 include ("intercon_db.inc");
 include ("files.php");
-//<<<<<<< HEAD
 include ("login.php");
-//=======
 include("gbe_ticketing.inc");
-//>>>>>>> 1fab1a694a36d4e98482a0688493d095aac37fcd
 
 // Connect to the database
 
@@ -1963,7 +1960,7 @@ function display_user_form ($returning_alumni, $errors='')
 
   if (! $update)
     $button_title = 'Register Now!';
-  else if (!isOpenId)
+  else if (!$isOpenId)
   {
     $button_title = 'Update';
     echo "  <tr><td colspan=\"2\">\n";
