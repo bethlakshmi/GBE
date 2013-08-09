@@ -1,11 +1,11 @@
 <?php
 include ("intercon_db.inc");
 include ("files.php");
-<<<<<<< HEAD
+//<<<<<<< HEAD
 include ("login.php");
-=======
+//=======
 include("gbe_ticketing.inc");
->>>>>>> 1fab1a694a36d4e98482a0688493d095aac37fcd
+//>>>>>>> 1fab1a694a36d4e98482a0688493d095aac37fcd
 
 // Connect to the database
 
