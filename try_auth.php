@@ -23,7 +23,7 @@ function getOpenIDURL() {
 
 function run() {
     $openid = getOpenIDURL();
-    echo $openid;
+    //echo $openid;
     $consumer = getConsumer();
 
     // Begin the OpenID authentication process.

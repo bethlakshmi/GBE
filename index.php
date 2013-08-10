@@ -126,9 +126,10 @@ switch ($action)
       display_login_form ();
       break;
     }
+
     // if there's no user, get them to register
     $id = get_openid();
-    $_SESSION[SESSION_LOGIN_OPENID] = $id;
+    
     if (!test_reg($id))
     {
       html_begin ();
@@ -137,6 +138,7 @@ switch ($action)
       break;
     }
 
+    $_SESSION[SESSION_LOGIN_OPENID] = $id;    
 
     // See if we're supposed to go somewhere else after logging in
 
@@ -153,6 +155,9 @@ switch ($action)
     // Normal login.  Just show the user's homepage
 
     html_begin ();
+    //echo "session open id:  ".$_SESSION[SESSION_LOGIN_OPENID]."<br>";
+    //echo "open id:  ".$id."<br>";
+
     show_user_homepage ();
 
     break;
@@ -1727,14 +1732,14 @@ function add_user ()
     $sql .= ', ModifiedBy=UserId';
   $sql .= ', Modified=NULL';
 
-  if ($update)
+  if ($isOpenId)
+  {
+    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
+  }
+  else if ($update)
   {
     $sql .= ' WHERE UserId = ' . $_SESSION[SESSION_LOGIN_USER_ID];
     $sql .= " AND HashedPassword='$HashedPassword'";
-  }
-  else if ($isOpenId)
-  {
-    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
   }
   else
   {
@@ -1742,9 +1747,10 @@ function add_user ()
     $sql .= ', LastLogin=NULL, Created=NULL';
   }
 
-  //echo "sql: $sql<p>\n";
+  // echo "sql: $sql<p>\n";
 
   $result = mysql_query ($sql);
+  // echo "result: $result<br>";
   if (! $result)
     return 'Insert into Users table failed: ' . mysql_error ();
 
@@ -1960,9 +1966,11 @@ function display_user_form ($returning_alumni, $errors='')
 
   if (! $update)
     $button_title = 'Register Now!';
-  else if (!$isOpenId)
-  {
+  else 
     $button_title = 'Update';
+
+  if (!$isOpenId)
+  {
     echo "  <tr><td colspan=\"2\">\n";
     echo "    &nbsp;<BR>Enter your current password to verify your identity.\n";
     printf ("    Use the <a href=\"index.php?action=%d\">Change Password</a>\n",

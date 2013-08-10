@@ -81,7 +81,6 @@ function get_openid() {
   // returned).
   $openid = $response->getDisplayIdentifier();
   $esc_identity = escape($openid);
-
   return $esc_identity;
 }
 
