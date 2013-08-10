@@ -206,7 +206,7 @@ DROP TABLE IF EXISTS `Bids`;
 CREATE TABLE `Bids` (
   `BidId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `GameType` varchar(30) NOT NULL DEFAULT '',
-  `Status` enum('Pending','Under Review','Accepted','Rejected','Dropped') NOT NULL DEFAULT 'Pending',
+  `Status` enum('Pending','Under Review','Accepted','Rejected','Dropped','Draft') NOT NULL DEFAULT 'Pending',
   `UserId` int(10) unsigned NOT NULL DEFAULT '0',
   `FirstName` varchar(30) NOT NULL DEFAULT '',
   `LastName` varchar(30) NOT NULL DEFAULT '',

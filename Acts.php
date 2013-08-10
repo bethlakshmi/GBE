@@ -394,40 +394,6 @@ function show_bid ()
 }
 
 
-/**
- * display_choose_form
- */
-
-function display_choose_form ()
-{
-  // Make sure that the user is logged in
-  global $BID_TYPES;
-
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
-    return display_error ('You must login before submitting a bid');
-  
-  display_header ('Getting involved in ' . CON_NAME);
-
-  echo ("<p>Please choose what type of content you'd like to present at ". CON_NAME );
-  echo (".</p>\n");
-  
-  echo "<form method=\"GET\" action=\"Acts.php\">\n";
-  
-  echo "<TABLE BORDER=0>\n";
-  form_add_sequence ();
- 
-  form_hidden_value ('action', BID_GAME);
- 
-  form_single_select('What is your presentation?', 'GameType', $BID_TYPES);
-
-  echo "<tr><td>&nbsp;</td></tr>\n";
-  
-  form_submit ('Continue');
-  
-  echo "</TABLE>\n";
-  echo "</FORM>\n";
-}
-
 /*
  * display_bid_form
  *
@@ -574,9 +540,9 @@ function display_bid_form ($first_try)
 
 
       if (0 == $EventId)
-	$EditGameInfo = 1;
+	    $EditGameInfo = 1;
       else
-	$EditGameInfo = 0;
+	    $EditGameInfo = 0;
       //      $EditGameInfo = (0 == $EventId);
     }
     else
@@ -801,8 +767,12 @@ function display_bid_form ($first_try)
     echo "     <td colspan=\"2\">\n";
     echo "      &nbsp;<br clear=all>\n";
     echo "      Link to Video<br>\n";
-    printf ('      <textarea name="VideoURL" cols="80" rows="1" wrap="physical">' .
+    if ( strpos($_POST["VideoSource"],FILE_UPLOAD_LOC) === FALSE )
+      printf ('      <textarea name="VideoURL" cols="80" rows="1" wrap="physical">' .
 	  "%s</textarea>\n", $_POST["VideoSource"]);
+	else 
+      printf ('      <textarea name="VideoURL" cols="80" rows="1" wrap="physical">' .
+	  "</textarea>\n");	
     echo "    </td>\n";
     echo "  </tr>\n";
 
@@ -880,10 +850,11 @@ function display_bid_form ($first_try)
 	   'SendFlyers');
 
   if (0 == $BidId)
-    $text = 'Submit Bid';
-  else
-    $text = 'Update Bid';
-  form_submit ($text);
+    form_submit2 ('Submit Bid','Save Draft','isDraft');
+  else if ($_POST['Status'] == "Draft")
+    form_submit2 ('Submit Bid','Update Draft','isDraft');
+  else 
+    form_submit ('Update Bid');
 
   echo "</TABLE>\n";
   echo "</FORM>\n";
@@ -988,8 +959,25 @@ function process_bid_form ()
     return display_error ('You must login before submitting a class, panel or performance.');
 
   $BidId = intval (trim ($_REQUEST['BidId']));
+  
+  // Edit Game Info is to control cases where the bid has already been
+  // accepted.  If it's got an associated event, it's not editable.
   $EditGameInfo = intval (trim ($_REQUEST['EditGameInfo']));
 
+  // Sanity checks
+  if (0 == $BidId)
+  {
+    if (! $EditGameInfo)
+      return display_error ("BidId = 0 when EditGameInfo = $EditGameInfo");
+  }
+
+  // if this is a draft, we don't check all the required fields.
+  $isDraft = FALSE;  
+  if (isset($_POST['isDraft']))
+    $isDraft = TRUE;
+  
+  //echo "isDraft=$isDraft<br>\n";
+    
   //echo "EditGameInfo: $EditGameInfo<br>\n";
 
   //echo "BidId: $BidId<br>\n";  
@@ -1002,7 +990,7 @@ function process_bid_form ()
 
   // Event Information
 
-  if ($EditGameInfo)
+  if ($EditGameInfo && !$isDraft)
   {
     $form_ok &= validate_string ('GameType');
     $form_ok &= validate_string ('Title');
@@ -1021,39 +1009,13 @@ function process_bid_form ()
     $form_ok &= validate_string ('ShortBlurb', 'Short blurb');
   }
 
-  // Game Details
-
-  $form_ok &= validate_string ('Genre');
-  $form_ok &= validate_string ('Premise','Performer history');
-
   // Scheduling Information
-  global $CON_DAYS;
-  global $BID_SLOTS;
-  foreach ($CON_DAYS as $day)
-  	foreach ($BID_SLOTS[$day] as $slot)
-  		$form_ok &= validate_schedule_table_entry ("{$day}_{$slot}", "{$day} {$slot}");
+  global $SHOW_DAYS;
+  global $SHOW_SLOTS;
 
   // Advertising Information
   global $OTHER_SHOWS;
   global $PARTICIPATION;
-
-
-  foreach ($OTHER_SHOWS as $show) {
-    $form_ok &= validate_show($show);
-  }
-
-  $form_ok &= validate_string ('ShortSentence', 'Short sentence');
-  
-  if (!validate_file ("photo_upload") && !isset($_POST["OrigPhoto"]))
-  {
-    $form_ok &= display_error("Please provide a photo");
-  }
-  $form_ok &= validate_video(isset($_POST["OrigVideo"]));
-
-  // If any errors were found, abort now
-
-  if (! $form_ok)
-    return FALSE;
 
   // Make sure that we don't already have a game with this title
   $Title = trim ($_POST['Title']);
@@ -1064,25 +1026,46 @@ function process_bid_form ()
       return false;
   }
 
-  // Sanity checks
-
-  if (0 == $BidId)
+  // Game Details - required to submit/update a bid
+  //  not required for a draft.
+  if (!$isDraft)
   {
-    if (! $EditGameInfo)
-      return display_error ("BidId = 0 when EditGameInfo = $EditGameInfo");
+    $form_ok &= validate_string ('Genre');
+    $form_ok &= validate_string ('Premise','Performer history');
+
+    foreach ($SHOW_DAYS as $day)
+      foreach ($SHOW_SLOTS[$day] as $slot)
+  		$form_ok &= validate_schedule_table_entry ("{$day}_{$slot}", "{$day} {$slot}");
+
+    foreach ($OTHER_SHOWS as $show) {
+      $form_ok &= validate_show($show);
+    }
+
+    $form_ok &= validate_string ('ShortSentence', 'Short sentence');
+  
+    if (!validate_file ("photo_upload") && !isset($_POST["OrigPhoto"]))
+    {
+      $form_ok &= display_error("Please provide a photo");
+    }
+    $form_ok &= validate_video(isset($_POST["OrigVideo"]));
   }
-
-
+    
+  // If any errors were found, abort now
+  if (! $form_ok)
+      return FALSE;
 
   $new_bid = (0 == $BidId);
 
   // If this is a new bid, create an entry in the bid table
-
   if ($new_bid)
   {
     $sql = 'INSERT Bids SET Created=NULL';
     $sql .= build_sql_string ('UserId', $_SESSION[SESSION_LOGIN_USER_ID]);
 
+    // if this is a Draft, mark it as such
+    if ($isDraft)
+      $sql .= build_sql_string('Status','Draft');
+      
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ("Insert into Bids failed");
@@ -1180,8 +1163,6 @@ function process_bid_form ()
   if (! $result)
     return display_mysql_error ("Delete from BidTimes failed");
 
-  global $SHOW_DAYS;
-  global $SHOW_SLOTS;
   foreach ($SHOW_DAYS as $day)
   	foreach ($SHOW_SLOTS[$day] as $slot) {
 	  $sql = "INSERT into BidTimes (BidId, Day, Slot, Pref) values (";
@@ -1202,9 +1183,6 @@ function process_bid_form ()
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Delete from BidChoice failed");
-
-  global $OTHER_SHOWS;
-  global $PARTICIPATION;
 
   foreach ($OTHER_SHOWS as $item) {
 	  $sql = "INSERT INTO BidChoice (`BidId` ,`Question` ,`Answer`) VALUES (";
@@ -1292,6 +1270,7 @@ function process_bid_form ()
   {
     $path2 = "";
     $path2 = process_file($file, "picture", "Bid-".$BidId );
+
     if ( strpos($path2,FILE_UPLOAD_LOC) === FALSE )
     {
       return display_error ("Error uploading the photo file.  File output is: ".$path2);
@@ -1299,6 +1278,7 @@ function process_bid_form ()
   }
   else 
     $path2 = $_POST["OrigPhoto"];
+
 
   $sql = 'UPDATE Bids SET ';
 
