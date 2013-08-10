@@ -8,6 +8,7 @@
  
 include("intercon_db.inc");
 include("gbe_ticketing.inc");
+include("gbe_brownpaper.inc");
 
 // Connect to the database -- Really should require staff privilege
 
@@ -53,6 +54,16 @@ switch ($action)
 		list_ticket_items();
 		break;	
 
+	case TICKETITEM_SYNC:
+		display_ticketitem_bpt_sync();
+		break;
+
+	case TICKETITEM_SYNC_PROCESS:
+		if (!array_key_exists('Close', $_POST))
+			process_ticket_item_bpt_sync();
+		list_ticket_items();
+		break;			
+	
 	case POS_LISTUSERS:
 		list_users_for_pos();
 		break;
@@ -67,7 +78,7 @@ switch ($action)
 		else if (array_key_exists('Close', $_POST))
 			list_users_for_pos();
 		else
-			header("Location: http://www.brownpapertickets.com/");
+			header(sprintf("Location: %s", BPT_EVENT_LINK));
 		break;
 	
 	default:
@@ -89,9 +100,9 @@ function list_ticket_items()
 		return;
 	}
 	
-	echo "<b>\n";
-	echo "Click on a type of ticket to edit or delete it, or click the button below to add.<br>\n";
-	echo "</b><br>\n";
+	display_header("Click on a type of ticket to edit or delete it, or click the button below to add.<br>");
+	
+	echo "</b>\n";
 	echo "<table border=\"1\">\n";
 	echo "  <tr>\n";
 	echo "    <th>Item Id</th>\n";
@@ -264,13 +275,83 @@ function process_ticket_item_delete()
 	if (out_of_sequence())
 		return display_sequence_error(false);
 	
-	// NOTE:  we need to add something that prevents a delete of the ticket item 
-	// has been already purchased by a user.
-	
 	$Item = new TicketItem();
 	$Item->convert_from_array($_POST);
+	
+	// Check if we have a transaction in the table - don't delete in this case.
+	
+	if (is_ticketitem_used_in_transactions($Item->ItemId))
+		return display_error("Cannot Remove Ticket Item $Item->ItemId: " .
+			"It is used in a transaction.");
+	
 	remove_all_event_ticket_auth($Item->ItemId);
 	$Item->remove_from_db();
+}
+
+/* function display_ticketitem_bpt_sync
+ * 
+ * Used to synchronize the ticket item list with Brown Paper Tickets.
+ *  
+ * Returns: nothing.
+ */
+function display_ticketitem_bpt_sync()
+{
+	display_header("Synchronize Ticket Types with Brown Paper Tickets");
+	
+	echo "<br>This feature copies the Brown Paper Tickets price list into the " .
+		" Ticket Type system to be used with Ticket Receipting.  It will not ". 
+		" remove exisitng ticket types.<br>\n";
+	echo "Please select an option below.<br><br>\n";
+
+	$seq = increment_sequence_number();
+	
+	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d\">\n", 
+		TICKETITEM_SYNC_PROCESS);
+	printf("<TABLE BORDER=0>\n");
+	form_add_sequence($seq);
+	form_submit2("Synchronize Types with BPT", "Close Form", "Close");	
+	echo "</TABLE></FORM>\n";
+}
+
+/* function process_ticket_item_bpt_sync
+ * 
+ * Used to actually perform the ticket item sync with BPT.
+ *  
+ * Returns: nothing.
+ */
+function process_ticket_item_bpt_sync()
+{
+	// Make sure that only privileged users get here
+
+	if (!user_has_priv(PRIV_STAFF))
+		return display_access_error();
+
+	// Check for sequence errors
+
+	if (out_of_sequence ())
+		return display_sequence_error(false);
+		
+	// get the two lists
+	
+	$bpt_ticket_items = get_bpt_price_list();
+	if (sizeof($bpt_ticket_items) == 0)
+		return;	
+	get_ticketitem_list($local_ticket_items);
+	
+	foreach ($bpt_ticket_items as $bpt_item)
+	{
+		$found = false;
+		foreach ($local_ticket_items as $local_item)
+		{
+			if ($bpt_item->ItemId == $local_item->ItemId)
+			{
+				$found = true;
+				break;
+			}
+		}
+		if (!$found)
+			$bpt_item->save_to_db();
+	}
 }
 
 /* function list_users_for_pos
@@ -353,10 +434,11 @@ function list_tickets_for_user()
 		echo "</table><br>\n";
 	}
 	
-	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d&UserId=%d\">", 
+	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d&UserId=%d\">\n", 
 		POS_RECEIPT, $UserId);
+	print("<TABLE BORDER=0>\n");
 	form_submit3("Receipt with BPT", "Manually Receipt", "Manual", "Close Form", "Close");	
-	echo "</FORM>\n";
+	echo "</TABLE></FORM>\n";
 }
 
 /* function show_ticket_receipt_form

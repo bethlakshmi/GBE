@@ -305,6 +305,8 @@ define (POS_LISTUSERS, 303);
 define (POS_LISTTICKETS, 304);
 define (POS_RECEIPT, 305);
 define (POS_RECEIPT_ADD, 306);
+define (TICKETITEM_SYNC, 307);
+define (TICKETITEM_SYNC_PROCESS, 308);
 
 // List types
 

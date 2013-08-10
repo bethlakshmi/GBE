@@ -91,8 +91,6 @@ class TicketItem
 		return true;
 	}
 	
-	/* we need a convert-from-array here for _POST stuff */
-
 	/* function save_to_db
 	 * 
 	 * Used to save the current status of the ticket item to the database.	 
@@ -502,6 +500,27 @@ function get_ticketitem_list(&$TicketItems)
 	} 
 }
 
+/* function is_ticketitem_used_in_transactions
+ * 
+ * Function is used to determine if a given ticket item ID is used in the
+ * transactions table.
+ *
+ * $ItemId - the ticket item in question.
+ * Returns: true if that's the case, false if not. 
+ */
+function is_ticketitem_used_in_transactions($ItemId)
+{
+	$sql = sprintf("select * from Transactions where ItemId = '%d'", 
+		$ItemId);
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+		
+	return (mysql_num_rows($result) > 0);	 
+}
+
 /* function get_event_list
  *
  * Used to obtain an array of the current ticket items
@@ -550,6 +569,30 @@ function get_user($UserId, &$User)
 		return display_error("The user with UserID $UserId doesn't exist");
 	
 	$User = mysql_fetch_array($result);
+}
+
+/* function get_user_by_email
+ * 
+ * Used to obtain information about a user by email address.
+ *
+ * $EMail - email of the user to retrieve. 
+ * $User - an array containing the user's information. 
+ * Returns: nothing.
+ */
+function get_user_by_email($EMail, &$User)
+{
+	$sql = sprintf("select * from Users where EMail = '%s'", 
+		mysql_escape_string(trim($EMail)));
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+		
+	if (0 == mysql_num_rows($result))
+		$User = null;
+	else
+		$User = mysql_fetch_array($result);
 }
 
 /* function ticket_authorizes_event
@@ -645,6 +688,111 @@ function get_transactions_for_user($UserId, &$Transactions)
 		array_push($Transactions, $trans);
 	} 
 }
+
+/* function create_stand_in_user
+ * 
+ * Used to create a temporary stand-in user in the event a user purchased tickets 
+ * but doesn't have an account locally (e.g. purchased over BPT).
+ *
+ * The user is automatically added to the local user's table and marked as unregistered.
+ *
+ * $fname - the first name of the user, or empty
+ * $lname - the last name of the user, or empty
+ * $email - the email of the user, or empty
+ * $phone - the phone number of the user, or empty
+ * Returns: nothing.
+ */
+function create_stand_in_user($fname, $lname, $email, $phone)
+{
+	// Check that the email address isn't already being used by another player.
+  
+	get_user_by_email($email, $user);
+	if ($user != null)
+		return display_error("Cannot create stand-in user, email is already in use:  $email");
+	
+	if ((0 == strlen(trim($fname))) && (0 == strlen(trim($lname))))
+	{
+		$lname = "*Unknown User*";
+		$disp_name = "*Unknown User*";
+	}
+	else
+		$disp_name = $fname . " " . $lname;
+	
+	
+	
+	// Create the stand in user.  Whoohoo! 
+
+    $sql = 'insert into users set ';
+	$sql .= build_sql_string('FirstName', trim($fname), false);
+	$sql .= build_sql_string('LastName', trim($lname));
+	$sql .= build_sql_string('StageName');
+	$sql .= build_sql_string('DisplayName',$DisplayName);
+	$sql .= build_sql_string('Nickname');
+	$sql .= build_sql_string('EMail');
+	$sql .= build_sql_string('BirthYear');
+	$sql .= build_sql_string('Gender');
+	$sql .= build_sql_string('Address1');
+	$sql .= build_sql_string('Address2');
+	$sql .= build_sql_string('City');
+	$sql .= build_sql_string('State');
+	$sql .= build_sql_string('Zipcode');
+	$sql .= build_sql_string('Country');
+	$sql .= build_sql_string('DayPhone');
+	$sql .= build_sql_string('EvePhone');
+	$sql .= build_sql_string('BestTime');
+	$sql .= build_sql_string('HowHeard');
+	$sql .= build_sql_string('PreferredContact');
+	$sql .= build_sql_string('Priv', $Priv);
+	$sql .= build_sql_string('CanSignup');
+	$sql .= build_sql_string('PaymentAmount', $PaymentAmount);
+	$sql .= build_sql_string('PaymentNote');
+	$sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
+	$sql .= ', Modified=NULL';
+
+  if ('Comp' != $_POST['CanSignup'])
+    $sql .= ', CompEventId=0';
+  else
+    $sql .= build_sql_string ('CompEventId');
+
+  if (('' != $_POST['CanSignup']) && ($old_CanSignup != $_POST['CanSignup']))
+  {
+    $sql .= ', CanSignupModified=NULL';
+    $sql .= ', CanSignupModifiedId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  }
+
+  if (0 != $UserId)
+    $sql .= ' WHERE UserId = ' . $UserId;
+
+  //  printf ("Insert: %s<p>\n", $sql);
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Insert into Users table failed');
+
+  return true;
+
+}
+
+
+/* function ticket_item_exists
+ * 
+ * Used to determin if a given ticket item exists in the local database.
+ *
+ * $ItemId:  the Ticket Item Id to verify
+ * Returns:  true if it exists, false if not.
+ */
+function ticket_item_exists($ItemId)
+{
+	$sql = sprintf("select * from TicketItems where ItemId = '%d'", $ItemId);
+	 
+	$result = mysql_query($sql);
+	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result) > 0);
+}
+	
 
 
 

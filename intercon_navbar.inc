@@ -314,6 +314,7 @@ function build_ticketing_subnavbar()
 	{
 		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
 		$ticketSection->push(NavBarItem::newAction("Receipt Tickets", "TicketAdmin.php", POS_LISTUSERS));
+		$ticketSection->push(NavBarItem::newAction("Synch Ticket Types", "TicketAdmin.php", TICKETITEM_SYNC));
 	}
 	return $ticketSection;
 }
