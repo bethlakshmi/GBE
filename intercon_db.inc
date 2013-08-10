@@ -307,6 +307,8 @@ define (POS_RECEIPT, 305);
 define (POS_RECEIPT_ADD, 306);
 define (TICKETITEM_SYNC, 307);
 define (TICKETITEM_SYNC_PROCESS, 308);
+define (TRANSACTION_SYNC, 309);
+define (TRANSACTION_SYNC_PROCESS, 310);
 
 // List types
 

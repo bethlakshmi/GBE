@@ -62,7 +62,17 @@ switch ($action)
 		if (!array_key_exists('Close', $_POST))
 			process_ticket_item_bpt_sync();
 		list_ticket_items();
-		break;			
+		break;	
+
+	case TRANSACTION_SYNC:
+		display_transaction_bpt_sync();
+		break;		
+	
+	case TRANSACTION_SYNC_PROCESS:
+		if (!array_key_exists('Close', $_POST))
+			process_transaction_bpt_sync();
+		list_users_for_pos();
+		break;	
 	
 	case POS_LISTUSERS:
 		list_users_for_pos();
@@ -354,6 +364,55 @@ function process_ticket_item_bpt_sync()
 	}
 }
 
+/* function display_transaction_bpt_sync
+ * 
+ * Used to synchronize the transaction table with Brown Paper Tickets.
+ *  
+ * Returns: nothing.
+ */
+function display_transaction_bpt_sync()
+{
+	display_header("Synchronize Ticket Transactions with Brown Paper Tickets");
+	
+	echo "<br>This feature copies the Brown Paper Tickets torder list into the " .
+		" Transactions table to be used with Ticket Receipting.  It will not ". 
+		" remove exisitng transactions.<br>\n";
+	echo "Please select an option below.<br><br>\n";
+
+	$seq = increment_sequence_number();
+	
+	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d\">\n", 
+		TRANSACTION_SYNC_PROCESS);
+	printf("<TABLE BORDER=0>\n");
+	form_add_sequence($seq);
+	form_submit2("Synchronize Transactions BPT", "Close Form", "Close");	
+	echo "</TABLE></FORM>\n";
+}
+
+/* function process_transaction_bpt_sync
+ * 
+ * Used to actually perform the transaction sync with BPT.
+ *  
+ * Returns: nothing.
+ */
+function process_transaction_bpt_sync()
+{
+	// Make sure that only privileged users get here
+
+	if (!user_has_priv(PRIV_STAFF))
+		return display_access_error();
+
+	// Check for sequence errors
+
+	if (out_of_sequence ())
+		return display_sequence_error(false);
+		
+	// Run the syncrhonization process;
+	
+	$count = process_bpt_order_list();
+	printf("Import Results:  %d new transactions added to the system.<br><br>", $count);
+}
+
 /* function list_users_for_pos
  * 
  * Used to list the user table in anticipation of ticket receipting.
@@ -396,43 +455,11 @@ function list_tickets_for_user()
 		$User['FirstName'], $User['LastName'], $User['DisplayName']);
 	echo "</b><br>\n";
 	
-	get_transactions_for_user($UserId, $Transactions);
-	if (sizeof($Transactions) == 0)
-		echo "This user has not purchased any tickets.<br>\n";
-	
 	echo "You can purchase tickets with a credit card through Brown Paper Tickets, ";
 	echo "or manually receipt tickets using cash or check below.\n";
 	echo "<br><br>\n";
 		
-	if (sizeof($Transactions) > 0)
-	{
-		echo "<table border=\"1\">\n";
-		echo "  <tr>\n";
-		echo "    <th>Ticket Item</th>\n";
-		echo "    <th>Ticket Description</th>\n";
-		echo "    <th>Amount Paid</th>\n";
-		echo "    <th>Date Stamp</th>\n";
-		echo "    <th>Status</th>\n";
-		echo "    <th>Tender Type</th>\n";
-		echo "    <th>Payment Reference</th>\n";
-		echo "    <th>Cashier's Memo</th>\n";
-		echo "  </tr>\n";
-
-		foreach ($Transactions as $trans)
-		{
-			echo "<tr valign=\"top\">\n";
-			echo "  <td align=\"left\">$trans->ItemId</td>\n";
-			echo "  <td align=\"left\">$trans->Title</td>\n";
-			printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
-			echo "  <td align=\"left\">$trans->Datestamp</td>\n";
-			echo "  <td align=\"left\">$trans->Status</td>\n";
-			echo "  <td align=\"left\">$trans->TenderType</td>\n";
-			echo "  <td align=\"left\">$trans->Reference</td>\n";
-			echo "  <td align=\"left\">$trans->Memo</td>\n";
-			echo "</tr>\n";
-		}
-		echo "</table><br>\n";
-	}
+	show_user_ticket_table($UserId);
 	
 	printf("<FORM METHOD=\"POST\" ACTION=\"TicketAdmin.php?action=%d&UserId=%d\">\n", 
 		POS_RECEIPT, $UserId);
@@ -440,6 +467,52 @@ function list_tickets_for_user()
 	form_submit3("Receipt with BPT", "Manually Receipt", "Manual", "Close Form", "Close");	
 	echo "</TABLE></FORM>\n";
 }
+
+
+/* function show_user_ticket_table
+ * 
+ * Used to show the table with all transactions for the given user.
+ *  
+ * $UserId - the ID of the user in question.
+ * Returns: nothing.
+ */
+function show_user_ticket_table($UserId)
+{
+	get_transactions_for_user($UserId, $Transactions);
+	if (sizeof($Transactions) == 0)
+	{
+		echo "This user has not purchased any tickets.<br><br>\n";
+		return;
+	}
+
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>Ticket Item</th>\n";
+	echo "    <th>Ticket Description</th>\n";
+	echo "    <th>Amount Paid</th>\n";
+	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Status</th>\n";
+	echo "    <th>Tender Type</th>\n";
+	echo "    <th>Payment Reference</th>\n";
+	echo "    <th>Cashier's Memo</th>\n";
+	echo "  </tr>\n";
+
+	foreach ($Transactions as $trans)
+	{
+		echo "<tr valign=\"top\">\n";
+		echo "  <td align=\"left\">$trans->ItemId</td>\n";
+		echo "  <td align=\"left\">$trans->Title</td>\n";
+		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
+		echo "  <td align=\"left\">$trans->Status</td>\n";
+		echo "  <td align=\"left\">$trans->TenderType</td>\n";
+		echo "  <td align=\"left\">$trans->Reference</td>\n";
+		echo "  <td align=\"left\">$trans->Memo</td>\n";
+		echo "</tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
 
 /* function show_ticket_receipt_form
  * 

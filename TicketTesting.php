@@ -24,6 +24,8 @@ html_begin();
 echo get_bpt_event_info()->title;
 echo "<br>";
 echo get_bpt_event_date_id();
+echo "<br>";
+process_bpt_order_list();
 
 html_end();
 

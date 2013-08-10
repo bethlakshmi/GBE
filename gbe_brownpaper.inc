@@ -132,7 +132,7 @@ function get_bpt_price_list()
  * Used to get the list of current orders in the BPT database and update the 
  * transaction table accordingly.
  *
- * Returns: Nothing.
+ * Returns: Number of transactions imported.
  */
 function process_bpt_order_list()
 {
@@ -140,15 +140,21 @@ function process_bpt_order_list()
 		BPT_DEVELOPER_ID, BPT_EVENT_ID, BPT_CLIENT_ID);
 	
 	$order_list_xml = perform_bpt_api_call($order_list_call);
+	$count = 0;
 	
 	foreach ($order_list_xml->item as $order)
-	{			
-		for ($i = 0; $i < (int)$order->quantity; $i++)
-		{	
+	{		
+		if (!transaction_reference_exists((string)$order->ticket_number))
+		{
 			create_trans_from_bpt_order($order, $trans);
-			
+			for ($i = 0; $i < (int)$order->quantity; $i++)
+			{	
+				$trans->save_to_db(true, false);
+				$count++;
+			}
 		}
 	}
+	return $count;
 }
 
 /* function create_trans_from_bpt_order
@@ -168,49 +174,41 @@ function create_trans_from_bpt_order($order, &$trans)
 		return display_error(sprintf("Ticket Item %d does not exist in database. " .
 			"Please syncrhonize the ticket database with Brown Paper Tickets and retry.", 
 			(int)$order->price_id));
-			
+	
+	$ticket_item = new TicketItem();
+	$ticket_item->load_from_itemid((int)$order->price_id);
+	
 	// If the user doesn't exist locally, create a stand in user.
 	
 	get_user_by_email((string)$order->email, $user);
 	if ($user == null)
 	{
-		/* create user here */
-		return display_error("Could not create user with email: $order->email");
-	}
+		create_stand_in_user((string)$order->fname, (string)$order->lname, (string)$order->email, 
+			(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
+			(string)$order->zip, (string)$order->country);
+		get_user_by_email((string)$order->email, $user);
+		if ($user == null)
+			return display_error(sprintf("Unable to create a local temporary user for: %s", 
+			(string)$order->email));
+	}	
 	
-	
-		
 	$trans = new Transaction();
-	$trans->ItemId = (int)$order->price_id;
-	$trans->UserId = $user['UserId'];
-			
-	/* what if price id doesn't exist?  return null*/
-		
+	$trans->ItemId = (int)$ticket_item->ItemId;
+	$trans->UserId = (int)$user['UserId'];
+	$trans->Amount = (float)sprintf("%0.2f", $ticket_item->Cost);	
 	$trans->Reference = (string)$order->ticket_number;
 	$trans->Status = 'Settled';
 	$trans->TenderType = 'Charge';
 	$trans->Cashier = null;
-	$trans->Memo = sprintf("BPT Order Method:  %s  Time:  %s  Notes:  %s", 
-		(string)$order->shipping_method, (string)$order->order_time, 
-		(string)$order->order_notes);
+	$trans->Memo = sprintf("BPT Order (%s) @ %s", 
+		(string)$order->shipping_method, (string)$order->order_time);
+	if (strlen(trim((string)$order->order_notes)) > 0)
+		$trans->Memo .= " Notes:  " . (string)$order->order_notes;
+	$trans->Override = false;
 }
 
 
-	//<order_time>2013-08-05 12:25:09</order_time><date_id>870568</date_id><price_id>2482205</price_id><quantity>1</quantity><fname/><lname/><address/><city/><state/><zip/><country>United States</country><email/><phone/><cc>N/A</cc><shipping_method>Will Call</shipping_method><order_notes/><ticket_number>A28578748</ticket_number>
-	
-	/*	public $TransIndex;
-	public $ItemId;
-	public $UserId;
-	public $Amount;
-	public $Datestamp;
-	public $Status;
-	public $TenderType;
-	public $Reference;
-	public $Cashier;
-	public $Memo;
-	public $Override;
-	*/
-
+?>
 
 
 

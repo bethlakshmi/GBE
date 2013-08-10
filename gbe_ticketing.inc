@@ -582,7 +582,7 @@ function get_user($UserId, &$User)
 function get_user_by_email($EMail, &$User)
 {
 	$sql = sprintf("select * from Users where EMail = '%s'", 
-		mysql_escape_string(trim($EMail)));
+		mysql_real_escape_string(trim($EMail)));
 		 
 	$result = mysql_query($sql);
 		
@@ -700,9 +700,14 @@ function get_transactions_for_user($UserId, &$Transactions)
  * $lname - the last name of the user, or empty
  * $email - the email of the user, or empty
  * $phone - the phone number of the user, or empty
+ * $address - the address of the user, or empty
+ * $city - the city of the user, or empty
+ * $state - the state of the user, or empty
+ * $zip - the zip of the user, or nothing
+ * $country - the country of the user, or nothing.
  * Returns: nothing.
  */
-function create_stand_in_user($fname, $lname, $email, $phone)
+function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $state, $zip, $country)
 {
 	// Check that the email address isn't already being used by another player.
   
@@ -712,67 +717,38 @@ function create_stand_in_user($fname, $lname, $email, $phone)
 	
 	if ((0 == strlen(trim($fname))) && (0 == strlen(trim($lname))))
 	{
-		$lname = "*Unknown User*";
-		$disp_name = "*Unknown User*";
+		$lname = "*Unknown Name*";
+		$disp_name = "*Unknown Name*";
 	}
 	else
+	{
 		$disp_name = $fname . " " . $lname;
-	
-	
+	}
 	
 	// Create the stand in user.  Whoohoo! 
 
     $sql = 'insert into users set ';
 	$sql .= build_sql_string('FirstName', trim($fname), false);
 	$sql .= build_sql_string('LastName', trim($lname));
-	$sql .= build_sql_string('StageName');
-	$sql .= build_sql_string('DisplayName',$DisplayName);
-	$sql .= build_sql_string('Nickname');
-	$sql .= build_sql_string('EMail');
-	$sql .= build_sql_string('BirthYear');
-	$sql .= build_sql_string('Gender');
-	$sql .= build_sql_string('Address1');
-	$sql .= build_sql_string('Address2');
-	$sql .= build_sql_string('City');
-	$sql .= build_sql_string('State');
-	$sql .= build_sql_string('Zipcode');
-	$sql .= build_sql_string('Country');
-	$sql .= build_sql_string('DayPhone');
-	$sql .= build_sql_string('EvePhone');
-	$sql .= build_sql_string('BestTime');
-	$sql .= build_sql_string('HowHeard');
-	$sql .= build_sql_string('PreferredContact');
-	$sql .= build_sql_string('Priv', $Priv);
-	$sql .= build_sql_string('CanSignup');
-	$sql .= build_sql_string('PaymentAmount', $PaymentAmount);
-	$sql .= build_sql_string('PaymentNote');
+	$sql .= build_sql_string('DisplayName',$disp_name);
+	$sql .= build_sql_string('Nickname', "*Auto-Generated User*");
+	$sql .= build_sql_string('EMail', trim($email));
+	$sql .= build_sql_string('Address1', trim($address));
+	$sql .= build_sql_string('City', trim($city));
+	$sql .= build_sql_string('State', trim($state));
+	$sql .= build_sql_string('Zipcode', trim($zip));
+	$sql .= build_sql_string('Country', trim($country));
+	$sql .= build_sql_string('DayPhone', trim($phone));
+	$sql .= build_sql_string('EvePhone', trim($phone));
+	$sql .= build_sql_string('PaymentNote', "*Unregistered*");	
+	$sql .= build_sql_string('openid', "");
 	$sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
 	$sql .= ', Modified=NULL';
 
-  if ('Comp' != $_POST['CanSignup'])
-    $sql .= ', CompEventId=0';
-  else
-    $sql .= build_sql_string ('CompEventId');
-
-  if (('' != $_POST['CanSignup']) && ($old_CanSignup != $_POST['CanSignup']))
-  {
-    $sql .= ', CanSignupModified=NULL';
-    $sql .= ', CanSignupModifiedId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-  }
-
-  if (0 != $UserId)
-    $sql .= ' WHERE UserId = ' . $UserId;
-
-  //  printf ("Insert: %s<p>\n", $sql);
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Insert into Users table failed');
-
-  return true;
-
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ('Insert into Users table failed');
 }
-
 
 /* function ticket_item_exists
  * 
@@ -793,6 +769,24 @@ function ticket_item_exists($ItemId)
 	return (mysql_num_rows($result) > 0);
 }
 	
+/* function transaction_reference_exists
+ * 
+ * Used to determin if a given transaction with the inidcated reference exists in the local db.
+ *
+ * $reference:  the Reference number to verify
+ * Returns:  true if it exists, false if not.
+ */
+function transaction_reference_exists($reference)
+{
+	$sql = sprintf("select * from Transactions where Reference = '%s'", $reference);
+	 
+	$result = mysql_query($sql);
+	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result) > 0);
+}	
 
 
 
