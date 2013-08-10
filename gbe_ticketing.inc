@@ -727,7 +727,7 @@ function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $
 	
 	// Create the stand in user.  Whoohoo! 
 
-    $sql = 'insert into users set ';
+    $sql = 'insert into Users set ';
 	$sql .= build_sql_string('FirstName', trim($fname), false);
 	$sql .= build_sql_string('LastName', trim($lname));
 	$sql .= build_sql_string('DisplayName',$disp_name);
