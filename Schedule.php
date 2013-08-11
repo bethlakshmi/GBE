@@ -2270,7 +2270,7 @@ function process_signup_request ()
 	{
 	  $error = sprintf ("You're already registered for " .
 			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
-			    '<I>%s</I></A> which conflicts with this game',
+			    '<I>%s</I></A> which conflicts with this time slot',
 			    SCHEDULE_SHOW_GAME,
 			    $row->EventId,
 			    $row->Title);
