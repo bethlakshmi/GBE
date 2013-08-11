@@ -77,25 +77,29 @@ function display_bid_intro ($area)
 	include(TEXT_DIR.'/'.$area.'bidding2.html');	
 
   echo "<p>\n";
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
-    $dest = 'index.php?action=' . PROMPT_FOR_LOGIN . '&dest=Bids.php';
-  else
-    $dest = 'Bids.php';
 
   echo "<div align=center>\n";
-  if ( $area == "Conference")
+
+  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
   {
+    echo 'You must <a href="index.php?action=' . PROMPT_FOR_LOGIN . '">';
+    echo 'login</a> before submitting a bid.<br>';
+  } else {
+
+    if ( $area == "Conference")
+    {
       echo "<a href=$dest?GameType=Class&Seq=41&action=50><img src=submitClass.gif alt=\"Submit Class\" border=0></a>\n";
       echo "<a href=$dest?GameType=Panel&Seq=41&action=50><img src=submitPanel.gif alt=\"Submit Panel\" border=0></a>\n";
 
-  }
-  else if ($area == "Show")
-  {
+    }
+    else if ($area == "Show")
+    {
   		$dest = "Acts.php";
         echo "<a href=$dest?GameType=Performance&Seq=41&action=50><img src=submitAct.gif alt=\"Submit Act\" border=0></a>\n";
-  }
-  else
-    echo "<a href=$dest><img src=IWantToBid.gif width=115 height=27 alt=\"I Want To BID!\" border=0></a>\n";
+    }
+    else
+      echo "<a href=$dest><img src=IWantToBid.gif width=115 height=27 alt=\"I Want To BID!\" border=0></a>\n";
+}
   echo "</div>\n";
 
   echo "<p>\n";
