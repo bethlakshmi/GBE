@@ -129,6 +129,7 @@ switch ($action)
 
     // if there's no user, get them to register
     $id = get_openid();
+    $_SESSION[SESSION_LOGIN_OPENID] = $id;    
     
     if (!test_reg($id))
     {
@@ -138,6 +139,7 @@ switch ($action)
       break;
     }
 
+    // don't ask me why this is here twice, but it fixed a bug.
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
 
     // See if we're supposed to go somewhere else after logging in
@@ -1732,15 +1734,23 @@ function add_user ()
     $sql .= ', ModifiedBy=UserId';
   $sql .= ', Modified=NULL';
 
-  if ($isOpenId)
-  {
-    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
-  }
-  else if ($update)
+  // yes no
+  if ($update && !$isOpenId)
   {
     $sql .= ' WHERE UserId = ' . $_SESSION[SESSION_LOGIN_USER_ID];
     $sql .= " AND HashedPassword='$HashedPassword'";
   }
+  // yes yes
+  else if ($update && $isOpenId)
+  {
+    $sql .= ' WHERE openid = "'.$_SESSION[SESSION_LOGIN_OPENID].'"';
+  }
+  // no yes
+  else if (!$update && $isOpenId)
+  {
+    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
+  }
+  // no no
   else
   {
     $sql .= build_sql_string ('HashedPassword', $HashedPassword);
