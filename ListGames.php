@@ -701,6 +701,7 @@ function process_add_run ()
 function process_add_ops ()
 {
   // Check for a sequence error
+  $set_runs = TRUE;
 
   if (out_of_sequence ())
     return display_sequence_error (true);
@@ -709,20 +710,27 @@ function process_add_ops ()
   {
     // Check values
     $form_ok = TRUE;
+    //  echo "Sessions: ".$_POST['Sessions']."<br>\n";
+    //  echo "isset: ".isset($_POST['Sessions'])."<br>\n";
 
     $form_ok &= validate_string ('Title');
     $form_ok &= validate_players ('Neutral');
     $form_ok &= validate_int ('Hours', 1, 12, 'Hours');
     $form_ok &= validate_string ('Description');
     $form_ok &= validate_string ('ShortBlurb', 'Short blurb');
-    $form_ok &= validate_int ('Sessions', 1, 24, 'Sessions');
-    $form_ok &= validate_day_time_by_val (trim ($_POST['StartHour']), 
+    if (isset($_POST['Sessions']) && $_POST['Sessions'] != "")
+    {
+      $form_ok &= validate_int ('Sessions', 1, 24, 'Sessions');
+      $form_ok &= validate_day_time_by_val (trim ($_POST['StartHour']), 
     									trim ($_POST['Day']));
 
-    //calculate and check end hour
-    $EndHour = $_POST['StartHour'] + ($_POST['Hours']*$_POST['Sessions']) - 1;
-    $form_ok &= validate_day_time_by_val ($EndHour, trim ($_POST['Day']));
-
+      //calculate and check end hour
+      $EndHour = $_POST['StartHour'] + ($_POST['Hours']*$_POST['Sessions']) - 1;
+      $form_ok &= validate_day_time_by_val ($EndHour, trim ($_POST['Day']));
+    }
+    else 
+      $set_runs = FALSE;
+      
     if (! $form_ok)
       return FALSE;
   }
@@ -749,6 +757,7 @@ function process_add_ops ()
   }
   
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
+  $sql .= build_sql_string ('Title');
   $sql .= build_sql_string ('Author');
   $sql .= build_sql_string ('GameEMail');
   $sql .= build_sql_string ('GameType','Ops');
@@ -776,7 +785,8 @@ function process_add_ops ()
     echo "Update $EventId for <i>".$_POST['Title']."</I>\n<br>\n";
   }
 
-  if (!isset ($_POST['DeleteRun']))
+  // if we're actually adding tracks - not delete, not empty on the run info
+  if (!isset ($_POST['DeleteRun']) && $set_runs )
   {
     // for each n of n sessions
 
@@ -806,7 +816,8 @@ function process_add_ops ()
     echo "TOTAL: Created $n runs of ".$_POST['Title']." on ".$_POST['Day'].".<br>";
 
   }
-  else
+  // only do a delete if we're not just updating runs.
+  else if ($set_runs)
   {
     $sql = "DELETE FROM Runs WHERE EventId=$EventId";
 
@@ -931,7 +942,7 @@ function add_ops($type=0)
 	echo "</td></tr>";
   }
 
-  form_text (2, 'Length', 'Hours');
+  form_text (2, 'Length', 'Hours', 0, TRUE);
   form_players_entry ('Neutral',false);
 
    $text = "A <b>short blurb</b> (50 words or less) to be used for\n";
