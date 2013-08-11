@@ -202,8 +202,15 @@ define (PAGE_BANNER, 'PageBanner.png');
 
 // rooms at event - must match DB set in Runs  
 global $ROOM_LIST;
-$ROOM_LIST = array('Master/Drop-In Space', 'Dance Space', 'Lecture Space A', 
- 		'Lecture Space B', 'Workshop Space', 'Food Space', 'Theater', 'Vendors', 'Pool');
+$ROOM_LIST = array("Crispus Attucks  (Master/Drop-in Classes)",
+	"Haym Solomon (Food)",
+	"Molly Pitcher (Workshops)",
+	"Pool",
+	"Theater (Shows/Rehearsals)",
+	"Thomas Paine A&B (Dance; dressing room)",
+	"Vendor Hall (Shows/Special Events)",
+	"William Dawes A (Lectures)",
+	"William Dawes B (Movement; Panels)");
 
 //Items for Bids/Schedule
 global $CON_DAYS;
