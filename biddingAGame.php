@@ -83,7 +83,7 @@ function display_bid_intro ($area)
   if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
   {
     echo 'You must <a href="index.php?action=' . PROMPT_FOR_LOGIN . '">';
-    echo 'login</a> before submitting a bid.<br>';
+    echo 'login</a> before offering clasess, panels, acts or other volunteering.<br>';
   } else {
 
     if ( $area == "Conference")
