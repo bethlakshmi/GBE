@@ -1488,7 +1488,7 @@ function show_user_homepage_bio_info ($website="", $bio_text="", $photo="")
  		$photo = $row->PhotoSource;
   
     if ('' != $row->Website)
-        $website = $bio_row->Website;
+        $website = $row->Website;
 
     if ('' == $bio_text)
     {
