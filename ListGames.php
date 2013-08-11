@@ -746,7 +746,6 @@ function process_add_ops ()
   {
     // Insert Event and get Event Id
     $sql = 'INSERT Events SET ';
-    $sqlend = build_sql_string ('Title');
 
   }
   else
