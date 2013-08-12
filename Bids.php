@@ -936,12 +936,16 @@ function display_bid_form ($first_try)
 
     form_yn ('Do you want us to send you flyers to distribute?',
 	   'SendFlyers');
-
+	   
+  if ($_POST['Status'] == "Draft" || $_POST['currentDraft'] == TRUE)
+	  form_hidden_value("currentDraft",TRUE);
+	
     if (0 == $BidId)
-      $text = 'Submit Bid';
-    else
-      $text = 'Update Bid';
-    form_submit ($text);
+      form_submit2 ('Submit Bid','Save Draft','isDraft');
+    else if ($_POST['Status'] == "Draft" || $_POST['currentDraft'] == TRUE)
+      form_submit2 ('Submit Bid','Update Draft','isDraft');
+    else 
+      form_submit ('Update Bid');
 
     echo "</TABLE>\n";
     echo "</FORM>\n";
@@ -959,6 +963,9 @@ function display_bid_form ($first_try)
 
 function process_bid_form ()
 {
+  global $CLASS_DAYS;
+  global $BID_SLOTS;
+
   if (out_of_sequence ())
     return display_sequence_error (false);
 
@@ -972,6 +979,11 @@ function process_bid_form ()
   $BidId = intval (trim ($_REQUEST['BidId']));
   $EditGameInfo = intval (trim ($_REQUEST['EditGameInfo']));
 
+  // if this is a draft, we don't check all the required fields.
+  $isDraft = FALSE;  
+  if (isset($_POST['isDraft']))
+    $isDraft = TRUE;
+
   //echo "EditGameInfo: $EditGameInfo<br>\n";
 
   //echo "BidId: $BidId<br>\n";  
@@ -983,11 +995,12 @@ function process_bid_form ()
   $form_ok = TRUE;
 
   // Event Information
-
   if ($EditGameInfo)
+    $form_ok &= validate_string ('Title');
+
+  if ($EditGameInfo && !$isDraft)
   {
     $form_ok &= validate_string ('GameType');
-    $form_ok &= validate_string ('Title');
     $form_ok &= validate_string ('Author');
     $form_ok &= validate_string ('GameEMail', 'EMail for game inquiries');
 
@@ -1002,21 +1015,21 @@ function process_bid_form ()
   }
 
   // Game Details
+  if (!$isDraft)
+  {
+    $form_ok &= validate_string ('Genre');
+    $form_ok &= validate_string ('Premise');
 
-  $form_ok &= validate_string ('Genre');
-  $form_ok &= validate_string ('Premise');
-
-  // Scheduling Information
-  global $CLASS_DAYS;
-  global $BID_SLOTS;
-  foreach ($CLASS_DAYS as $day)
-  	foreach ($BID_SLOTS[$day] as $slot)
+    // Scheduling Information
+    foreach ($CLASS_DAYS as $day)
+  	  foreach ($BID_SLOTS[$day] as $slot)
   		$form_ok &= validate_schedule_table_entry ("{$day}_{$slot}", "{$day} {$slot}");
 
-  // Advertising Information
+    // Advertising Information
 
-  $form_ok &= validate_string ('ShortSentence', 'Short sentence');
-
+    $form_ok &= validate_string ('ShortSentence', 'Short sentence');
+  }
+  
   // If any errors were found, abort now
 
   if (! $form_ok)
@@ -1047,6 +1060,10 @@ function process_bid_form ()
   {
     $sql = 'INSERT Bids SET Created=NULL';
     $sql .= build_sql_string ('UserId', $_SESSION[SESSION_LOGIN_USER_ID]);
+    
+    // if this is a Draft, mark it as such
+    if ($isDraft)
+      $sql .= build_sql_string('Status','Draft');
 
     $result = mysql_query ($sql);
     if (! $result)
@@ -1066,6 +1083,10 @@ function process_bid_form ()
     $sql .= build_sql_string ('GameEMail');
     $sql .= build_sql_string ('Organization');    
     $sql .= build_sql_string ('GameType');
+    
+    // if we've submitted this as a bid
+    if ($_POST['currentDraft'] == TRUE && !$isDraft)
+      $sql .= build_sql_string('Status','Pending');
 
     $sql .= build_sql_string ('MinPlayersMale');
     $sql .= build_sql_string ('MaxPlayersMale');
@@ -1140,8 +1161,6 @@ function process_bid_form ()
   if (! $result)
     return display_mysql_error ("Delete from BidTimes failed");
 
-  global $CLASS_DAYS;
-  global $BID_SLOTS;
   foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot) {
 	  $sql = "INSERT into BidTimes (BidId, Day, Slot, Pref) values (";
@@ -1177,8 +1196,8 @@ function process_bid_form ()
   // Where are we sending this information?
 
   if (1 == DEVELOPMENT_VERSION)
-    $send_to = 'barry@tannenbaum.mv.com';
-  else
+    $send_to = 'DEVELOPMENT_MAIL_ADDR';
+  else 
     $send_to = EMAIL_BID_CHAIR;
 
   // See who's doing this
@@ -1224,12 +1243,12 @@ function process_bid_form ()
 
   //echo "subject: $subject<br>\n";
   //echo "message: $msg<br>\n";
-
-  if (! intercon_mail ($send_to,
+  if (!$isDraft)
+    if (! intercon_mail ($send_to,
 		       $subject,
 		       $msg,
 		       $email))
-    display_error ('Attempt to send mail failed');
+      display_error ('Attempt to send mail failed');
 
   return TRUE;
 }
@@ -1380,7 +1399,7 @@ function display_class_table ($order,$desc)
   $sql .= ' Bids.PrefPlayersMale+Bids.PrefPlayersFemale+Bids.PrefPlayersNeutral AS Pref';
   $sql .= ' FROM Bids, Users';
   $sql .= ' WHERE Users.UserId=Bids.UserId';
-  $sql .= ' AND Bids.GameType = \'Class\'';
+  $sql .= ' AND Bids.GameType = \'Class\' AND Bids.Status != \'Draft\' ';
   $sql .= " ORDER BY $order";
 
   // echo "SQL: $sql<p>\n";
@@ -1585,7 +1604,7 @@ function display_panel_table ($order,$desc)
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
   $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT';
   $sql .= ' FROM Bids';
-  $sql .= ' WHERE Bids.GameType = \'Panel\' ';
+  $sql .= ' WHERE Bids.GameType = \'Panel\' AND Bids.Status != \'Draft\' ';
   $sql .= " ORDER BY $order";
 
   // echo "SQL: $sql<p>\n";
@@ -2427,13 +2446,17 @@ function drop_bid ($BidId, $EventId)
 
 function display_bid_etc ()
 {
-  echo "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
-  echo CON_NAME . "!</FONT>\n";
-  echo "<P>\n";
-  echo "The staff have been notified of your submission.\n";
-  echo "<P>\n";
-
+  $thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
   $page = 'bidFollowup.html';
+
+  if (isset($_POST['isDraft']))
+  {
+    $thanks = "<FONT SIZE=\"+2\">Thank you for starting a <b>draft</b> with ";
+    $page = 'draftInfo.html';
+  }
+  echo $thanks;
+  echo CON_NAME . "!</FONT>\n";
+
 
   if (! is_readable ($page))
   {

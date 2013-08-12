@@ -8,7 +8,7 @@ $VIDEO_LIST = array('I don\'t have any video of myself performing',
                  'This is video of me but not the act I\'m submitting', 
                  'This is video of the act I would like to perform');
 
-$submitFilter = ' AND Bids.GameType = \'Performance\'';
+$submitFilter = ' AND Bids.GameType = \'Performance\' ';
 
 // Connect to the database
 
@@ -849,9 +849,12 @@ function display_bid_form ($first_try)
   form_yn ('Do you want us to send you flyers to distribute?',
 	   'SendFlyers');
 
+  if ($_POST['Status'] == "Draft" || $_POST['currentDraft'] == TRUE)
+	  form_hidden_value("currentDraft",TRUE);
+
   if (0 == $BidId)
     form_submit2 ('Submit Bid','Save Draft','isDraft');
-  else if ($_POST['Status'] == "Draft")
+  else if ($_POST['Status'] == "Draft" || $_POST['currentDraft'] == TRUE)
     form_submit2 ('Submit Bid','Update Draft','isDraft');
   else 
     form_submit ('Update Bid');
@@ -868,6 +871,7 @@ function display_bid_form ($first_try)
 
 function validate_video ($haveFile)
 {
+  
   global $VIDEO_LIST;
   $returnvalue = TRUE;
   $a = trim($_POST["VideoOf"]);
@@ -900,14 +904,16 @@ function validate_video ($haveFile)
    								
 //echo $a.$b;
 //echo strcmp($a, $b);
-			
+
+
   if ( strcmp($a, $b) == 53 && 
         (validate_file( "video_upload") || (isset($_POST["VideoURL"]) && 
         		strlen($_POST["VideoURL"]) != 0 )))
     $returnvalue &= display_error("Video description suggests no video, and yet a ".
 								    "video was provided.");
-  if ( !haveFile && strcmp($a, $b) != 53 && 
-        (!validate_file( "video_upload") && !isset($_POST["VideoURL"]) ))
+  if ( !$haveFile && strcmp($a, $b) != 53 && 
+        (!validate_file( "video_upload") && 
+        (!isset($_POST["VideoURL"]) || strlen($_POST["VideoURL"]) == 0)))
     $returnvalue &= display_error("Video description promises a video, and yet no ".
 								    "video was provided.");
     
@@ -989,6 +995,8 @@ function process_bid_form ()
   $form_ok = TRUE;
 
   // Event Information
+  if ($EditGameInfo)
+    $form_ok &= validate_string ('Title');
 
   if ($EditGameInfo && !$isDraft)
   {
@@ -1043,11 +1051,12 @@ function process_bid_form ()
 
     $form_ok &= validate_string ('ShortSentence', 'Short sentence');
   
-    if (!validate_file ("photo_upload") && !isset($_POST["OrigPhoto"]))
+    if (!validate_file ("photo_upload") && 
+        (!isset($_POST["OrigPhoto"]) || $_POST["OrigPhoto"] == "" ))
     {
       $form_ok &= display_error("Please provide a photo");
     }
-    $form_ok &= validate_video(isset($_POST["OrigVideo"]));
+    $form_ok &= validate_video(isset($_POST["OrigVideo"]) && $_POST["OrigVideo"] != "");
   }
     
   // If any errors were found, abort now
@@ -1086,6 +1095,10 @@ function process_bid_form ()
     $sql .= build_sql_string ('GameEMail');
     $sql .= build_sql_string ('Organization');    
     $sql .= build_sql_string ('GameType');
+
+    // if we've submitted this as a bid
+    if ($_POST['currentDraft'] == TRUE && !$isDraft)
+      $sql .= build_sql_string('Status','Pending');
 
     $sql .= build_sql_string ('MinPlayersMale');
     $sql .= build_sql_string ('MaxPlayersMale');
@@ -1231,7 +1244,7 @@ function process_bid_form ()
   // Where are we sending this information?
 
   if (1 == DEVELOPMENT_VERSION)
-    $send_to = 'barry@tannenbaum.mv.com';
+    $send_to = 'DEVELOPMENT_MAIL_ADDR';
   else
     $send_to = EMAIL_BID_CHAIR;
 
@@ -1279,7 +1292,6 @@ function process_bid_form ()
   else 
     $path2 = $_POST["OrigPhoto"];
 
-
   $sql = 'UPDATE Bids SET ';
 
   global $VIDEO_LIST;
@@ -1305,7 +1317,6 @@ function process_bid_form ()
   }
   $sql .= 'PhotoSource="'.$path2.'"';
   $sql .= " WHERE BidId=".$BidId.";";
-  if ( strpos($path2,FILE_UPLOAD_LOC) === FALSE )
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -1339,12 +1350,12 @@ function process_bid_form ()
 
   //echo "subject: $subject<br>\n";
   //echo "message: $msg<br>\n";
-
-  if (! intercon_mail ($send_to,
+  if (!$isDraft)
+    if (! intercon_mail ($send_to,
 		       $subject,
 		       $msg,
 		       $email))
-    display_error ('Attempt to send mail failed');
+      display_error ('Attempt to send mail failed');
 
   return TRUE;
 }
@@ -1419,6 +1430,7 @@ function display_bids_for_review ($isAct)
   $sql .= ' FROM Bids, Users';
   $sql .= ' WHERE Users.UserId=Bids.UserId';
   $sql .= $submitFilter;
+  $sql .= ' AND Bids.Status != \'Draft\' ';
   $sql .= " ORDER BY $order";
 
   //  echo "SQL: $sql<p>\n";
@@ -2342,13 +2354,16 @@ function drop_bid ($BidId, $EventId)
 
 function display_bid_etc ()
 {
-  echo "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
-  echo CON_NAME . "!</FONT>\n";
-  echo "<P>\n";
-  echo "The staff have been notified of your submission.\n";
-  echo "<P>\n";
-
+  $thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
   $page = 'actFollowup.html';
+
+  if (isset($_POST['isDraft']))
+  {
+    $thanks = "<FONT SIZE=\"+2\">Thank you for starting a <b>draft</b> with ";
+    $page = 'draftInfo.html';
+  }
+  echo $thanks;
+  echo CON_NAME . "!</FONT>\n";
 
   if (! is_readable ($page))
   {

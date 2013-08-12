@@ -981,6 +981,7 @@ CREATE TABLE `Users` (
   `CanSignupModified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `Created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `openid` VARCHAR( 255 ) NOT NULL,
+  PRIMARY KEY (`UserId`),
   KEY `CanSignup` (`CanSignup`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

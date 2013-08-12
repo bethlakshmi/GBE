@@ -308,10 +308,10 @@ function list_games_by ($type, $showOps=FALSE)
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_error ('Cannot query game list: ' . mysql_error());
+    return display_error ('Cannot query list: ' . mysql_error());
 
   if (0 == mysql_num_rows ($result))
-    return display_error ('No games in database');
+    return display_error ('No conference items are accepted/available.');
 
   global $LIST_GAME_TEXT;
   echo $LIST_GAME_TEXT;
