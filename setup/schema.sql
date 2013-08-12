@@ -28,6 +28,30 @@ CREATE TABLE `Away` (
   `Fri` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Sat` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Sun` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu12` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu13` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu14` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu15` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu16` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu17` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu18` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu19` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu20` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu21` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu22` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu23` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu24` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu25` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu26` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu27` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu28` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu29` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu30` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Thu31` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Fri08` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Fri09` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Fri10` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `Fri11` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Fri12` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Fri13` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Fri14` tinyint(3) unsigned NOT NULL DEFAULT '0',
@@ -110,6 +134,7 @@ LOCK TABLES `Away` WRITE;
 /*!40000 ALTER TABLE `Away` DISABLE KEYS */;
 /*!40000 ALTER TABLE `Away` ENABLE KEYS */;
 UNLOCK TABLES;
+
 
 --
 -- Table structure for table `BidFeedback`
@@ -303,32 +328,7 @@ CREATE TABLE `BidTimes` (
   PRIMARY KEY  (`BidTimeId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
---
--- Table structure for table `PanelBids'
---
 
-DROP TABLE IF EXISTS `PanelBids`;
-CREATE TABLE `PanelBids` (
-  `PanelBidsId` int(10) unsigned NOT NULL auto_increment,
-  `BidId` int(10) unsigned NOT NULL,
-  `UserId` int(10) unsigned NOT NULL DEFAULT '0',
-  `Interest` enum('no involvement', 'being a panelist', 'being the moderator') NOT NULL,
-  `Expertise` text,
-  PRIMARY KEY  (`PanelBidsId`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
-
---
--- Table structure for table `BidChoice`
---
-
-DROP TABLE IF EXISTS `BidChoice`;
-CREATE TABLE `BidChoice` (
-  `BidChoice` int(10) unsigned NOT NULL auto_increment,
-  `BidId` int(10) unsigned NOT NULL,
-  `Question` varchar(128) NOT NULL,
-  `Answer` enum('Yes', 'No', 'Yes - and Won!','Not Sure') NOT NULL,
-  PRIMARY KEY  (`BidChoice`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Dumping data for table `BidTimes`
@@ -432,6 +432,20 @@ LOCK TABLES `DeadDog` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `EventTicketLinks`
+--
+
+DROP TABLE IF EXISTS `EventTicketLinks`;
+CREATE TABLE IF NOT EXISTS `EventTicketLinks` (
+  `ETIndex` int(11) NOT NULL AUTO_INCREMENT,
+  `EventId` int(11) NOT NULL,
+  `TicketItemId` int(11) NOT NULL,
+  `Datestamp` datetime NOT NULL,
+  `Userstamp` int(11) NOT NULL,
+  PRIMARY KEY (`ETIndex`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+
+--
 -- Table structure for table `Events`
 --
 
@@ -500,6 +514,7 @@ CREATE TABLE `GMs` (
   `DisplayEMail` enum('Y','N') NOT NULL DEFAULT 'Y',
   `ReceiveConEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `ReceiveSignupEMail` enum('Y','N') NOT NULL DEFAULT 'N',
+  `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `Role` enum( "panelist", "moderator" ) NULL DEFAULT NULL,
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`GMId`)
@@ -565,6 +580,20 @@ LOCK TABLES `IronGmTeam` WRITE;
 /*!40000 ALTER TABLE `IronGmTeam` DISABLE KEYS */;
 /*!40000 ALTER TABLE `IronGmTeam` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `PanelBids'
+--
+
+DROP TABLE IF EXISTS `PanelBids`;
+CREATE TABLE `PanelBids` (
+  `PanelBidsId` int(10) unsigned NOT NULL auto_increment,
+  `BidId` int(10) unsigned NOT NULL,
+  `UserId` int(10) unsigned NOT NULL DEFAULT '0',
+  `Interest` enum('no involvement', 'being a panelist', 'being the moderator') NOT NULL,
+  `Expertise` text,
+  PRIMARY KEY  (`PanelBidsId`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Table structure for table `Plugs`
@@ -868,6 +897,46 @@ LOCK TABLES `Thursday` WRITE;
 /*!40000 ALTER TABLE `Thursday` DISABLE KEYS */;
 /*!40000 ALTER TABLE `Thursday` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `TicketItems`
+--
+
+DROP TABLE IF EXISTS `TicketItems`;
+CREATE TABLE IF NOT EXISTS `TicketItems` (
+  `ItemId` int(11) NOT NULL,
+  `Title` varchar(30) NOT NULL,
+  `Description` varchar(100) NOT NULL,
+  `Active` tinyint(1) NOT NULL,
+  `Cost` decimal(10,2) NOT NULL,
+  `Datestamp` datetime NOT NULL,
+  `Userstamp` int(11) NOT NULL,
+  PRIMARY KEY (`ItemId`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Transactions`
+--
+
+DROP TABLE IF EXISTS `Transactions`;
+CREATE TABLE IF NOT EXISTS `Transactions` (
+  `TransIndex` int(11) NOT NULL AUTO_INCREMENT,
+  `ItemId` int(11) NOT NULL,
+  `UserId` int(11) NOT NULL,
+  `Amount` double(10,2) NOT NULL,
+  `Datestamp` datetime NOT NULL,
+  `Status` enum('Posted','Settled','Voided','Error') NOT NULL,
+  `TenderType` enum('Cash','Check','Charge','Comp') NOT NULL,
+  `Reference` varchar(30) NOT NULL,
+  `Cashier` int(11) DEFAULT NULL,
+  `Memo` varchar(500) NOT NULL,
+  `Override` tinyint(1) NOT NULL,
+  PRIMARY KEY (`TransIndex`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=6 ;
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `Users`
