@@ -90,6 +90,10 @@ switch ($action)
 		else
 			header(sprintf("Location: %s", BPT_EVENT_LINK));
 		break;
+		
+	case TRANSACTION_STATUS:
+		list_ticket_status();
+		break;
 	
 	default:
 		echo "Unknown action code: $action\n";
@@ -407,7 +411,7 @@ function process_transaction_bpt_sync()
 	if (out_of_sequence ())
 		return display_sequence_error(false);
 		
-	// Run the syncrhonization process;
+	// Run the synchronization process;
 	
 	$count = process_bpt_order_list();
 	printf("Import Results:  %d new transactions added to the system.<br><br>", $count);
@@ -421,7 +425,7 @@ function process_transaction_bpt_sync()
  */
 function list_users_for_pos()
 {
-	// There are no highlit users in this display, so just pass an emtpy array
+	// There are no highlit users in this display, so just pass an empty array
 
 	$highlight = array ();
 
@@ -468,51 +472,20 @@ function list_tickets_for_user()
 	echo "</TABLE></FORM>\n";
 }
 
-
-/* function show_user_ticket_table
+/* function list_ticket_status
  * 
- * Used to show the table with all transactions for the given user.
+ * Used to display the current ticket purchase status.  
  *  
- * $UserId - the ID of the user in question.
  * Returns: nothing.
  */
-function show_user_ticket_table($UserId)
+function list_ticket_status()
 {
-	get_transactions_for_user($UserId, $Transactions);
-	if (sizeof($Transactions) == 0)
-	{
-		echo "This user has not purchased any tickets.<br><br>\n";
-		return;
-	}
-
-	echo "<table border=\"1\">\n";
-	echo "  <tr>\n";
-	echo "    <th>Ticket Item</th>\n";
-	echo "    <th>Ticket Description</th>\n";
-	echo "    <th>Amount Paid</th>\n";
-	echo "    <th>Date Stamp</th>\n";
-	echo "    <th>Status</th>\n";
-	echo "    <th>Tender Type</th>\n";
-	echo "    <th>Payment Reference</th>\n";
-	echo "    <th>Cashier's Memo</th>\n";
-	echo "  </tr>\n";
-
-	foreach ($Transactions as $trans)
-	{
-		echo "<tr valign=\"top\">\n";
-		echo "  <td align=\"left\">$trans->ItemId</td>\n";
-		echo "  <td align=\"left\">$trans->Title</td>\n";
-		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
-		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
-		echo "  <td align=\"left\">$trans->Status</td>\n";
-		echo "  <td align=\"left\">$trans->TenderType</td>\n";
-		echo "  <td align=\"left\">$trans->Reference</td>\n";
-		echo "  <td align=\"left\">$trans->Memo</td>\n";
-		echo "</tr>\n";
-	}
-	echo "</table><br>\n";
+	echo "<b>\n";
+	printf("Ticket Purchase Status for %s:", CON_NAME);
+	echo "</b><br><br>\n";
+		
+	show_ticket_status_table();
 }
-
 
 /* function show_ticket_receipt_form
  * 

@@ -1,4 +1,6 @@
 <?php
+// Note:  This file has been depreciated for the ticketing system.  -MDB
+
 include ("intercon_db.inc");
 
 // Connect to the database

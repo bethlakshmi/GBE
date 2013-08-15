@@ -931,11 +931,12 @@ function show_user_homepage_plugs ($UserId)
  * mark_user_paid
  *
  * If the user has just paid through PayPal, update his status
+ * This should be depreciated -MDB
  */
 
 function mark_user_paid ()
 {
-    
+
   //  dump_array ('POST - mark_user_paid', $_POST);
   
   // Flip the "Paid" bit in the user's record
@@ -986,8 +987,6 @@ function mark_user_paid ()
     $sql = "UPDATE Users SET CanSignup='Paid'";
     $sql .= ', CanSignupModified=NULL';
     $sql .= ", CanSignupModifiedId=$user_id";
-    $sql .= ", PaymentNote='$paid_by'";
-    $sql .= ", PaymentAmount=$amount";
     $sql .= " WHERE UserId=$user_id";
     //  echo "$sql<p>\n";
     $result = mysql_query ($sql);
@@ -1138,64 +1137,22 @@ function display_signup_status ()
 
 function show_con_attendence()
 {
-  // Only do this if the user has ConCom priv
+	// Only do this if the user has ConCom priv
 
-  if (! user_has_priv (PRIV_CON_COM))
-    return;
+	if (! user_has_priv (PRIV_CON_COM))
+		return;
 
-/*  // Only do this the first time the user logs in
-
-  if (isset ($_SESSION[SESSION_ATTENDENCE_SHOWN]))
-    return;
-
-  $_SESSION[SESSION_ATTENDENCE_SHOWN] = 1; */
-
-  // Get a summary of users
-
-  $sql = 'SELECT CanSignup, COUNT(*) AS Count FROM Users';
-  $sql .= '  GROUP BY CanSignup ORDER BY CanSignup';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get summary of users');
-
-  if (0 != mysql_num_rows ($result))
-  {
-    $summary = array ('Paid'=>0, 'Unpaid'=>0, 'Comp'=>0, 'Marketing'=>0);
-    $total = 0;
-    $attendees = 0;
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $summary[$row->CanSignup] = $row->Count;
-      $total += $row->Count;
-
-      if (('Unpaid' != $row->CanSignup) &&
-	  ('Alumni' != $row->CanSignup))
-	$attendees += $row->Count;
-    }
-
-    printf ("Total Attending %s: <b>%d</b><p>\n",
-	    CON_NAME,
-	    $attendees);
-  }
-
-  // Get a summary of Thursday Thing attendees
-  if (THURSDAY_ENABLED) 
-  {
-    $sql = 'SELECT COUNT(*) AS Count FROM Thursday';
-    $sql .= ' WHERE Status="Paid"';
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Failed to get summary of Thursday attendees');
-
-    $row = mysql_fetch_object($result);
-    if ($row)
-    {
-      printf ("<b>%d</b> attendees for the %s Thursday Thing<p>\n",
-	      $row->Count,
-	      CON_NAME);
-    }
-  }
+	// Get User Count
+	
+	$sql = "select * from Users";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	printf("<br><b>User Summary for %s </b><br><br>\n", CON_NAME);
+	printf("Total Number of Users:  %d<br>\n", mysql_num_rows($result));
+	printf("Total Number of Users with Paid Tickets:  %d<br><br>\n", ticketed_user_count());
 }
 
 /*
@@ -2090,8 +2047,6 @@ function display_user_form_for_others ()
 	$_POST[$k] = $v;
 
       // Convert payment amount to dollars
-
-      $_POST['PaymentAmount'] = $_POST['PaymentAmount']/100;
     }
 
     $text = 'Update Registration for ';
@@ -2190,7 +2145,7 @@ function display_user_form_for_others ()
   echo "    </td>\n";
   echo "  </tr>\n";
 
-  user_form_section(CON_NAME . ' Payment Info');
+  user_form_section(CON_NAME . ' User Status');
 
   $PaidChecked = '';
   $CompChecked = '';
@@ -2234,8 +2189,7 @@ function display_user_form_for_others ()
   print ("    <input type=radio name=CanSignup value=\"Rollover\" $RollChecked>Rollover\n");
   print ("    </TD>\n");
   print ("  </TR>\n");
-  form_text (2, 'Payment Amount $', 'PaymentAmount');
-  form_text (64, 'Payment Note', 'PaymentNote', 128);
+
   //form_comped_for_game ();
 
   form_submit ('Update');
@@ -2381,8 +2335,6 @@ function process_edit_user ()
   $form_ok &= validate_string ('LastName', 'Last Name');
   $form_ok &= validate_email ('EMail');
 
-  $PaymentAmount = intval ($_POST['PaymentAmount']) * 100;
-
   $BirthYear = intval (trim ($_POST['BirthYear']));
 
   // If anything was wrong, abort now
@@ -2435,8 +2387,6 @@ function process_edit_user ()
   $sql .= build_sql_string ('PreferredContact');
   $sql .= build_sql_string ('Priv', $Priv);
   $sql .= build_sql_string ('CanSignup');
-  $sql .= build_sql_string ('PaymentAmount', $PaymentAmount);
-  $sql .= build_sql_string ('PaymentNote');
   $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
   $sql .= ', Modified=NULL';
 
@@ -2749,60 +2699,17 @@ function select_user_to_edit ()
   else
     $OrderBy = ORDER_BY_NAME;
 
-  // Get the status for the admin so we can subtract him from the totals
-
-  $sql = 'SELECT CanSignup FROM Users WHERE UserId=1';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query failed for admin status', $sql);
-
-  $row = mysql_fetch_object ($result);
-  if (! $row)
-    return display_error ('Failed to find admin!');
-
-  $admin_status = $row->CanSignup;
-
-  // Get a summary of users
-
-  $sql = 'SELECT CanSignup, COUNT(*) AS Count FROM Users';
-  $sql .= '  GROUP BY CanSignup ORDER BY CanSignup';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get summary of users');
-
-  if (0 != mysql_num_rows ($result))
-  {
-    $summary = array ('Paid'=>0, 'Unpaid'=>0, 'Comp'=>0, 'Marketing'=>0);
-    $total = 0;
-    $attendees = 0;
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $summary[$row->CanSignup] = $row->Count;
-      $total += $row->Count;
-
-      if (('Unpaid' != $row->CanSignup) &&
-	  ('Alumni' != $row->CanSignup))
-	$attendees += $row->Count;
-    }
-
-    // Subtract the admin user
-
-    $total--;
-    $summary[$admin_status]--;
-
-    //    echo "Admin status: $admin_status<BR>\n";
-
-    display_header ('Summary:');
-
-    foreach ($summary as $key => $value)
-      echo "$key: <B>$value</B> &nbsp; &nbsp; &nbsp; \n";
-
-    printf ("<BR>Total Attending %s: <B>%d</B> (excludes Unpaid and Alumni)<BR>\n",
-	    CON_NAME,
-	    $attendees);
-    echo "Total Users: <B>$total</B><P>\n";
-  }
+	// Get User Count
+	
+	$sql = "select * from Users";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	printf("<b>User Summary for %s </b><br><br>\n", CON_NAME);
+	printf("Total Number of Users:  %d<br>\n", mysql_num_rows($result));
+	printf("Total Number of Users with Paid Tickets:  %d<br><br>\n", ticketed_user_count());
 
   // Display the sorting options
 
@@ -2840,8 +2747,6 @@ function select_user_to_edit ()
 	  $modified_selected);
   echo "</SELECT>\n";
 
-  $alumni = include_alumni ();
-
   echo "<INPUT TYPE=SUBMIT VALUE=\"Update\"><BR>\n";
   echo "</FORM>\n";
 
@@ -2870,7 +2775,7 @@ function select_user_to_edit ()
 		 TRUE,
 		 TRUE,
 		 $highlight,
-		 0 == $alumni,
+		 true,
 		 true);
   else
     select_user_by_date ('Select User To Edit',
@@ -3004,14 +2909,12 @@ function select_user_to_delete ()
   // Display the form to allow the user to include the alumni in the list
   // of users to choose from and allow them to select one
 
-  $alumni = include_alumni_form ('index.php', SELECT_USER_TO_DELETE);
-
   select_user ('Select User To Delete',
 	       'index.php?action=' . SHOW_USER_TO_DELETE,
 	       TRUE,
 	       TRUE,
 	       $highlight,
-	       0 == $alumni);
+	       true);
 }
 
 function show_user_to_delete ()
@@ -3218,6 +3121,18 @@ function select_user_to_view ()
 
 	if (! user_has_priv (PRIV_CON_COM))
 		return display_access_error ();
+		
+	// Get User Count
+	
+	$sql = "select * from Users";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	echo "<b>User Summary for Great Burlesque Expo: </b><br><br>\n";
+	printf("Total Number of Users:  %d<br>\n", mysql_num_rows($result));
+	printf("Total Number of Users with Paid Tickets:  %d<br><br>\n", ticketed_user_count());
 
 	// There are no highlit users in this display, so just pass an emtpy array
 
@@ -3260,14 +3175,12 @@ function select_user_to_become ($result)
   // Display the form to allow the user to include the alumni in the list
   // of users to choose from and allow them to select one
 
-  $alumni = include_alumni_form ('index.php', SELECT_USER_TO_BECOME);
-
   select_user ('Select User To Become',
 	       $link,
 	       false,
 	       TRUE,
 	       $highlight,
-	       0 == $alumni);
+	       true);
 }
 
 /*
@@ -3328,14 +3241,12 @@ function select_user_to_set_password ()
   // Display the form to allow the user to include the alumni in the list
   // of users to choose from and allow them to select one
 
-  $alumni = include_alumni_form ('index.php', SELECT_USER_TO_VIEW);
-
   select_user ('Select User To Set Password',
 	       $link,
 	       false,
 	       TRUE,
 	       $highlight,
-	       0 == $alumni);
+	       true);
 }
 
 /*
@@ -3473,10 +3384,6 @@ function view_user ()
 
   $row = mysql_fetch_array ($result, MYSQL_ASSOC);
 
-  // Convert payment amount to dollars
-
-  $PaymentAmount = $row['PaymentAmount']/100;
-
   $name = $row['DisplayName'];
 
   display_header ($name);
@@ -3504,12 +3411,7 @@ function view_user ()
   display_array_info ($row, 'Heard about Con', 'HowHeard');
   display_array_info ($row, 'Privileges', 'Priv');
   display_array_info ($row, 'Status', 'CanSignup');
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD ALIGN=RIGHT><B>Payment Amount $:</B></TD>";
-  echo "<TD ALIGN=LEFT>$PaymentAmount</TD>\n";
-  echo "  </TR>\n";
-  //  display_array_info ($row, '', 'PaymentAmount');
-  display_array_info ($row, 'Payment Note', 'PaymentNote');
+
   /*
   form_comped_for_game ($_POST['CompEventId']);
 
@@ -3617,7 +3519,7 @@ function select_user_by_date ($header,
       break;
   }
 
-  $sql = 'SELECT UserId, FirstName, LastName, EMail, CanSignup, Priv, PaymentAmount,';
+  $sql = 'SELECT UserId, FirstName, LastName, EMail, CanSignup, Priv,';
   $sql .= $sql_date;
   $sql .= '  FROM Users';
   if ($exclude_alumni)
@@ -3672,8 +3574,6 @@ function select_user_by_date ($header,
     echo "    <TD><A HREF=mailto:$row->EMail>$row->EMail</A></TD>\n";
 
     $status = $row->CanSignup;
-    if ('Paid' == $row->CanSignup)
-      $status = sprintf ('Paid $%d', $row->PaymentAmount / 100);
     echo "    <TD>$status</TD>\n";
     echo "    <TD NOWRAP>$row->Date</TD>\n";
     if ($priv)

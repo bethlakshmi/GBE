@@ -752,7 +752,7 @@ function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $
 
 /* function ticket_item_exists
  * 
- * Used to determin if a given ticket item exists in the local database.
+ * Used to determine if a given ticket item exists in the local database.
  *
  * $ItemId:  the Ticket Item Id to verify
  * Returns:  true if it exists, false if not.
@@ -771,7 +771,7 @@ function ticket_item_exists($ItemId)
 	
 /* function transaction_reference_exists
  * 
- * Used to determin if a given transaction with the inidcated reference exists in the local db.
+ * Used to determine if a given transaction with the indicated reference exists in the local db.
  *
  * $reference:  the Reference number to verify
  * Returns:  true if it exists, false if not.
@@ -787,6 +787,148 @@ function transaction_reference_exists($reference)
 	
 	return (mysql_num_rows($result) > 0);
 }	
+
+/* function show_user_ticket_table
+ * 
+ * Used to show the table with all transactions for the given user.
+ *  
+ * $UserId - the ID of the user in question.
+ * Returns: nothing.
+ */
+function show_user_ticket_table($UserId)
+{
+	get_transactions_for_user($UserId, $Transactions);
+	if (sizeof($Transactions) == 0)
+	{
+		echo "This user has not purchased any tickets.<br><br>\n";
+		return;
+	}
+
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>Ticket Item</th>\n";
+	echo "    <th>Ticket Description</th>\n";
+	echo "    <th>Amount Paid</th>\n";
+	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Status</th>\n";
+	echo "    <th>Tender Type</th>\n";
+	echo "    <th>Payment Reference</th>\n";
+	echo "    <th>Cashier's Memo</th>\n";
+	echo "  </tr>\n";
+
+	foreach ($Transactions as $trans)
+	{
+		echo "<tr valign=\"top\">\n";
+		echo "  <td align=\"left\">$trans->ItemId</td>\n";
+		echo "  <td align=\"left\">$trans->Title</td>\n";
+		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
+		echo "  <td align=\"left\">$trans->Status</td>\n";
+		echo "  <td align=\"left\">$trans->TenderType</td>\n";
+		echo "  <td align=\"left\">$trans->Reference</td>\n";
+		echo "  <td align=\"left\">$trans->Memo</td>\n";
+		echo "</tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
+/* function show_ticket_status_table
+ * 
+ * Used to show the table with current status of ticket items
+ *  
+ * Returns: nothing.
+ */
+function show_ticket_status_table()
+{
+	// Get Posted Transactions
+	
+	$sql = "select TicketItems.ItemId, Title, Status, Count(TransIndex), Sum(Amount) ";
+	$sql .= "from Transactions, TicketItems ";
+	$sql .= "where Transactions.ItemId = TicketItems.ItemId ";
+	$sql .= "group by Transactions.ItemId, Title, Status ";
+	$sql .= "order by Transactions.ItemId, Title, Status";
+	
+	$result = mysql_query($sql);
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+
+	// reorganize the query results for our table.
+
+	$item_list = array();
+	$posted = array();
+	
+	while ($row = mysql_fetch_array($result))
+	{
+		$item_list[$row['ItemId']] = $row['Title'];
+		if ($row['Status'] == 'Posted')
+			$posted[$row['ItemId']] = sprintf("%s / $%0.2f", 
+				$row['Count(TransIndex)'], $row['Sum(Amount)']);
+		if ($row['Status'] == 'Settled')
+			$settled[$row['ItemId']] = sprintf("%s / $%0.2f", 
+				$row['Count(TransIndex)'], $row['Sum(Amount)']);
+		if ($row['Status'] == 'Voided')
+			$voided[$row['ItemId']] = sprintf("%s / $%0.2f", 
+				$row['Count(TransIndex)'], $row['Sum(Amount)']);
+		if ($row['Status'] == 'Error')
+			$error[$row['ItemId']] = sprintf("%s / $%0.2f", 
+				$row['Count(TransIndex)'], $row['Sum(Amount)']);
+	}
+	
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>Ticket Item</th>\n";
+	echo "    <th>Ticket Description</th>\n";
+	echo "    <th>Trans. Posted</th>\n";
+	echo "    <th>Trans. Settled</th>\n";
+	echo "    <th>Trans. Voided</th>\n";
+	echo "    <th>Trans. Error</th>\n";
+	echo "  </tr>\n";
+	
+	foreach ($item_list as $id => $title)
+	{
+		echo "<tr valign=\"top\">\n";
+		echo "    <td align=\"left\">$id</td>\n";
+		echo "    <td align=\"left\">$title</td>\n";
+		if (array_key_exists($id, $posted))
+			printf("    <td align=\"left\">%s</td>\n", $posted["$id"]);
+		else
+			echo "<td align=\"left\">0 / $0.00</td>\n";
+		if (array_key_exists($id, $settled))
+			printf("    <td align=\"left\">%s</td>\n", $settled["$id"]);
+		else
+			echo "<td align=\"left\">0 / $0.00</td>\n";
+		if (array_key_exists($id, $voided))
+			printf("    <td align=\"left\">%s</td>\n", $voided["$id"]);
+		else
+			echo "<td align=\"left\">0 / $0.00</td>\n";
+		if (array_key_exists($id, $error))
+			printf("    <td align=\"left\">%s</td>\n", $error["$id"]);
+		else
+			echo "<td align=\"left\">0 / $0.00</td>\n";	
+		echo "  </tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
+/* function ticketed_user_count
+ * 
+ * Used to get the number of paid users, returned in a variable.
+ *  
+ * Returns: number of paid users in the system.
+ */
+function ticketed_user_count()
+{
+	$sql = "select distinct UserId from Transactions where Status in ('Posted', 'Settled')";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result));
+}
+
+
+
 
 
 

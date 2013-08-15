@@ -312,8 +312,9 @@ function build_ticketing_subnavbar()
 	
 	if (user_has_priv(PRIV_REGISTRAR))
 	{
-		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
+		$ticketSection->push(NavBarItem::newAction("Ticket Status", "TicketAdmin.php", TRANSACTION_STATUS));
 		$ticketSection->push(NavBarItem::newAction("Receipt Tickets", "TicketAdmin.php", POS_LISTUSERS));
+		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
 		$ticketSection->push(NavBarItem::newAction("Synch Ticket Types", "TicketAdmin.php", TICKETITEM_SYNC));   
 		$ticketSection->push(NavBarItem::newAction("Synch Transactions", "TicketAdmin.php", TRANSACTION_SYNC)); 
 	}
@@ -329,7 +330,6 @@ function build_attendees_subnavbar() {
     $usersSection->push(NavBarItem::newAction('Delete a User', 'index.php', SELECT_USER_TO_DELETE));
   }
   $usersSection->push(NavBarItem::newAction("Comp'd Users", 'index.php', SHOW_COMPED_USERS));
-  $usersSection->push(NavBarItem::newAction('Attendence by Payment Amount', 'Attendees.php'));
   $usersSection->push(NavBarItem::newAction('How Users Heard', 'Reports.php', REPORT_HOW_HEARD));
   $usersSection->push(NavBarItem::newAction('Bio Report', 'index.php', BIO_REPORT));
 
