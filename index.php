@@ -2,7 +2,7 @@
 include ("intercon_db.inc");
 include ("files.php");
 include ("login.php");
-include("gbe_ticketing.inc");
+include ("gbe_ticketing.inc");
 
 // Connect to the database
 
@@ -1785,7 +1785,9 @@ function fill_post ($UserId)
 
   return TRUE;
 }
+// This function has been depreciated for the Ticketing system.  -MDB
 
+/*
 function show_con_price ($now)
 {
   $one_day = 60 * 60 * 24;
@@ -1833,7 +1835,10 @@ function show_con_price ($now)
 
   $reg_close = strftime ('%d-%b-%Y', parse_date (REGISTRATION_CLOSE));
   echo "Online registration will close $reg_close<p>\n";
-}
+  
+ }
+  */
+
 
 /*
  * display_user_form
@@ -1866,15 +1871,13 @@ function display_user_form ($returning_alumni, $errors='')
       $text = 'Update Your User Information';
     else
     {
-      // Get today's date.  If the con is over, warn the user
 
       $now = time ();
       if ($now > parse_date (CON_OVER))
 	    $text = CON_NAME . ' is over';
       else
       {
-	    $text = 'Register for Intercon';
-	    show_con_price ($now);
+	    $text = sprintf("Register for %s", CON_NAME);
       }
     }
     display_header ($text);

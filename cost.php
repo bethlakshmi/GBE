@@ -1,11 +1,20 @@
 <?php
-include ("intercon_db.inc");
+/* Cost.php - Contains the GUI for displaying the Convention costs and links to 
+ * purchase for all users.
+ * 
+ * Last Updated 8/15/2013 by MDB
+ *
+ */
+ 
+include("intercon_db.inc");
+include("gbe_ticketing.inc");
+include("gbe_brownpaper.inc");
 
 // Connect to the database
 
-if (! intercon_db_connect ())
+if (!intercon_db_connect ())
 {
-  display_mysql_error ('Failed to connect to ' . DB_NAME);
+  display_mysql_error('Failed to connect to ' . DB_NAME);
   exit ();
 }
 
@@ -15,101 +24,105 @@ html_begin ();
 
 // Show the current cost
 
-show_cost ();
+show_cost();
 
 // Standard postamble
 
-html_end ();
+html_end();
 
-function show_cost ()
+/* function show_cost
+ * 
+ * Used to display the various ticket items that are available for purchase.
+ */
+function show_cost()
 {
-  // Get today's date.  If the con is over, warn the user and show the whole
-  // price schedule.
+	get_ticketitem_list($TicketItems);
 
-  $now = time ();
-  if ($now > parse_date (CON_OVER))
-  {
-    printf ("<font color=red>%s is over.  The following was the price schedule for %s</font><p>\n",
-	    CON_NAME,
-	    CON_NAME);
-    get_con_price (0, $price, $start_date, $end_date);
-    $now = $start_date - 1;
-  }
-
-  $one_day = 60 * 60 * 24;
-
-  // Get the maximum price
-  $k = 0;
-  $max_price = 0;
-  $max_index = -1;
-  while (get_con_price ($k++, $price, $start_date, $end_date))
-  {
-    if ($price > $max_price)
-    {
-      $max_price = $price;
-      $max_index = $k;
-    }
-  }
-
-  // Figure out where we are in the sequence
-  $k = 0;
-  while (get_con_price ($k++, $price, $start_date, $end_date))
-  {
-    if (0 == $end_date)
-      break;
-    if ($now < $end_date)
-      break;
-  }
-
-  // If the con is over, warn the user and show the whole price
-  // schedule
-  if (0 == $end_date)
-  {
-    printf ("<font color=red>%s is over.  The following was the price schedule for %s</font><p>\n",
-	    CON_NAME,
-	    CON_NAME);
-    $k = 0;
-    get_con_price (0, $price, $start_date, $end_date);
-    $now = $end_date - 1;
-  }
-
-//  printf ("%d: $%d.00, cutoff: %s, now: %s<p>\n", $k, $price,
-//	  strftime ('%d-%b-%Y', $end_date),
-//	  strftime ('%d-%b-%Y', $now));
-
-	  
-  // If we're after the last cutoff, just display the final price.  Otherwise,
-  // show the list
-
-  if (0 == $end_date)
-    printf ("<h1>%s is only $%s!</h1>\n",
-	    CON_NAME,
-	    $prices[count($prices)-1]);
-  else
-  {
-    if (($price < $max_price) && ($k < $max_index))
-      echo "<h1>Save BIG if you pay today!</h1>\n";
-    printf ("<h2>%s is only $%d.00!</h2>\n",
-	    CON_NAME,
-	    $price);
-
-    while (1)
-    {
-      get_con_price ($k++, $price, $start_date, $end_date);
-      if (0 == $end_date)
-	break;
-
-      printf ("$%d.00 after %s<br>\n",
-	      $price,
-	      strftime ('%d-%b-%Y', $start_date));
-    }
-
-    printf ("$%d.00 after %s or at the door.<p>\n",
-	    $price,
-	    strftime ('%d-%b-%Y', $start_date));
-  }
-
-  $reg_close = strftime ('%d-%b-%Y', parse_date (REGISTRATION_CLOSE));
-  echo "Online registration will close $reg_close<p>\n";
+	display_header(sprintf("Ticket Purchase Options for %s<br>", CON_NAME));
+	printf("Thank you for your interest in the %s!  ", CON_NAME);
+	printf("Below are the ticket options available for purchase.  ");
+	printf("There are several ways you can be a part of the convention, so ");
+	printf("please read the discriptions carefully.<br><br>\n");
+	printf("Please note:  you will not be able to purchase a ticket if you have ");
+	printf("not registered for the convention.  You can ");
+	printf("<a href=\"/index.php?action=%d\">register here </a> or ", NEW_USER);
+	printf("<a href=\"/index.php\">log in here</a>.<br><br>\n");
+	
+	echo "<table border=\"0\">\n";	
+	foreach ($TicketItems as $item)
+	{
+		if ($item->Active)
+			show_cost_for_single_item($item);
+	}
+	echo "</table><br>\n";
 }
+
+/* function show_cost_for_single_item
+ * 
+ * Used to display the cost information for a specific ticket item.
+ *
+ * $item - the TicketItem object to display.
+ * Returns:  nothing.
+ */
+function show_cost_for_single_item($item)
+{
+	echo "<tr valign=\"top\">\n";
+	printf("  <th align=\"left\">%s </th>\n", $item->Title);
+	printf("  <td align=\"right\">$%0.2f </td>\n", $item->Cost);
+	echo "</tr>\n";
+	
+	echo "<tr valign=\"top\">\n";
+	printf("  <td align=\"left\" colspan=2>%s </td>\n", $item->Description);
+	echo "</tr>\n";
+		
+	echo "<tr valign=\"top\">\n";
+	printf("  <td align=\"left\" colspan=2>&nbsp</td>\n");
+	echo "</tr>\n";
+	
+	if (isset ($_SESSION[SESSION_LOGIN_USER_ID])) // User is logged in.
+	{
+		$link = create_ticket_refer_link($item->ItemId, BPT_EVENT_ID);
+		echo "<tr valign=\"top\">\n";
+		printf("  <td align=\"left\" colspan=2><a href=\"%s\">", $link);
+		printf("Purchase %s from Brown Paper Tickets Now!</tr>\n", $item->Title);
+	}
+		
+	echo "<tr valign=\"top\">\n";
+	printf("  <td align=\"left\" colspan=2>&nbsp</td>\n");
+	echo "</tr>\n";
+	
+}
+
 ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

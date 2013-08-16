@@ -5,7 +5,7 @@
  * 
  * NOTE:  This file MUST be included AFTER the gbe_ticketing file has been included.  
  * 
- * Last Updated 8/5/2013 by MDB
+ * Last Updated 8/16/2013 by MDB
  *
  */
  
@@ -13,6 +13,7 @@ define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
 define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
 define ('BPT_EVENT_ID', '431061');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/event/431061');
+define ('BPT_COUNTRY_CODE', '228');
 
 /* function produce_XML_object_tree
  * 
@@ -87,12 +88,13 @@ function get_bpt_event_info()
  * 
  * Used to get the date identifier from the BPT website.
  *
+ * $event_id - the event id for the event to query
  * Returns: nothing.
  */
-function get_bpt_event_date_id()
+function get_bpt_event_date_id($event_id)
 {
 	$date_call = sprintf("https://www.brownpapertickets.com/api2/datelist?id=%s&event_id=%s", 
-		BPT_DEVELOPER_ID, BPT_EVENT_ID);
+		BPT_DEVELOPER_ID, $event_id);
 	
 	$date_xml = perform_bpt_api_call($date_call);
 	return $date_xml->date->date_id;
@@ -102,14 +104,15 @@ function get_bpt_event_date_id()
  * 
  * Used to get the list of prices from BPT - which relates to ticket items on our system.
  *
+ * $event_id - the event id for the event to query
  * Returns: the price list as an array of TicketItems.
  */
-function get_bpt_price_list()
+function get_bpt_price_list($event_id)
 {
-	$date_id = get_bpt_event_date_id();
+	$date_id = get_bpt_event_date_id($event_id);
 	
 	$price_call = sprintf("https://www.brownpapertickets.com/api2/pricelist?id=%s&event_id=%s&date_id=%s", 
-		BPT_DEVELOPER_ID, BPT_EVENT_ID, $date_id);
+		BPT_DEVELOPER_ID, $event_id, $date_id);
 	$price_list_xml = perform_bpt_api_call($price_call);
 	
 	$ticket_items = array();
@@ -132,12 +135,13 @@ function get_bpt_price_list()
  * Used to get the list of current orders in the BPT database and update the 
  * transaction table accordingly.
  *
+ * $event_id - the event id for the event to query
  * Returns: Number of transactions imported.
  */
-function process_bpt_order_list()
+function process_bpt_order_list($event_id)
 {
 	$order_list_call = sprintf("https://www.brownpapertickets.com/api2/orderlist?id=%s&event_id=%s&account=%s", 
-		BPT_DEVELOPER_ID, BPT_EVENT_ID, BPT_CLIENT_ID);
+		BPT_DEVELOPER_ID, $event_id, BPT_CLIENT_ID);
 	
 	$order_list_xml = perform_bpt_api_call($order_list_call);
 	$count = 0;
@@ -160,7 +164,7 @@ function process_bpt_order_list()
 /* function create_trans_from_bpt_order
  * 
  * Helper function for creating a Transaction object from an XML order object
- * from the Brown Papter Tickets API.
+ * from the Brown Paper Tickets API.
  *
  * $order - the XML order object from the Brown Paper Tickets website.
  * $transaction - the resulting transaction object.
@@ -207,8 +211,51 @@ function create_trans_from_bpt_order($order, &$trans)
 	$trans->Override = false;
 }
 
-
+/* function create_ticket_refer_link
+ * 
+ * Used to create a link that will refer the user to BPT to purchase 
+ * a given type of ticket.
+ *
+ * $TicketItemId - the TicketItemID to be used for the refer.  
+ * $event_id - the event id for the event to query
+ * Returns: the link that will be used for the refer.
+ */
+function create_ticket_refer_link($TicketItemId, $event_id)
+{
+	$date_id = get_bpt_event_date_id($event_id);
+	
+	$url = "http://www.brownpapertickets.com/addtocart/";
+	$url .= sprintf("%s?event_id=%s&date_id=%s", $event_id, $event_id, $date_id);
+	$url .= sprintf("&price_%s=1&shipping_%s=4&country_id=%s", 
+		$TicketItemId, $date_id, BPT_COUNTRY_CODE);
+	
+	return $url;
+}
 ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

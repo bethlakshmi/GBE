@@ -21,11 +21,7 @@ if (!intercon_db_connect())
 
 html_begin();
 
-echo get_bpt_event_info()->title;
-echo "<br>";
-echo get_bpt_event_date_id();
-echo "<br>";
-process_bpt_order_list();
+$link = create_ticket_refer_link(2482205, BPT_EVENT_ID);
 
 html_end();
 

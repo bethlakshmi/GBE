@@ -1976,8 +1976,12 @@ function show_game ()
 
   if ($game_row->SpecialEvent)
   {
-    echo $game_row->Description;
+    echo "<br>";
+	echo $game_row->Description;
     echo "<p>\n";
+	
+	//!!! Here is where we'll put something in for the event ticketing. !!! -MAC
+	
     return;
   }
 

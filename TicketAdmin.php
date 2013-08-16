@@ -2,7 +2,7 @@
 
 /* TicketAdmin.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 8/5/2013 by MDB
+ * Last Updated 8/15/2013 by MDB
  *
  */
  
@@ -347,7 +347,7 @@ function process_ticket_item_bpt_sync()
 		
 	// get the two lists
 	
-	$bpt_ticket_items = get_bpt_price_list();
+	$bpt_ticket_items = get_bpt_price_list(BPT_EVENT_ID);
 	if (sizeof($bpt_ticket_items) == 0)
 		return;	
 	get_ticketitem_list($local_ticket_items);
@@ -413,7 +413,7 @@ function process_transaction_bpt_sync()
 		
 	// Run the synchronization process;
 	
-	$count = process_bpt_order_list();
+	$count = process_bpt_order_list(BPT_EVENT_ID);
 	printf("Import Results:  %d new transactions added to the system.<br><br>", $count);
 }
 

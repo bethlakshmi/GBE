@@ -2,7 +2,7 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 8/5/2013 by MDB
+ * Last Updated 8/15/2013 by MDB
  *
  */
  
@@ -523,7 +523,7 @@ function is_ticketitem_used_in_transactions($ItemId)
 
 /* function get_event_list
  *
- * Used to obtain an array of the current ticket items
+ * Used to obtain an array of the current events
  *
  * $events - an array of Events in the DB. The array key is the event ID, and
  * the value is another array containing the event title.
@@ -548,6 +548,20 @@ function get_event_list(&$events)
 		$events[(int)$row->EventId] = $event;
 	}
 }
+
+/* function get_valid_tickets_for_event
+ * 
+ * Used to obtain an array of TicketItem objects that authorize the given event.
+ *
+ * $EventId - the Event ID to query for
+ * $TicketItems - array of tickets for the event, or null if none exist.
+ * Returns: nothing.
+ */
+function get_valid_tickets_for_event($EventId, &$TicketItems)
+{
+	// Not implemented yet.
+}
+
 
 /* function get_user
  * 
@@ -856,6 +870,9 @@ function show_ticket_status_table()
 
 	$item_list = array();
 	$posted = array();
+	$settled = array();
+	$voided = array();
+	$error = array();
 	
 	while ($row = mysql_fetch_array($result))
 	{

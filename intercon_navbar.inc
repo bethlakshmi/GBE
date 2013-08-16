@@ -406,7 +406,7 @@ function build_about_subnavbar() {
   return $aboutSection;
 }
 function build_participation_subnavbar() {
-  $aboutSection = new SubNavBar("I want to...</NOBR>");
+  $aboutSection = new SubNavBar("I Want To...</NOBR>");  // Sorry, this was bugging me.  :)  -MDB
   
   if ( accepting_bids() )
   {
@@ -421,7 +421,7 @@ function build_participation_subnavbar() {
   $aboutSection->push(NavBarItem::newStatic("Sell my Stuff", "VendorPackage"));
   $aboutSection->push(NavBarItem::newStatic("Advertise", "AdPackage"));
   $aboutSection->push(NavBarItem::newExternal("Reserve a Hotel Room", "https://resweb.passkey.com/go/e7faff68"));
-  $aboutSection->push(NavBarItem::newStatic("Buy Tickets", "comingsoon"));
+  $aboutSection->push(NavBarItem::newAction("Buy Tickets", "Cost.php"));
   
   return $aboutSection;
 }

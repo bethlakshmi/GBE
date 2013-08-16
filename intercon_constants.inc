@@ -324,10 +324,13 @@ function parse_date ($d)
  *
  * Note - start_date is always the correct date.
  *      - end_date is always the end of the range + 1
+ * 
+ * Note:  This function has been depreciated for the ticketing system.  -MDB
  */
 
 function get_con_price ($i, &$price, &$start_date, &$end_date)
 {
+/*
   switch ($i)
   {
 
@@ -357,7 +360,7 @@ function get_con_price ($i, &$price, &$start_date, &$end_date)
   $price = 0;
   $start_date = 0;
   $end_date = 0;
-
+*/
   return false;
 }
 
