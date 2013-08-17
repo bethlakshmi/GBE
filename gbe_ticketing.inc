@@ -545,6 +545,7 @@ function get_event_list(&$events)
 	{
 		$event = array();
 		$event['Title'] = $row->Title;
+		$event['SpecialEvent'] = $row->SpecialEvent;
 		$events[(int)$row->EventId] = $event;
 	}
 }
@@ -559,7 +560,23 @@ function get_event_list(&$events)
  */
 function get_valid_tickets_for_event($EventId, &$TicketItems)
 {
-	// Not implemented yet.
+	$sql = sprintf("select TicketItems.* from TicketItems, EventTicketLinks ");
+    $sql .= sprintf("where TicketItems.ItemId = EventTicketLinks.TicketItemId ");
+    $sql .= sprintf("and EventTicketLinks.EventId = '%d'", $EventId);
+	
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	
+	$TicketItems = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$item = new TicketItem();
+		$item->convert_from_sql_row($row);
+		array_push($TicketItems, $item);
+	} 
 }
 
 

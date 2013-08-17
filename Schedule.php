@@ -7,6 +7,8 @@ include ("intercon_db.inc");
 include ("intercon_schedule.inc");
 include ("pcsg.inc");
 include ("files.php");
+include ("gbe_ticketing.inc");
+include ("gbe_brownpaper.inc");
 
 // Connect to the database
 
@@ -1980,7 +1982,7 @@ function show_game ()
 	echo $game_row->Description;
     echo "<p>\n";
 	
-	//!!! Here is where we'll put something in for the event ticketing. !!! -MAC
+	display_tickets_for_event($game_row->EventId);
 	
     return;
   }
@@ -2041,6 +2043,35 @@ echo "<table border=0 width=\"800\">";
   echo "</TD></TR>";
   }
 echo "</table>";
+}
+
+/*
+ * display_tickets_for_event
+ *
+ * For special event, this displays and allows the user to purchase tickets to the event.
+ *
+ * $EventId - the ID for the event in question.
+ * Returns:  nothing.
+ */
+function display_tickets_for_event($EventId)
+{
+	get_valid_tickets_for_event($EventId, $TicketItems);
+	if (sizeof($TicketItems) <= 0)
+		return;
+		
+	display_header("The following tickets allow admission to this event:<br>");	
+	
+	foreach ($TicketItems as $item)
+	{
+		printf("%s &nbsp &nbsp ", $item->Title);
+		if (isset ($_SESSION[SESSION_LOGIN_USER_ID])) 
+		{
+			$link = create_ticket_refer_link($item->ItemId, BPT_EVENT_ID);
+			printf("<a href=\"%s\">", $link);
+			printf("Purchase Here</a>");
+		}
+		echo "<br>\n";
+	}
 }
 
 /*

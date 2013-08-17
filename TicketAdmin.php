@@ -216,6 +216,9 @@ function display_ticket_item_events($TicketItemId)
 	
 	foreach ($events as $eventid => $event)
 	{
+		if (!$event['SpecialEvent'])
+			continue;
+			
 		if (ticket_authorizes_event($TicketItemId, $eventid))
 			$checked = "checked";
 		else

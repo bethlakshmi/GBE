@@ -84,7 +84,7 @@ function show_cost_for_single_item($item)
 		$link = create_ticket_refer_link($item->ItemId, BPT_EVENT_ID);
 		echo "<tr valign=\"top\">\n";
 		printf("  <td align=\"left\" colspan=2><a href=\"%s\">", $link);
-		printf("Purchase %s from Brown Paper Tickets Now!</tr>\n", $item->Title);
+		printf("Purchase %s from Brown Paper Tickets</tr>\n", $item->Title);
 	}
 		
 	echo "<tr valign=\"top\">\n";
