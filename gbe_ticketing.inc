@@ -771,8 +771,7 @@ function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $
 	$sql .= build_sql_string('Zipcode', trim($zip));
 	$sql .= build_sql_string('Country', trim($country));
 	$sql .= build_sql_string('DayPhone', trim($phone));
-	$sql .= build_sql_string('EvePhone', trim($phone));
-	$sql .= build_sql_string('PaymentNote', "*Unregistered*");	
+	$sql .= build_sql_string('EvePhone', trim($phone));	
 	$sql .= build_sql_string('openid', "");
 	$sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
 	$sql .= ', Modified=NULL';

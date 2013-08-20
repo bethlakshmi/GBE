@@ -182,7 +182,6 @@ function display_ticket_item_edit_form()
 	
 	form_text(10, 'Ticket Item ID (Must Match BPT ID)', 'ItemId', 0, TRUE);	
 	form_text(80, 'Title', 'Title', 0, TRUE);
-	form_text(80, 'Description', 'Description', 0);
 	
 	if ($TicketItem->Active == true)
 		$checked = "checked";
@@ -194,6 +193,7 @@ function display_ticket_item_edit_form()
 	echo "value=\"Active\" $checked></td></tr>\n";
 	
 	form_text(30, 'Cost', 'Cost', 0, TRUE);
+	form_textarea('Description', 'Description', 0);
 	display_ticket_item_events($TicketItem->ItemId);
 	echo "<tr><td><br><br></td></tr>";
 	form_submit3("Add/Update Ticket Item", "Delete Item", "Delete", "Close Form", "Close");	
@@ -417,7 +417,10 @@ function process_transaction_bpt_sync()
 	// Run the synchronization process;
 	
 	$count = process_bpt_order_list(BPT_EVENT_ID);
-	printf("Import Results:  %d new transactions added to the system.<br><br>", $count);
+	printf("Ticket Import Results:  %d new transactions added to the system.<br><br>", $count);
+	$count = process_bpt_order_list(BPT_ACT_EVENT_ID);
+	printf("Act Payment Import Results:  %d new transactions added to the system.<br><br>", $count);
+	
 }
 
 /* function list_users_for_pos

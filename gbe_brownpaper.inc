@@ -12,6 +12,7 @@
 define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
 define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
 define ('BPT_EVENT_ID', '431061');
+define ('BPT_ACT_EVENT_ID', '431061');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/event/431061');
 define ('BPT_COUNTRY_CODE', '228');
 

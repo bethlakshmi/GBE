@@ -3465,6 +3465,9 @@ function view_user ()
 */
   echo "</TABLE>\n";
 
+  echo "<br><B>Ticket Purchase Status for $name</B><P>\n";
+  show_user_ticket_table($UserId);
+  
   // Show the games the user is registered for, if any, as well as any games
   // he/she is GMing
 
@@ -3474,6 +3477,7 @@ function view_user ()
   show_games ($UserId, "$name is", 'wait listed', 'Waitlisted');
 
   show_gm_games ($UserId, $name);
+  
 }
 
 /*
