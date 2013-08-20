@@ -575,7 +575,8 @@ function get_valid_tickets_for_event($EventId, &$TicketItems)
 	{
 		$item = new TicketItem();
 		$item->convert_from_sql_row($row);
-		array_push($TicketItems, $item);
+		if ($item->Active)
+			array_push($TicketItems, $item);
 	} 
 }
 
