@@ -2,6 +2,8 @@
 include ("sharedBidding.php");
 include ("files.php");
 //include ("display_common.php");
+include ("gbe_ticketing.inc");
+include ("gbe_brownpaper.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -476,7 +478,6 @@ function display_bid_form ($first_try)
 	  echo "</div>\n";
   }
 
-
   // If this is an existing bid, fetch the data
   if (0 != $BidId)
   {
@@ -849,6 +850,16 @@ function display_bid_form ($first_try)
   form_yn ('Do you want us to send you flyers to distribute?',
 	   'SendFlyers');
 
+  // Payment Information for Act Submission.
+	   
+  form_section ('Payment Information');   
+  $text = "Please note that your act submittal is not complete without payment ";
+  $text .= "of the application fee.  You can pay that fee at Brown Paper Tickets using the link below.\n";
+  echo "<tr><td colspan=2><br>$text</td></tr>\n";
+  $link = create_act_fee_refer_link(BPT_ACT_EVENT_ID);
+  echo "<tr><td colspan=2><a href=$link target=\"_blank\">Make Payment at Brown Paper Tickets</a></td></tr>\n"; 
+  echo "<tr><td colspan=2>&nbsp</td></tr>\n"; 	   
+	   
   if ($_POST['Status'] == "Draft" || $_POST['currentDraft'] == TRUE)
 	  form_hidden_value("currentDraft",TRUE);
 
@@ -858,7 +869,8 @@ function display_bid_form ($first_try)
     form_submit2 ('Submit Bid','Update Draft','isDraft');
   else 
     form_submit ('Update Bid');
-
+	
+	
   echo "</TABLE>\n";
   echo "</FORM>\n";
 }

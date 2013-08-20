@@ -232,6 +232,29 @@ function create_ticket_refer_link($TicketItemId, $event_id)
 	
 	return $url;
 }
+
+/* function create_act_fee_refer_link
+ * 
+ * Used to create a link that will refer the user to BPT to pay the fee for 
+ * act submission.  Assumes the first price is the act submission price.
+ *
+ * $event_id - the event id for the event to query
+ * Returns: the link that will be used for the refer.
+ */
+function create_act_fee_refer_link($event_id)
+{
+	$date_id = get_bpt_event_date_id($event_id);
+	$price_list = get_bpt_price_list($event_id);
+	
+	
+	$url = "http://www.brownpapertickets.com/addtocart/";
+	$url .= sprintf("%s?event_id=%s&date_id=%s", $event_id, $event_id, $date_id);
+	$url .= sprintf("&price_%s=1&shipping_%s=4&country_id=%s", 
+		$price_list[0]->ItemId, $date_id, BPT_COUNTRY_CODE);
+	
+	return $url;
+}
+
 ?>
 
 
