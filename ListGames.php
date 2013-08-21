@@ -917,7 +917,7 @@ function add_ops($type=0)
 
   form_section ('Run Information');
 
-  form_day ('Day', 0, 1);
+  form_day ('Day');
   form_start_hour ('Start Hour', 'StartHour');
   form_text (2, 'Number of Sessions', 'Sessions');
   //form_text (32, 'Title Suffix', 'TitleSuffix');
