@@ -429,25 +429,12 @@ function display_bid_form ($first_try)
   else
       $gametype = 'Performance';
 
-  echo "<h2>2014 {$gametype} Application</h2>";
-  echo "<table><tr><td valign=\"top\">";
-  echo "<big>Thank you for your interest in contributing to " . CON_NAME ;
-  echo ".  </big><br /><br />";
-  echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
-  echo "<br /><br />";
 
   if (file_exists(TEXT_DIR.'/actinstruct.html'))
 	include(TEXT_DIR.'/actinstruct.html');	
   
   
-  echo "</td><td width=30% valign=top>";
 
-  show_bid_schedule();
-
-  //show_bid_faq();
-
-  echo "</td></tr></table>";
-  
 
   // Make sure that the user is logged in
 
