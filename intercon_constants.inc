@@ -220,6 +220,11 @@ $CLASS_DAYS = array('Saturday', 'Sunday');
 global $SHOW_DAYS;
 $SHOW_DAYS = array('Friday','Saturday', 'Sunday');
 
+// open id settings
+global $OPENIDURLS;
+$OPENIDURLS = array();
+$OPENIDURLS['livejournal'] = "http://$username.livejournal.com";
+
 //These must match the text values in the BidTimes table slot field.
 global $BID_SLOTS;
 $BID_SLOTS = array();

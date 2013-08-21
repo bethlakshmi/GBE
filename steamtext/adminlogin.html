@@ -1,0 +1,23 @@
+This login is for administrators only.  If you haven't received a username
+and password from the webmaster, please use the login on the main page.
+<form method=POST action="index.php">
+<input type="hidden" name="Seq" value="4">
+<input type="hidden" name="action" value="1">
+<input type="hidden" name="dest" value="">
+<table border="0">
+  <tr>
+    <td align="right">EMail:</td>
+    <td align="left"><input type="text" name="EMail" size="64" maxlength="64" value=""></td>
+  </tr>
+  <TR>
+    <TD ALIGN=RIGHT>Password:</TD>
+    <TD ALIGN=LEFT><INPUT TYPE=PASSWORD NAME=Password SIZE=30 MAXLENGTH=30>
+<a href="index.php?action=10" style="font-style: italic; font-size: 90%">Forgot your password?</a></TD>
+  </TR>
+  <tr>
+    <td colspan="2" align="center">
+    <input type="submit" value="Login">
+    </td>
+  </tr>
+</table>
+</form>

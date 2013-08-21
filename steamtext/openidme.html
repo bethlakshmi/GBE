@@ -1,4 +1,3 @@
- Save yourself another password, and login using these services:
   <table>
      <tr><td>
       <form method="get" action="try_auth.php">
@@ -12,16 +11,26 @@
         <input type="hidden" name="openid_identifier" value="https://me.yahoo.com" />
 	    <input type="image" src="yahoo.png" name="image" >
       </form>
-     </td></tr>
+     </td>
+ <!--  <td>
+      <form method="get" action="try_auth.php">
+        <input type="hidden" name="action" value="verify" />
+        <input type="hidden" name="openid_identifier" value="http://facebook-openid.appspot.com" />
+	    <input type="image" src="yahoo.png" name="image" >
+      </form>
+     </td>
+-->
+     </tr>
+
      <tr> 
      <td align=right>Username:&nbsp;</td>
-     <td valign=top>
-      <form method="get" action="try_auth.php">
+     <td valign=top colspan=2>
+      <form method="get" action="try_auth.php" id="username">
         <input type="hidden" name="action" value="verify" />
         <input type="text" name="username" />
      </td>
      <tr><td>&nbsp;</td>
-     <td>
+     <td colspan=2>
         <input type="submit" name="openid_identifier" value="http://www.flickr.com/$username" />
         <input type="submit" name="openid_identifier" value="http://$username.livejournal.com" />
         <input type="submit" name="openid_identifier" value="https://$username.wordpress.com/" />
@@ -30,5 +39,4 @@
      </td></tr>
   </table>
 <hr>
-Or... create a regular username and password for our site only.
 </br></br>

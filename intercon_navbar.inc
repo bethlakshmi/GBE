@@ -448,7 +448,10 @@ function display_account_control_navbar() {
       $accountControl->push(NavBarItem::newAction("Edit My Bio", "index.php", EDIT_BIO, "bio"));
   } else {
     $accountControl->push(NavBarItem::newAction('Login', 'index.php', NULL, "login"));
-    $accountControl->push(NavBarItem::newAction('Register for <NOBR>'.(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).'</NOBR>', 'index.php', NEW_USER, "register"));
+    // only prompt AFTER we've gotten the open id - but before we have the 
+    // username
+	if (isset($_SESSION[SESSION_LOGIN_OPENID]))
+      $accountControl->push(NavBarItem::newAction('Register for <NOBR>'.(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).'</NOBR>', 'index.php', NEW_USER, "register"));
   }
   echo $accountControl->render("menu accountControl priv");
 }

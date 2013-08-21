@@ -597,28 +597,8 @@ function html_begin ($bShowLogo=true)
   //  dump_array ('$_POST', $_POST);
   //  dump_array ('$_COOKIE', $_COOKIE);
 
-  echo "<!-- Begin Standard Prefix -->\n";
-  echo "<html>\n";
-  echo "<head>\n";
-  printf ("<title>%s</title>\n", CON_NAME);
-  echo "<meta http-equiv=\"charset\" content=\"iso-8859-1\">\n";
-  // Verification for Google apps for intercon-m.org
-  echo "<meta name=\"google-site-verification\" content=\"9yWQZ9402aK1LXPwNS5VqaZFV0-O7IGI_ZTMi1Fws3M\" />\n";
-  echo "<link href='screen.css.php' rel='stylesheet' type='text/css' media='screen'>\n";
-  echo "<link href='print.css' rel='stylesheet' type='text/css' media='print'>\n";
-  echo "<STYLE>\n";
-  //  echo "  body {font-family: Arial, Helvetica, sans-serif}\n";
-  //  echo "  li, td {font-family: Arial, Helvetica, sans-serif}\n";
-  echo "  hr { color: #9a8069; width=300 text-align=left}\n";
-  echo "  .reserve { background-color: #006600; color: #ffffff }\n";
-  echo "  .reserveBody { background-color: #FFFFFF; color: #000000 }\n";
-  echo "  .reserveReverse { color: #006600; background-color: #ffffff }\n";
-  echo "  .shirt { background-color: #cccccc; color: #503984 }\n";
-  echo "  .shirtBody { background-color: #FFFFFF; color: #000000 }\n";
-  echo "  .shirtReverse { color: #503984; background-color: #cccccc }\n";
-  echo "</STYLE>\n";
-  echo "</HEAD>\n";
-  echo "<BODY>\n";
+  if (file_exists(TEXT_DIR.'/header.html'))
+	include(TEXT_DIR.'/header.html');	
 
   display_navbar();
 
@@ -2954,10 +2934,9 @@ function display_login_form ($error='', $dest='')
   form_hidden_value('action', LOGIN_USER);
   form_hidden_value('dest', $dest);
   echo "<table border=\"0\">\n";
+  /*
   form_text (64, 'EMail');
   
-  // Yeah, yeah, I copied and pasted this from form_password.  I wanted to add a "forgot your password?"
-  // link and didn't want to break other pages that use the function. - Nat
   print ("  <TR>\n");
   printf ("    <TD ALIGN=RIGHT>Password:</TD>\n");
   printf ("    <TD ALIGN=LEFT><INPUT TYPE=PASSWORD NAME=%s SIZE=%d MAXLENGTH=%d>\n",
@@ -2966,6 +2945,7 @@ function display_login_form ($error='', $dest='')
   echo "</TD>\n";
   print ("  </TR>\n");
   form_submit("Login");
+*/
   echo "</table>\n";
   echo "</form>\n";
   

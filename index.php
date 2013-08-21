@@ -126,7 +126,6 @@ switch ($action)
       display_login_form ();
       break;
     }
-
     // if there's no user, get them to register
     $id = get_openid();
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
