@@ -325,7 +325,9 @@ define (MAX_TRACKS, 15);
 // if these need to be bigger than FRI - 12-31, SAT 8-31, SUN 8-31 
 // Sun > 16 needs a db reload
 // then the schema needs to be updated.
-define (FRI_MIN, 12);    // 12 noon
+define (THURS_MIN, 12);    // 12 noon
+define (THURS_MAX, 24);    // 7AM
+define (FRI_MIN, 8);    // 12 noon
 define (FRI_MAX, 24);    // 7AM
 define (SAT_MIN, 8);     // 8AM
 define (SAT_MAX, 24);    // 7AM
@@ -1056,7 +1058,7 @@ function form_track_day ($track_display, $day_display,
  * Display the day as a set of radio buttons
  */
 
-function form_day ($display, $key=0)
+function form_day ($display, $key=0, $Thurs=0)
 {
   if (0 == $key)
     $key = $display;
@@ -1065,12 +1067,14 @@ function form_day ($display, $key=0)
   if (array_key_exists ($key, $_POST))
     $value = $_POST[$key];
 
+  $ThursChecked = '';
   $FriChecked = '';
   $SunChecked = '';
   $SatChecked = '';
 
   switch ($value)
   {
+    case 'Thurs': $ThursChecked = 'CHECKED'; break;
     case 'Fri': $FriChecked = 'CHECKED'; break;
     case 'Sun': $SunChecked = 'CHECKED'; break;
     default:    $SatChecked = 'CHECKED'; break;
@@ -1079,6 +1083,9 @@ function form_day ($display, $key=0)
   echo "  <TR>\n";
   echo "    <TD ALIGN=RIGHT>$display:</TD>\n";
   echo "    <TD>\n";
+  if ($Thurs)
+    echo "      <INPUT TYPE=RADIO NAME=Day VALUE=\"Thurs\" $ThursChecked> Thursday\n";
+
   echo "      <INPUT TYPE=RADIO NAME=Day VALUE=\"Fri\" $FriChecked> Friday\n";
   echo "      <INPUT TYPE=RADIO NAME=Day VALUE=\"Sat\" $SatChecked> Saturday\n";
   echo "      <INPUT TYPE=RADIO NAME=Day VALUE=\"Sun\" $SunChecked> Sunday\n";
@@ -1589,6 +1596,13 @@ function validate_day_time_by_val ($time, $day)
 
   switch ($day)
   {
+    case 'Thurs':
+    {
+      $min_hour = THURS_MIN;
+      $max_hour = THURS_MAX;
+      break;
+    }
+    
     case 'Fri':
     {
       $min_hour = FRI_MIN;
