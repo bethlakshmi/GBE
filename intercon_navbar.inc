@@ -282,7 +282,7 @@ function build_bids_subnavbar() {
       $bidsSection->push(NavBarItem::newStatic("Bid Commmittee Responsibilities", "BidCommittee"));
   }
   
-  if (user_has_priv (PRIV_SCHEDULING))
+  if (user_has_priv (PRIV_BID_CHAIR))
     $bidsSection->push(NavBarItem::newAction('Manage Bid Page Info', 'biddingAGame.php', BAG_SHOW_FORM));
 
   // Having this commented out was breaking my side in the navbar. -MDB

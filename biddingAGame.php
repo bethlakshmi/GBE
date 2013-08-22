@@ -65,7 +65,7 @@ function display_bid_intro ($area)
   if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
 	include(TEXT_DIR.'/'.$area.'bidding1.html');	
   
-  if (user_has_priv (PRIV_SCHEDULING))
+  if (user_has_priv (PRIV_BID_CHAIR))
   {
     printf ("<p>[<a href=\"biddingAGame.php?action=%d\">Edit Bid Deadline Info</a>]</p>\n",
 	    BAG_SHOW_FORM);
@@ -137,7 +137,7 @@ function show_bidinfo_form()
 {
   // Accessing this form requires Scheduling priv
 
-  if (! user_has_priv (PRIV_SCHEDULING))
+  if (! user_has_priv (PRIV_BID_CHAIR))
     return display_access_error ();
 
   // Query the database for the bid info
@@ -274,7 +274,7 @@ function update_bidinfo()
 {
   // Updating this data requires Scheduling priv
 
-  if (! user_has_priv (PRIV_SCHEDULING))
+  if (! user_has_priv (PRIV_BID_CHAIR))
     return display_access_error ();
 
   // If we're out of sequence, don't do anything
