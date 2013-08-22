@@ -357,7 +357,7 @@ function show_bid ()
 
     show_section ('Restrictions');
     
-    show_text ('Movement Floor', $bid_row['SpaceRequirements']);
+    show_text ('Room Specifics', $bid_row['SpaceRequirements']);
     show_text ('Physical Restrictions', $bid_row['PhysicalRestrictions']);
    }
    
@@ -442,7 +442,8 @@ function display_bid_form ($first_try)
   $EditGameInfo = 1;
   
   global $BID_TYPES;
-  $MOVEMENT_OPTIONS=array("Don't Care","Carpet","Dance Floor", "Both");
+  global $MOVEMENT_OPTIONS;
+  global $LECTURE_OPTIONS;
 
   if (array_key_exists ('GameType', $_REQUEST))
       $gametype=$_REQUEST['GameType'];
@@ -826,14 +827,34 @@ function display_bid_form ($first_try)
 
     if ($gametype == 'Class')
     {
-  	  $floorchoice = $_POST['SpaceRequirements'];
+  	  $floorchoice = str_replace("\\","",$_POST['SpaceRequirements']);
       echo "  <tr>\n";
       echo "    <td align=\"right\">Movement Class </br>Floor Preference:</td>\n";
       echo '    <td align="left">';
-      form_single_select("","SpaceRequirements",$MOVEMENT_OPTIONS,$floorchoice);
+      //echo $floorchoice;
+      foreach ($MOVEMENT_OPTIONS as $choice)
+      {
+        $check = "";
+        if ($choice == $floorchoice)
+          $check = "checked=\"checked\"";
+        echo "      <INPUT TYPE=RADIO NAME=SpaceRequirements $check VALUE=\"$choice\">  $choice<br>\n";
+      }
       echo "    </td>\n";
       echo "  </tr>\n";
-  
+      
+      echo "  <tr>\n";
+      echo "    <td align=\"right\">Lecture Class </br>Setup Preference:</td>\n";
+      echo '    <td align="left">';
+      foreach ($LECTURE_OPTIONS as $choice)
+      {
+        $check = "";
+        if ($choice == $floorchoice)
+          $check = "checked=\"checked\"";
+        echo "      <INPUT TYPE=RADIO NAME=SpaceRequirements $check VALUE=\"$choice\">  $choice<br>\n";
+      }
+      echo "    </td>\n";
+      echo "  </tr>\n";
+ 
       $text = "Are there any physical restrictions imposed by your {$thingstring}?  For\n";
       $text .= "example, level of dance experience, musical knowledge, computer skills, etc. \n";
       $text .= "explain.";
@@ -965,6 +986,8 @@ function process_bid_form ()
 {
   global $CLASS_DAYS;
   global $BID_SLOTS;
+  global $MOVEMENT_OPTIONS;
+  global $LECTURE_OPTIONS;
 
   if (out_of_sequence ())
     return display_sequence_error (false);
@@ -1012,6 +1035,7 @@ function process_bid_form ()
     $form_ok &= validate_int ('Hours', 1, 12, 'Hours');
     $form_ok &= validate_string ('Description');
     $form_ok &= validate_string ('ShortBlurb', 'Short blurb');
+        
   }
 
   // Game Details

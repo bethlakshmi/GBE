@@ -255,6 +255,13 @@ $SHOW_NAMES['Sunday_Evening'] = 'The Newcomer\'s Showcase';
 
 $SHOW_NAMES['Sunday_After Midnight'] = 'The Sideshow Ball';
 
+global $MOVEMENT_OPTIONS;
+global $LECTURE_OPTIONS;
+$MOVEMENT_OPTIONS=array("Don't Care about Floor","Carpet","Dance Floor", "Both");
+$LECTURE_OPTIONS=array("Don't Care about Seating","Lecture Style - tables and chairs face podium",
+  			"Conversational - seating in a ring");
+
+
 // controls radio buttons for performer show history in other 
 // big conventions
 global $ANSWER_SET;
