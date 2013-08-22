@@ -100,7 +100,7 @@ switch ($action)
     break;
 
   case SCHEDULE_SHOW_ALL_SIGNUPS:
-    if (can_edit_game_info () || user_has_priv (PRIV_CON_COM))
+    if (can_edit_game_info () || user_has_priv (PRIV_CON_COM) || user_has_priv(PRIV_SCHEDULING) )
       show_all_signups ();
     else
       display_access_error ();
