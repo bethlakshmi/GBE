@@ -130,7 +130,7 @@ function list_ticket_items()
 	foreach ($TicketItems as $Item)
 	{
 		echo "<tr valign=\"top\">\n";
-	    printf ("  <td><a href=\"TicketAdmin.php?action=%d&TicketItemId=%d\">%s</a>\n",
+	    printf ("  <td><a href=\"TicketAdmin.php?action=%d&TicketItemId=%s\">%s</a>\n",
 			TICKETITEM_EDIT, $Item->ItemId, $Item->ItemId);
 		echo "  <td align=\"left\">$Item->Title</td>\n";
 		if (strlen($Item->Description) == 0)
@@ -162,7 +162,7 @@ function display_ticket_item_edit_form()
 {
 	$TicketItem = new TicketItem();
 	
-	if ((array_key_exists('TicketItemId', $_REQUEST)) && ($_REQUEST['TicketItemId'] > 0))
+	if (array_key_exists('TicketItemId', $_REQUEST))
 		$TicketItem->load_from_itemid($_REQUEST['TicketItemId']);
 	$seq = increment_sequence_number();
 	
@@ -175,12 +175,12 @@ function display_ticket_item_edit_form()
 	print("<FORM METHOD=POST ACTION=TicketAdmin.php>\n");
 	form_add_sequence($seq);
 	printf("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", TICKETITEM_EDIT_PROCESS);
-	printf("<INPUT TYPE=HIDDEN NAME=TicketItemId VALUE=%d>\n", $TicketItem->ItemId);
+	printf("<INPUT TYPE=HIDDEN NAME=TicketItemId VALUE=%s>\n", $TicketItem->ItemId);
 	print("<TABLE BORDER=0>\n");
 		
 	// Note:  We will eventually populate the Item ID directly from BPT.
 	
-	form_text(10, 'Ticket Item ID (Must Match BPT ID)', 'ItemId', 0, TRUE);	
+	form_text(20, 'Ticket Item ID (Must Match BPT)', 'ItemId', 0, TRUE);	
 	form_text(80, 'Title', 'Title', 0, TRUE);
 	
 	if ($TicketItem->Active == true)
@@ -215,10 +215,7 @@ function display_ticket_item_events($TicketItemId)
 	echo "<tr><td><br>This Ticket Item Admits to These Events:<br></td></tr>";
 	
 	foreach ($events as $eventid => $event)
-	{
-		if (!$event['SpecialEvent'])
-			continue;
-			
+	{	
 		if (ticket_authorizes_event($TicketItemId, $eventid))
 			$checked = "checked";
 		else
@@ -350,10 +347,12 @@ function process_ticket_item_bpt_sync()
 		
 	// get the two lists
 	
-	$bpt_ticket_items = get_bpt_price_list(BPT_EVENT_ID);
+	$bpt_ticket_items = get_bpt_price_list();
 	if (sizeof($bpt_ticket_items) == 0)
 		return;	
 	get_ticketitem_list($local_ticket_items);
+	if (count($local_ticket_items == 0))
+		$local_ticket_items = array();
 	
 	foreach ($bpt_ticket_items as $bpt_item)
 	{
@@ -416,10 +415,8 @@ function process_transaction_bpt_sync()
 		
 	// Run the synchronization process;
 	
-	$count = process_bpt_order_list(BPT_EVENT_ID);
+	$count = process_bpt_order_list();
 	printf("Ticket Import Results:  %d new transactions added to the system.<br><br>", $count);
-	$count = process_bpt_order_list(BPT_ACT_EVENT_ID);
-	printf("Act Payment Import Results:  %d new transactions added to the system.<br><br>", $count);
 	
 }
 

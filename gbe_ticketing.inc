@@ -36,7 +36,8 @@ class TicketItem
 	 */
 	function load_from_itemid($ItemId)
 	{
-		$sql = sprintf("select * from TicketItems where ItemId = '%d'", $ItemId);
+		$sql = sprintf("select * from TicketItems where ItemId = '%s'", 
+			mysql_real_escape_string($ItemId));
 		 
 		$result = mysql_query($sql);
 		
@@ -61,7 +62,7 @@ class TicketItem
 	 */
 	function convert_from_sql_row($row)
 	{
-		$this->ItemId = (int)$row->ItemId;
+		$this->ItemId = (string)$row->ItemId;
 		$this->Title = (string)$row->Title;
 		$this->Description = (string)$row->Description;
 		$this->Active = (bool)$row->Active;	
@@ -79,7 +80,7 @@ class TicketItem
 	 */
 	function convert_from_array($array)
 	{		
-		$this->ItemId = (int)$array['ItemId'];
+		$this->ItemId = (string)$array['ItemId'];
 		$this->Title = (string)$array['Title'];
 		$this->Description = (string)$array['Description'];
 		if (array_key_exists('Active', $array))
@@ -102,8 +103,6 @@ class TicketItem
 		// Sanitize database input.  Note, the build_sql_string uses 
 		// mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->ItemId) || ($this->ItemId <= 0))
-			return display_error("Ticket Item ID is not in a valid format.");
 		if (!is_bool($this->Active))
 			return display_error("Ticket Item active state is not in a valid format.");	
 		if ((!is_double($this->Cost)) || ($this->Cost < 0))
@@ -118,7 +117,8 @@ class TicketItem
 		
 		// See if this is an insert or update.
 		
-		$sql = "select * from TicketItems where ItemId = $this->ItemId";
+		$this->ItemId = mysql_real_escape_string($this->ItemId);
+		$sql = "select * from TicketItems where ItemId = '$this->ItemId'";
 		$result = mysql_query($sql);
 		if (!$result)
 			return display_mysql_error ('Cannot execute query', $sql);
@@ -147,7 +147,7 @@ class TicketItem
 		$sql .= build_sql_string('Userstamp', $this->Userstamp);
 			
 		if (mysql_num_rows($result) == 1)
-			$sql .= sprintf(" where ItemId = '%d'", $this->ItemId);
+			$sql .= sprintf(" where ItemId = '%s'", $this->ItemId);
 		
 		$result = mysql_query($sql);
 		if (!$result)
@@ -162,10 +162,9 @@ class TicketItem
 	 */
 	function remove_from_db()
 	{
-		if (!is_integer($this->ItemId))
-			return display_error("Ticket Item index is not in a valid format.");
 
-		$sql = sprintf("delete from TicketItems where ItemId = '%d'", $this->ItemId);
+		$sql = sprintf("delete from TicketItems where ItemId = '%s'", 
+			mysql_real_escape_string($this->ItemId));
 		$result = mysql_query($sql);
 		if (!$result)
 			return display_mysql_error ('Cannot execute query', $sql);
@@ -238,7 +237,7 @@ class Transaction
 	function convert_from_sql_row($row)
 	{
 		$this->TransIndex = (int)$row->TransIndex;
-		$this->ItemId = (int)$row->ItemId;
+		$this->ItemId = (string)$row->ItemId;
 		$this->UserId = (int)$row->UserId;
 		$this->Amount = (float)$row->Amount;
 		$this->Datestamp = (string)$row->Datestamp;
@@ -263,8 +262,6 @@ class Transaction
 		// Sanitize database input.  Note, the build_sql_string uses 
 		// mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->ItemId))
-			return display_error("Transaction Item ID is not in a valid format.");
 		if (!is_integer($this->UserId))
 			return display_error("Transaction User ID is not in a valid format.");	
 		if (!is_double($this->Amount))
@@ -392,7 +389,7 @@ class EventTicketLink
 	{
 		$this->ETIndex = (int)$row->ETIndex;
 		$this->EventId = (int)$row->EventId;
-		$this->TicketItemId = (int)$row->TicketItemId;
+		$this->TicketItemId = (string)$row->TicketItemId;
 		$this->Datestamp = (string)$row->Datestamp;
 		$this->Userstamp = (int)$row->Userstamp;
 	}
@@ -410,15 +407,14 @@ class EventTicketLink
 		// mysql_real_escape_string() below.  
 		
 		if (!is_integer($this->EventId))
-			return display_error("EventTicketLink Event ID is not in a valid format.");
-		if (!is_integer($this->TicketItemId))
-			return display_error("EventTicketLink Item ID is not in a valid format.");				
+			return display_error("EventTicketLink Event ID is not in a valid format.");			
 		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
 			return display_error("Cannot save EventTicketLink to DB:  not logged in.");	
 			
 		// Make sure this link doesn't exist already.
 	
-		$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
+		$this->TicketItemId = mysql_real_escape_string($this->TicketItemId);
+		$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%s'",
 			$this->EventId, $this->TicketItemId);
 		$result = mysql_query($sql);
 		
@@ -460,11 +456,9 @@ class EventTicketLink
 	{
 		if (!is_integer($this->EventId))
 			return display_error("EventTicketLink Event ID is not in a valid format.");
-		if (!is_integer($this->TicketItemId))
-			return display_error("EventTicketLink Item ID is not in a valid format.");	
 
-		$sql = sprintf("delete from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
-			$this->EventId, $this->TicketItemId);
+		$sql = sprintf("delete from EventTicketLinks where EventId = '%d' and TicketItemId = '%s'",
+			$this->EventId, mysql_real_escape_string($this->TicketItemId));
 
 		$result = mysql_query($sql);
 		if (!$result)
@@ -510,8 +504,8 @@ function get_ticketitem_list(&$TicketItems)
  */
 function is_ticketitem_used_in_transactions($ItemId)
 {
-	$sql = sprintf("select * from Transactions where ItemId = '%d'", 
-		$ItemId);
+	$sql = sprintf("select * from Transactions where ItemId = '%s'", 
+		mysql_real_escape_string($ItemId));
 		 
 	$result = mysql_query($sql);
 		
@@ -637,8 +631,8 @@ function get_user_by_email($EMail, &$User)
  */
 function ticket_authorizes_event($TicketItemId, $EventId)
 {
-	$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%d'",
-		$EventId, $TicketItemId);
+	$sql = sprintf("select * from EventTicketLinks where EventId = '%d' and TicketItemId = '%s'",
+		$EventId, mysql_real_escape_string($TicketItemId));
 		 
 	$result = mysql_query($sql);
 		
@@ -679,11 +673,8 @@ function set_ticket_event_auth($TicketItemId, $EventId, $authorize)
  */
 function remove_all_event_ticket_auth($TicketItemId)
 {
-	if (!is_integer($TicketItemId))
-		return display_error("Transaction Item ID is not in a valid format.");	
-
-	$sql = sprintf("delete from EventTicketLinks where TicketItemId = '%d'",
-		$TicketItemId);
+	$sql = sprintf("delete from EventTicketLinks where TicketItemId = '%s'",
+		mysql_real_escape_string($TicketItemId));
 
 	$result = mysql_query($sql);
 	if (!$result)
@@ -790,7 +781,8 @@ function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $
  */
 function ticket_item_exists($ItemId)
 {
-	$sql = sprintf("select * from TicketItems where ItemId = '%d'", $ItemId);
+	$sql = sprintf("select * from TicketItems where ItemId = '%s'", 
+		mysql_real_escape_string($ItemId));
 	 
 	$result = mysql_query($sql);
 	

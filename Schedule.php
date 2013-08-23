@@ -1976,13 +1976,13 @@ function show_game ()
 
   }
 
+  display_tickets_for_event($game_row->EventId);
+	
   if ($game_row->SpecialEvent)
   {
     echo "<br>";
 	echo $game_row->Description;
     echo "<p>\n";
-	
-	display_tickets_for_event($game_row->EventId);
 	
     return;
   }
@@ -2066,7 +2066,7 @@ function display_tickets_for_event($EventId)
 		printf("%s &nbsp &nbsp ", $item->Title);
 		if (isset ($_SESSION[SESSION_LOGIN_USER_ID])) 
 		{
-			$link = create_ticket_refer_link($item->ItemId, BPT_EVENT_ID);
+			$link = create_ticket_refer_link($item->ItemId);
 			printf("<a href=\"%s\">", $link);
 			printf("Purchase Here</a>");
 		}
