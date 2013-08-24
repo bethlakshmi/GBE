@@ -648,9 +648,7 @@ function display_bid_form ($first_try)
       form_text (64, 'Organization');
       form_text (64, 'Homepage', 'Homepage', 128);
     }
-    echo "<tr><td align=right>EMail for inquries/updates:</td>\n";
-    echo "<td>".$_POST['GameEMail']."</td></tr>\n";
-    form_hidden_value ('GameEMail', $_POST['GameEMail']);
+    form_text (64, 'Email for inquries/updates', 'GameEMail', 128, TRUE);
 
     $eventlengthtext = $gametype;
     $eventlengthtext .= ' Length (hours):';
