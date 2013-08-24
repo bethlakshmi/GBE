@@ -305,7 +305,7 @@ function list_special_events ()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $start_time = start_hour_to_24_hour ($row->StartHour);
+    $start_time = start_hour_to_12_hour ($row->StartHour);
 
     echo "  <tr valign=\"top\">\n";
     printf ("    <td><a href=\"SpecialEvents.php?action=%d&RunId=%d\">%s</a>\n",
