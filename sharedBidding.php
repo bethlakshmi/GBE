@@ -135,7 +135,7 @@ function bid_involve($UserId, $BidId)
       $sql .= 'WHERE Signup.UserId=' . $UserId.' AND Runs.RunId = Signup.RunId';
       $sql .= ' AND Signup.State = \'Withdrawn\' AND Runs.EventId = Events.EventId';
       $result = mysql_query ($sql);
-      echo $sql;
+
       if (! $result)
         return display_mysql_error ("Query for UserId $UserId failed");
 
