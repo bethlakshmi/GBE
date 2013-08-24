@@ -113,9 +113,6 @@ function bid_involve($UserId, $BidId)
       if (! $result)
         return display_mysql_error ("Query for UserId $UserId failed");
 
-      if (0 == mysql_num_rows ($result))
-        return display_error ("Failed to find user $UserId");
-
       while ($user_bid = mysql_fetch_object ($result))
 	  {
  	      show_text (' - ', $user_bid->GameType.' - '.$user_bid->Title.' - '.$user_bid->Status);
@@ -128,9 +125,6 @@ function bid_involve($UserId, $BidId)
       if (! $result)
         return display_mysql_error ("Query for UserId $UserId failed");
 
-      if (0 == mysql_num_rows ($result))
-        return display_error ("Failed to find user $UserId");
-
       while ($user_bid = mysql_fetch_object ($result))
 	  {
  	      show_text (' - ', $user_bid->Title.' - '.$user_bid->Interest);
@@ -141,11 +135,9 @@ function bid_involve($UserId, $BidId)
       $sql .= 'WHERE Signup.UserId=' . $UserId.' AND Runs.RunId = Signup.RunId';
       $sql .= ' AND Signup.State = \'Withdrawn\' AND Runs.EventId = Events.EventId';
       $result = mysql_query ($sql);
+      echo $sql;
       if (! $result)
         return display_mysql_error ("Query for UserId $UserId failed");
-
-      if (0 == mysql_num_rows ($result))
-        return display_error ("Failed to find user $UserId");
 
       while ($user_bid = mysql_fetch_object ($result))
 	  {
