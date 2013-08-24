@@ -889,10 +889,10 @@ function add_ops($type=0)
     $row = mysql_fetch_array ($result, MYSQL_ASSOC);
 
     foreach ($row as $key => $value)
-    {
+    {/*
         if (1 == get_magic_quotes_gpc())
           $_POST[$key] = mysql_real_escape_string ($value);
-        else
+        else */
           $_POST[$key] = $value;
     }
 

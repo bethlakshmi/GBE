@@ -531,9 +531,11 @@ function display_bid_form ($first_try)
 
       foreach ($row as $key => $value)
       {
+        /*
         if (1 == get_magic_quotes_gpc())
           $_POST[$key] = mysql_real_escape_string ($value);
         else
+        */
           $_POST[$key] = $value;
       }
       $EventId = $row['EventId'];
@@ -697,21 +699,11 @@ function display_bid_form ($first_try)
     $text = "<b>Description</b>\n For use on the " . CON_NAME . " website, in advertising <br>";
     $text .= "and in any schedule of events.\n";
     $text .= "The description should be 1-2 of paragraphs.<br><br>";
-    $text .= "You may use HTML tags for formatting.  A quick primer on ";
-    $text .= "a couple of useful HTML <br>tags is available ";
-    if (file_exists('HtmlPrimer.html'))
-        $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>here</A>.\n";
-    else
-        $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>here</A>.\n";
     form_textarea ($text, 'Description', 15, TRUE, TRUE);
 
     $text = "A <b>short blurb</b> (50 words or less) to be used for\n";
     $text .= "summary listings of convention events.\n";
     $text .= "<br>";
-    if (file_exists('HtmlPrimer.html'))
-        $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
-    else
-        $text .= "<A HREF=".TEXT_DIR."/HtmlPrimer.html TARGET=_blank>HTML Primer</A>.\n";
     form_textarea ($text, 'ShortBlurb', 4, TRUE, TRUE);
     
     if ($gametype == 'Class')

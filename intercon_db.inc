@@ -750,13 +750,12 @@ function form_textarea ($display,
   if (array_key_exists ($key, $_POST))
   {
     if (1 == get_magic_quotes_gpc())
-      $text = stripslashes ($_POST[$key]);
+       $text = stripslashes ($_POST[$key]);
     else
       $text = $_POST[$key];
   }
   else
     $text='';
-
 
   if ($required)
     $req_prefix = '<font color="red">*</font>&nbsp;';
@@ -768,7 +767,7 @@ function form_textarea ($display,
   if ($leading_blank_line)
     echo "      &nbsp;<br clear=all>\n";
   echo "      $req_prefix$display<br>\n";
-  printf ('      <textarea name="%s" cols="80" rows="%d" wrap="physical">' .
+  printf ('      <textarea name="%s" class="ckeditor" cols="80" rows="%d" wrap="physical">' .
 	  "%s</textarea>\n",
 	  $key, $rows, $text);
   echo "    </td>\n";
@@ -1428,8 +1427,8 @@ function build_sql_string ($column, $value='',
     $value = str_replace ("\r", "\n", $value);
 
     // Finally!  Convert two line ends to a paragraph tag
-
-    $value = str_replace ("\n\n", "\n<P>\n", $value);
+    // removed when snazzy text editor added as this was breaking.
+    //$value = str_replace ("\n\n", "\n<P>\n", $value);
 
     //    echo "2.5: $column: $value<br>\n";
   }
