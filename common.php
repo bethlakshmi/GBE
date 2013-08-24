@@ -100,7 +100,7 @@ function getScheme() {
 }
 
 function getReturnTo() {
-    return sprintf("%s://%s:%s%sindex.php?action=20",
+    return sprintf("%s://%s:%s%s/index.php?action=20",
                    getScheme(), $_SERVER['SERVER_NAME'],
                    $_SERVER['SERVER_PORT'],
                    dirname($_SERVER['PHP_SELF']));
