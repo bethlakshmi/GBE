@@ -37,7 +37,7 @@ function test_auth () {
 function test_reg ($id) {
   $foundid = 0;
 
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
+  $sql = 'SELECT *';
   $sql .= ' FROM Users';
   $sql .= "  WHERE openid='$id'";
 
@@ -64,10 +64,13 @@ function test_reg ($id) {
   if ( $row )
   {
     $foundid = login_with_data ($row, $row->EMail);
-  
+    foreach ($row as $key => $value)
+      $_POST[$key] = $value;
+
     if ($foundid > 0)
       return TRUE;
   } 
+
   return FALSE;
 }
 
