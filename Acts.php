@@ -537,7 +537,7 @@ function display_bid_form ($first_try)
     }
     else
     {
-      $sql = "SELECT VideoSource, PhotoSource FROM Bids WHERE BidId=$BidId;";
+      $sql = "SELECT VideoSource, PhotoSource, UserId FROM Bids WHERE BidId=$BidId;";
       $result = mysql_query ($sql);
       if (! $result)
 		return display_mysql_error ("Query failed for BidId $BidId");
@@ -557,6 +557,8 @@ function display_bid_form ($first_try)
         else
           $_POST[$key] = $value;
       }
+      
+      
     }
 
     // Only the Chair, GM Liaison or the bidder can update this bid
@@ -567,8 +569,11 @@ function display_bid_form ($first_try)
       ($_SESSION[SESSION_LOGIN_USER_ID] == $_POST['UserId']);
 
     if (! $can_update)
+    {
+      //echo "user: ".$_SESSION[SESSION_LOGIN_USER_ID];
+      //echo "poster: ".$_POST['UserId'];
       return display_access_error ();
-
+     }
   }
 
 
@@ -585,7 +590,7 @@ function display_bid_form ($first_try)
         display_header ("Submit a {$gametype} for " . CON_NAME);
   }
   else
-    display_header ('Update information for <I>' . $_POST['Title'] . '</I>');
+    display_header ('Update information for <I>' . stripslashes($_POST['Title']) . '</I>');
 
 
   echo "<form method=\"POST\" action=\"Acts.php\" enctype=\"multipart/form-data\">\n";
@@ -862,7 +867,7 @@ function validate_video ($haveFile)
   
   global $VIDEO_LIST;
   $returnvalue = TRUE;
-  $a = trim($_POST["VideoOf"]);
+  $a = stripslashes(trim($_POST["VideoOf"]));
   $b = $VIDEO_LIST[0];
   
 //echo $_FILES["video_upload"]["size"];
@@ -893,13 +898,15 @@ function validate_video ($haveFile)
 //echo $a.$b;
 //echo strcmp($a, $b);
 
+// did the applicant tell us there was a video?
+$haveVideo = strcmp($a, $b);
 
-  if ( strcmp($a, $b) == 53 && 
+  if (  $haveVideo && 
         (validate_file( "video_upload") || (isset($_POST["VideoURL"]) && 
         		strlen($_POST["VideoURL"]) != 0 )))
     $returnvalue &= display_error("Video description suggests no video, and yet a ".
 								    "video was provided.");
-  if ( !$haveFile && strcmp($a, $b) != 53 && 
+  if ( !$haveFile && $haveVideo && 
         (!validate_file( "video_upload") && 
         (!isset($_POST["VideoURL"]) || strlen($_POST["VideoURL"]) == 0)))
     $returnvalue &= display_error("Video description promises a video, and yet no ".
