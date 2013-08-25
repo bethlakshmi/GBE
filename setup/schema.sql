@@ -135,6 +135,15 @@ LOCK TABLES `Away` WRITE;
 /*!40000 ALTER TABLE `Away` ENABLE KEYS */;
 UNLOCK TABLES;
 
+DROP TABLE IF EXISTS `BidChoice`;
+CREATE TABLE IF NOT EXISTS `BidChoice` (
+  `BidChoice` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `BidId` int(10) unsigned NOT NULL,
+  `Question` varchar(128) NOT NULL,
+  `Answer` enum('Yes','No','Yes - and Won!','Not Sure') NOT NULL,
+  PRIMARY KEY (`BidChoice`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=232 ;
+
 
 --
 -- Table structure for table `BidFeedback`
@@ -439,11 +448,11 @@ DROP TABLE IF EXISTS `EventTicketLinks`;
 CREATE TABLE IF NOT EXISTS `EventTicketLinks` (
   `ETIndex` int(11) NOT NULL AUTO_INCREMENT,
   `EventId` int(11) NOT NULL,
-  `TicketItemId` int(11) NOT NULL,
+  `TicketItemId` varchar(30) NOT NULL,
   `Datestamp` datetime NOT NULL,
   `Userstamp` int(11) NOT NULL,
   PRIMARY KEY (`ETIndex`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 --
 -- Table structure for table `Events`
@@ -904,9 +913,9 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `TicketItems`;
 CREATE TABLE IF NOT EXISTS `TicketItems` (
-  `ItemId` int(11) NOT NULL,
+  `ItemId` varchar(30) NOT NULL,
   `Title` varchar(30) NOT NULL,
-  `Description` varchar(100) NOT NULL,
+  `Description` varchar(1000) NOT NULL,
   `Active` tinyint(1) NOT NULL,
   `Cost` decimal(10,2) NOT NULL,
   `Datestamp` datetime NOT NULL,
@@ -923,7 +932,7 @@ CREATE TABLE IF NOT EXISTS `TicketItems` (
 DROP TABLE IF EXISTS `Transactions`;
 CREATE TABLE IF NOT EXISTS `Transactions` (
   `TransIndex` int(11) NOT NULL AUTO_INCREMENT,
-  `ItemId` int(11) NOT NULL,
+  `ItemId` varchar(30) NOT NULL,
   `UserId` int(11) NOT NULL,
   `Amount` double(10,2) NOT NULL,
   `Datestamp` datetime NOT NULL,
@@ -934,7 +943,7 @@ CREATE TABLE IF NOT EXISTS `Transactions` (
   `Memo` varchar(500) NOT NULL,
   `Override` tinyint(1) NOT NULL,
   PRIMARY KEY (`TransIndex`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=6 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
 
 -- --------------------------------------------------------
 
@@ -943,15 +952,13 @@ CREATE TABLE IF NOT EXISTS `Transactions` (
 --
 
 DROP TABLE IF EXISTS `Users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `Users` (
+CREATE TABLE IF NOT EXISTS `Users` (
   `UserId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `HashedPassword` char(32) DEFAULT NULL,
   `FirstName` char(30) NOT NULL DEFAULT '',
   `LastName` char(30) NOT NULL DEFAULT '',
-  `StageName` char(60) NOT NULL DEFAULT '',
-  `DisplayName` char(60) NOT NULL DEFAULT '',
+  `DisplayName` char(64) NOT NULL DEFAULT '',
+  `StageName` char(64) NOT NULL DEFAULT '',
   `Nickname` char(30) NOT NULL DEFAULT '',
   `EMail` char(64) NOT NULL DEFAULT '',
   `Age` int(11) NOT NULL DEFAULT '0',
@@ -980,11 +987,10 @@ CREATE TABLE `Users` (
   `LastLogin` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `CanSignupModified` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `Created` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `openid` VARCHAR( 255 ) NOT NULL,
+  `openid` varchar(255) NOT NULL,
   PRIMARY KEY (`UserId`),
   KEY `CanSignup` (`CanSignup`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-/*!40101 SET character_set_client = @saved_cs_client */;
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=24 ;
 
 --
 -- Dumping data for table `Users`
