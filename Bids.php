@@ -2128,6 +2128,8 @@ function show_bid_feedback_summary()
 			   $row->BidStatusId,
 			   $_SESSION[SESSION_LOGIN_USER_ID]);
  
+      else 
+        $prefix = "";
       $committee[$key] = "${prefix}Undecided${suffix}";
     }
 
@@ -2145,18 +2147,21 @@ function show_bid_feedback_summary()
     if (! $committee_result)
       return display_mysql_error ("Query for bid committee info failed");
 
-    $prefix = '';
-    $suffix = '';
-    if (user_has_priv (PRIV_BID_CHAIR) )
-      $suffix = '</a>';
     while ($committee_row = mysql_fetch_object ($committee_result))
     {
+      $prefix = '';
+      $suffix = '';
+
       $name = trim ("$committee_row->DisplayName");
-      if (user_has_priv (PRIV_BID_CHAIR))
-	    $prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
+      if (user_has_priv (PRIV_SHOW_CHAIR))
+      {
+	        $prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
 			   $committee_row->UserId);
+			$suffix = '</a>';
+
+	  }
       else if (user_has_priv(PRIV_BID_COM) && $committee_row->UserId == $_SESSION[SESSION_LOGIN_USER_ID] )
       {
         $prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
