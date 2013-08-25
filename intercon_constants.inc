@@ -268,6 +268,7 @@ global $ANSWER_SET;
 global $OTHER_SHOWS;
 
 $ANSWER_SET = array("Yes", "No", "Yes - and Won!");
+$ANSWER_SET_SMALL = array("Yes", "No");
 $OTHER_SHOWS = array("The Great Burlesque Exposition", 			
 					"Miss Exotic World/Burlesque Hall",			
 					"NYBF",

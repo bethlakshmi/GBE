@@ -681,15 +681,23 @@ function display_bid_form ($first_try)
     echo "  <TR>\n";
     echo "    <TD COLSPAN=2>\n";
     echo "      <TABLE BORDER=0>\n";
+
 	foreach ($DAYS as $day) {
 	  foreach ($SHOW_SLOTS[$day] as $slot) {
 	    $entry = $day."_".$slot;
+	    $checked = "";
+	    if ( strlen($_POST[str_replace(' ','_',$entry)]) > 0 )
+	    {
+	      $checked = "CHECKED";
+	    }
  	    echo "        <TR ALIGN=LEFT>\n";
 	    echo "          <TD>{$SHOW_NAMES[$entry]} ({$day} evening)</TD>\n";
-	    schedule_table_entry ($entry);
+	    echo "          <TD><input type=checkbox name=".str_replace(' ','_',$entry)." $checked></TD>\n";
 	    echo "        </tr>\n";
 	  }
 	}
+
+
 
     $label =  "I/We have performed at...";
     form_radio_grid ($label, $OTHER_SHOWS, $ANSWER_SET, $BidChoice,TRUE);
@@ -1036,10 +1044,16 @@ function process_bid_form ()
     $form_ok &= validate_string ('Genre');
     $form_ok &= validate_string ('Premise','Performer history');
 
+    $checkedEver = FALSE;
     foreach ($SHOW_DAYS as $day)
       foreach ($SHOW_SLOTS[$day] as $slot)
-  		$form_ok &= validate_schedule_table_entry ("{$day}_{$slot}", "{$day} {$slot}");
-
+      {
+      	// echo "box: ".$_POST[str_replace(' ','_',"{$day}_{$slot}")];
+  		if (isset($_POST[str_replace(' ','_',"{$day}_{$slot}")]))
+  		  $checkedEver = TRUE;
+      }
+    if (! $checkedEver)
+      $form_ok &= display_error("You must pick at least one show to apply to.");
     foreach ($OTHER_SHOWS as $show) {
       $form_ok &= validate_show($show);
     }
@@ -1177,9 +1191,12 @@ function process_bid_form ()
 	  $sql .= "{$BidId}, ";
 	  $sql .= "'{$day}', ";
 	  $sql .= "'{$slot}', ";
-	  $sql .= "'";
-	  $sql .= $_POST[str_replace(' ','_',"${day}_{$slot}")];
-	  $sql .= "');";
+	  if ( isset( $_POST[str_replace(' ','_',"${day}_{$slot}")]))
+	    $sql .= "'1'";
+	  else
+	    $sql .= "''";
+	    
+	  $sql .= ");";
 	  $result = mysql_query ($sql);
 	  if (! $result)
 		return display_mysql_error ("Add {$day} {$slot} to BidTimes failed");
