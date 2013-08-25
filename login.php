@@ -206,6 +206,8 @@ function login_with_data ($row, $EMail)
   $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
   $_SESSION[SESSION_LOGIN_USER_NAME] = $name;
   $_SESSION[SESSION_LOGIN_USER_EMAIL] = $EMail;
+  if (strlen($row->openid) > 0)
+    $_SESSION[SESSION_LOGIN_OPENID] = $row->openid;
   $_SESSION['IncludeAlumni'] = 0;
 
   // Initialize the session information from the Con table

@@ -3202,7 +3202,7 @@ function become_user ()
 
   // Fetch the user information
 
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, Gender, CanSignup, EMail';
+  $sql = 'SELECT FirstName, LastName, DisplayName, openid, UserId, Priv, Gender, CanSignup, EMail';
   $sql .= ' FROM Users';
   $sql .= ' WHERE UserId=' . $UserId;
   $result = mysql_query ($sql);
