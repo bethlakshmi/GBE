@@ -2110,18 +2110,24 @@ function show_bid_feedback_summary()
 
     $prefix = '';
     $suffix = '';
-    if (user_has_priv (PRIV_BID_CHAIR))
+    if (user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_BID_COM))
       $suffix = '</a>';
 
     foreach ($committee as $key => $value)
     {
       if (user_has_priv (PRIV_BID_CHAIR))
       {
-	$prefix = sprintf ('<a href="Bids.php?action=%dBid&BidStatusId=%d&UserId=%d">',
+	$prefix = sprintf ('<a href="Bids.php?action=%d&BidStatusId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $row->BidStatusId,
 			   $committee_users[$key]);
       }
+      else if (user_has_priv(PRIV_BID_COM) && $committee_users[$key] == $_SESSION[SESSION_LOGIN_USER_ID] )
+    $prefix = sprintf ('<a href="Bids.php?action=%d&BidStatusId=%d&UserId=%d">',
+			   BID_FEEDBACK_BY_ENTRY,
+			   $row->BidStatusId,
+			   $_SESSION[SESSION_LOGIN_USER_ID]);
+ 
       $committee[$key] = "${prefix}Undecided${suffix}";
     }
 
@@ -2141,20 +2147,29 @@ function show_bid_feedback_summary()
 
     $prefix = '';
     $suffix = '';
-    if (user_has_priv (PRIV_BID_CHAIR))
+    if (user_has_priv (PRIV_BID_CHAIR) )
       $suffix = '</a>';
     while ($committee_row = mysql_fetch_object ($committee_result))
     {
-
       $name = trim ("$committee_row->DisplayName");
       if (user_has_priv (PRIV_BID_CHAIR))
-	$prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
+	    $prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
 			   $committee_row->UserId);
+      else if (user_has_priv(PRIV_BID_COM) && $committee_row->UserId == $_SESSION[SESSION_LOGIN_USER_ID] )
+      {
+        $prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
+			   BID_FEEDBACK_BY_ENTRY,
+			   $committee_row->FeedbackId,
+			   $_SESSION[SESSION_LOGIN_USER_ID]);
+        $suffix = '</a>';
+      }
+
       $committee[$name] = "$prefix<nobr><b>$committee_row->Vote</b></nobr>$suffix";
       if ('' != $committee_row->Issues)
-	$committee[$name] .= '<br>'.$committee_row->Issues;
+	     $committee[$name] .= '<br>'.$committee_row->Issues;
+	     
     }
 
     // If this is the bid chairman the feedback information can be edited
@@ -2848,7 +2863,7 @@ function process_feedback_for_entry()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_BID_CHAIR))
+  if (! (user_has_priv (PRIV_BID_CHAIR) || user_has_priv (PRIV_BID_COM)) )
     return display_access_error ();
 
   // Check for a sequence error

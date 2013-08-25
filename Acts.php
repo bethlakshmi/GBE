@@ -1989,11 +1989,17 @@ function show_bid_feedback_summary()
     {
       if (user_has_priv (PRIV_SHOW_CHAIR))
       {
-	$prefix = sprintf ('<a href="Acts.php?action=%dBid&BidStatusId=%d&UserId=%d">',
+	$prefix = sprintf ('<a href="Acts.php?action=%dBidStatusId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $row->BidStatusId,
 			   $committee_users[$key]);
       }
+      else if (user_has_priv(PRIV_SHOW_COM) && $committee_users[$key] == $_SESSION[SESSION_LOGIN_USER_ID] )
+    $prefix = sprintf ('<a href="Acts.php?action=%d&BidStatusId=%d&UserId=%d">',
+			   BID_FEEDBACK_BY_ENTRY,
+			   $row->BidStatusId,
+			   $_SESSION[SESSION_LOGIN_USER_ID]);
+
       $committee[$key] = "${prefix}Undecided${suffix}";
     }
 
@@ -2020,11 +2026,20 @@ function show_bid_feedback_summary()
 
       $name = trim ("$committee_row->DisplayName");
       if (user_has_priv (PRIV_SHOW_CHAIR))
-	$prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
+	        $prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
 			   $committee_row->UserId);
-           $committee[$name] = "$prefix<nobr><b>$committee_row->Vote</b></nobr>$suffix";
+      else if (user_has_priv(PRIV_SHOW_COM) && $committee_row->UserId == $_SESSION[SESSION_LOGIN_USER_ID] )
+      {
+        $prefix = sprintf ('<a href="Acts.php?action=%d&FeedbackId=%d&UserId=%d">',
+			   BID_FEEDBACK_BY_ENTRY,
+			   $committee_row->FeedbackId,
+			   $_SESSION[SESSION_LOGIN_USER_ID]);
+        $suffix = '</a>';
+      }
+
+      $committee[$name] = "$prefix<nobr><b>$committee_row->Vote</b></nobr>$suffix";
       if ($committee_row->ShowPref != NULL)
 	      $committee[$name] .= '<br><b>'.$committee_row->ShowPref.'</b>';
       if ('' != $committee_row->Issues)
@@ -2380,7 +2395,7 @@ function update_feedback_by_game ()
   
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_SHOW_CHAIR))
+  if (! (user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv (PRIV_SHOW_COM)) )
     return display_access_error ();
 
   $BidStatusId = intval ($_REQUEST['BidStatusId']);
@@ -2491,7 +2506,7 @@ function update_feedback_by_game ()
     }
   }
 
-  printf ("<form method=\"POST\" action=\"Acts.php#BidStatusId%d\">\n",
+  printf ("<form method=\"POST\" action=\"Acts.php?BidStatusId%d\">\n",
 	  $BidStatusId);
   form_add_sequence ();
   form_hidden_value ('action', BID_PROCESS_FEEDBACK_BY_GAME);
@@ -2553,7 +2568,7 @@ function process_feedback_by_game ()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_SHOW_CHAIR))
+  if (! (user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv(PRIV_SHOW_COM)))
     return display_access_error ();
 
   // Check for a sequence error
@@ -2748,7 +2763,7 @@ function process_feedback_for_entry()
 {
   // Only the bid chair may access this page
 
-  if (! user_has_priv (PRIV_SHOW_CHAIR))
+  if (! ( user_has_priv (PRIV_SHOW_CHAIR) || user_has_priv (PRIV_SHOW_COM)) )
     return display_access_error ();
 
   // Check for a sequence error
