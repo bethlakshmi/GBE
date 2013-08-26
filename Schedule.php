@@ -1968,7 +1968,7 @@ function show_game ()
 	    echo "    <BR>Click on the counts to see signup list\n";
 
 	  if ('Y' == $game_row->CanPlayConcurrently)
-	    echo "<BR><B>Note:</B> You can play this game at the same time as another game\n";
+	    echo "<BR><B>Note:</B> Classes and Panels require a Whole Shebang pass or a Conference pass for the day of attendance.\n";
       
       echo "</CENTER>\n";
 
@@ -2162,7 +2162,7 @@ function process_signup_request ()
 
   if (0 == mysql_num_rows ($result))
   {
-    display_error ("Failed to find game information for RunId $RunId");
+    display_error ("Failed to find event information for RunId $RunId");
     return SIGNUP_FAIL;
   }
 
