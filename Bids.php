@@ -2480,12 +2480,12 @@ function drop_bid ($BidId, $EventId)
 
 function display_bid_etc ()
 {
-  $thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
+  $thanks = "<FONT SIZE=\"+2\"><br>Thank you for submitting your work for ";
   $page = 'bidFollowup.html';
 
   if (isset($_POST['isDraft']))
   {
-    $thanks = "<FONT SIZE=\"+2\">Thank you for starting a <b>draft</b> with ";
+    $thanks = "<FONT SIZE=\"+2\"><br>Thank you for starting a <b>draft</b> with ";
     $page = 'draftInfo.html';
   }
   echo $thanks;

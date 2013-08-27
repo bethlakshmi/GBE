@@ -11,10 +11,11 @@
  
 //define ('BPT_DEVELOPER_ID', 'vJcVSyKQYa');
 //define ('BPT_CLIENT_ID', 'bostonbabydolls');
+//define ('BPT_ACT_EVENT_ID', '450851');
 
 define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
 define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
-define ('BPT_ACT_EVENT_ID', '450851');
+define ('BPT_ACT_TICKETITEM_ID', '431061-2550661');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/');
 define ('BPT_COUNTRY_CODE', '228');
 
@@ -248,9 +249,12 @@ function create_ticket_refer_link($TicketItemId)
  */
 function create_act_fee_refer_link()
 {
-	$url = sprintf("http://www.brownpapertickets.com/event/%d", BPT_ACT_EVENT_ID);
+	$url = sprintf("http://www.brownpapertickets.com/event/%d", BPT_ACT_TICKETITEM_ID);
 	return $url;
 }
+
+
+
 
 ?>
 

@@ -841,11 +841,12 @@ function display_bid_form ($first_try)
 
   // Payment Information for Act Submission.
 	   
+  echo "<br>";	   
   form_section ('Payment Information');   
   $text = "Please note that your act submittal is not complete without payment ";
   $text .= "of the application fee.  You can pay that fee at Brown Paper Tickets using the link below.\n";
   echo "<tr><td colspan=2><br>$text</td></tr>\n";
-  $link = create_act_fee_refer_link(BPT_ACT_EVENT_ID);
+  $link = create_act_fee_refer_link();
   echo "<tr><td colspan=2><a href=$link target=\"_blank\">Make Payment at Brown Paper Tickets</a></td></tr>\n"; 
   echo "<tr><td colspan=2>&nbsp</td></tr>\n"; 	   
 	   
@@ -1069,9 +1070,9 @@ function process_bid_form ()
   }
     
   // If any errors were found, abort now
-  if (! $form_ok)
+  if (! $form_ok) 
       return FALSE;
-
+  
   $new_bid = (0 == $BidId);
 
   // If this is a new bid, create an entry in the bid table
@@ -1252,7 +1253,7 @@ function process_bid_form ()
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Insert into Bids failed");
-
+	
   // Where are we sending this information?
 
   if (1 == DEVELOPMENT_VERSION)
@@ -1334,6 +1335,24 @@ function process_bid_form ()
   if (! $result)
     return display_mysql_error ('Cannot query user information');
 
+
+  // Last Step before Email - If this user has not paid for the act, change the BID status back 
+  // to Draft.  We will warn later in display_bid_etc().  
+	
+  $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+  if (!user_paid_act_submittal_fee($UserId))
+  {
+    $sql = "update Bids set ";
+	$sql .= build_sql_string('Status','Draft', false);
+	$sql .= " WHERE BidId=$BidId";
+
+	echo $sql;
+	
+    $result = mysql_query ($sql);
+    if (!$result)
+      return display_mysql_error ("Update into Bids failed");
+  }	  
+ 	
   $name = trim ("$row->FirstName $row->LastName");
   $email = $row->EMail;
 
@@ -1362,6 +1381,7 @@ function process_bid_form ()
 
   //echo "subject: $subject<br>\n";
   //echo "message: $msg<br>\n";
+  
   if (!$isDraft)
     if (! intercon_mail ($send_to,
 		       $subject,
@@ -2385,14 +2405,24 @@ function drop_bid ($BidId, $EventId)
 
 function display_bid_etc ()
 {
-  $thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
-  $page = 'actFollowup.html';
-
+  $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+  
   if (isset($_POST['isDraft']))
   {
-    $thanks = "<FONT SIZE=\"+2\">Thank you for starting a <b>draft</b> with ";
+    $thanks = "<FONT SIZE=\"+2\"><br>Thank you for starting a <b>draft</b> with ";
     $page = 'draftInfo.html';
   }
+  else if (!user_paid_act_submittal_fee($UserId))
+  {
+	$thanks = "<FONT SIZE=\"+2\"><br>Thank you for submitting your work for ";
+    $page = 'actUnpaidInfo.html';
+  }
+  else
+  { 
+	$thanks = "<FONT SIZE=\"+2\"><br>Thank you for submitting your work for ";
+	$page = 'actFollowup.html';
+  }
+  
   echo $thanks;
   echo CON_NAME . "!</FONT>\n";
 
