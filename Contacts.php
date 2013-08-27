@@ -84,7 +84,6 @@ function DisplayContactsPage ()
   DisplayContact ('Outreach',      NAME_OUTREACH,      EMAIL_OUTREACH);
   DisplayContact ('Registration and<br>Event Signup',
 		                   NAME_REGISTRAR,     EMAIL_REGISTRAR);
-  DisplayContact ('Pre-Convention',NAME_THURSDAY,      EMAIL_THURSDAY);
   DisplayContact ('Vendors',       NAME_VENDOR_LIAISON,EMAIL_VENDOR_LIAISON);
   echo "</table>\n";
   echo "<p>\n";

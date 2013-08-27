@@ -18,10 +18,11 @@ html_begin ();
 if (array_key_exists ('action', $_REQUEST))
   $action = $_REQUEST['action'];
 else
-  $action = BAG_BID_PAGE;
+  $action = BAG_SHOW_FORM;
 
 switch ($action)
 {
+/*
   case BAG_BID_PAGE:
     display_bid_intro ("Conference");
     break;
@@ -31,14 +32,17 @@ switch ($action)
   case BAG_ACT_PAGE:
     display_bid_intro ("Show");
     break;
-
+*/
   case BAG_SHOW_FORM:
     show_bidinfo_form();
     break;
 
   case BAG_UPDATE:
     if (update_bidinfo())
-      display_bid_intro();
+    {
+      echo "The form was updated successfully.<br>\n";
+      show_bidinfo_form();
+    }
     else
       show_bidinfo_form();
     break;

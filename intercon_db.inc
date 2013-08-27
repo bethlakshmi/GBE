@@ -3363,10 +3363,24 @@ function obfuscate_email_address_if_not_logged_in ($addr)
 
 function mailto_or_obfuscated_email_address ($addr)
 {
-  if (is_logged_in ())
+  $two = explode("@",$addr);
+  if ($two !== FALSE)
+  {
+    $username = $two[0];
+    $twomore = explode(".",$two[1]);
+    if ($twomore !=FALSE)
+    {
+      $server = $twomore[0];
+      $tld = $twomore[1];
+    }
+  }
+  return "<span class=\"spamspan\"><span class=\"u\">$username</span> [at] <span class=\"d\">$server [dot] $tld</span></span>";
+  
+/*  if (is_logged_in ())
     return "<a href=\"mailto:$addr\">$addr</a>";
   else
     return obfuscate_email_address ($addr);
+    */
 }
 
 /*

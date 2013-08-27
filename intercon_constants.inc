@@ -108,8 +108,8 @@ define (EMAIL_OPS, 'ashley@' . CON_DOMAIN);
 define (NAME_OPS2, '');
 define (EMAIL_OPS2, '');
 
-define (NAME_OUTREACH, '');
-define (EMAIL_OUTREACH, '@' . CON_DOMAIN);
+define (NAME_OUTREACH, 'outreach person');
+define (EMAIL_OUTREACH, 'outreach@' . CON_DOMAIN);
 
 define (NAME_REGISTRAR, 'Chad Bergeron');
 define (EMAIL_REGISTRAR, 'registrar@' . CON_DOMAIN);

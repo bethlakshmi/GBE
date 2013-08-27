@@ -1908,7 +1908,7 @@ function display_user_form ($returning_alumni, $errors='')
   }
   if ($isOpenId)
   {
-    echo "<i>You've logged in, but please register.</i>";
+    echo "<FONT color=\"red\"><b>Please register to setup your account.</b></font>";
   }
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
