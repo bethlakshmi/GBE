@@ -46,10 +46,10 @@ switch ($action)
     break;
 
   case BID_PROCESS_FORM:
-    if (! process_bid_form ())
+    if (! process_bid_form ($ActIsPaidFor))
       display_bid_form (FALSE);
     else
-      display_bid_etc ();
+      display_bid_etc ($ActIsPaidFor);
     break;
 
   case BID_REVIEW_BIDS:
@@ -954,10 +954,16 @@ function validate_show ($key)
  * process_bid_form
  *
  * Validate the bid information and write it to the Bids table
+ *
+ * $ActIsPaidFor - returns if the act has been paid, used by display_bid_etc()  -MDB
  */
 
-function process_bid_form ()
+function process_bid_form(&$ActIsPaidFor)
 {
+  // Just in case something goes wrong... assume user hasn't paid. -MDB
+  
+  $ActIsPaidFor = false;
+  
   if (out_of_sequence ())
     return display_sequence_error (false);
 
@@ -1335,24 +1341,32 @@ function process_bid_form ()
   if (! $result)
     return display_mysql_error ('Cannot query user information');
 
-
+	
   // Last Step before Email - If this user has not paid for the act, change the BID status back 
-  // to Draft.  We will warn later in display_bid_etc().  
+  // to Draft.  We will warn later in display_bid_etc().  -MDB
 	
   $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
-  if (!user_paid_act_submittal_fee($UserId))
+  
+  // Note:  This call will synch the entire transaction table with BPT.
+  
+  process_bpt_order_list();
+  $ActIsPaidFor = user_paid_act_submittal_fee($UserId);
+  
+  if (!$ActIsPaidFor)
   {
+	//echo "Switching Event to DRAFT";
+  
     $sql = "update Bids set ";
 	$sql .= build_sql_string('Status','Draft', false);
 	$sql .= " WHERE BidId=$BidId";
-
-	echo $sql;
 	
     $result = mysql_query ($sql);
     if (!$result)
       return display_mysql_error ("Update into Bids failed");
   }	  
  	
+  // Start the email logic.
+  
   $name = trim ("$row->FirstName $row->LastName");
   $email = $row->EMail;
 
@@ -1381,7 +1395,7 @@ function process_bid_form ()
 
   //echo "subject: $subject<br>\n";
   //echo "message: $msg<br>\n";
-  
+
   if (!$isDraft)
     if (! intercon_mail ($send_to,
 		       $subject,
@@ -2403,23 +2417,23 @@ function drop_bid ($BidId, $EventId)
   return TRUE;
 }
 
-function display_bid_etc ()
+function display_bid_etc($ActIsPaidFor)
 {
   $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
   
   if (isset($_POST['isDraft']))
   {
-    $thanks = "<FONT SIZE=\"+2\"><br>Thank you for starting a <b>draft</b> with ";
+    $thanks = "<FONT SIZE=\"+2\">Thank you for starting a <b>draft</b> with ";
     $page = 'draftInfo.html';
   }
-  else if (!user_paid_act_submittal_fee($UserId))
+  else if (!$ActIsPaidFor)
   {
-	$thanks = "<FONT SIZE=\"+2\"><br>Thank you for submitting your work for ";
+	$thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
     $page = 'actUnpaidInfo.html';
   }
   else
   { 
-	$thanks = "<FONT SIZE=\"+2\"><br>Thank you for submitting your work for ";
+	$thanks = "<FONT SIZE=\"+2\">Thank you for submitting your work for ";
 	$page = 'actFollowup.html';
   }
   

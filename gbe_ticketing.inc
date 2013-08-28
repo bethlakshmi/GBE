@@ -968,10 +968,33 @@ function user_paid_act_submittal_fee($UserId)
 		display_error("Cannot verify if user paid act submittal: ticket type doesn't exist");
 		return false;
 	}
-	return true;
 
+	// Get Number of Acts Submitted
+	
+	$sql = sprintf("select * from Bids where UserId = '%d' and Status in " .
+		"('Pending','Under Review','Accepted','Rejected');", $UserId);
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	$acts_submitted = (mysql_num_rows($result));
+	
+	// Get number of act fees paid
+	
+	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId = '%s'",
+		$UserId, BPT_ACT_TICKETITEM_ID);
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	$fees_paid = (mysql_num_rows($result));
+
+	//echo "fees paid:  $fees_paid  acts_submitted:  $acts_submitted";
+	
+	return ($fees_paid >= $acts_submitted);
 }
-
 
 
 
