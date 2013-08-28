@@ -2067,7 +2067,7 @@ function display_tickets_for_event($EventId)
 		if (isset ($_SESSION[SESSION_LOGIN_USER_ID])) 
 		{
 			$link = create_ticket_refer_link($item->ItemId);
-			printf("<a href=\"%s\">", $link);
+			printf("<a href=\"%s\" target=\"_blank\">", $link);
 			printf("Purchase Here</a>");
 		}
 		echo "<br>\n";
