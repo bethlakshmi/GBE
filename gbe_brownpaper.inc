@@ -16,6 +16,7 @@
 define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
 define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
 define ('BPT_ACT_TICKETITEM_ID', '431061-2550661');
+define ('BPT_MAIN_TICKETITEM_ID', '431061-2482211');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/');
 define ('BPT_COUNTRY_CODE', '228');
 
