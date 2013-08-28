@@ -1498,7 +1498,12 @@ function show_user_homepage ()
   if (SHOW_TSHIRTS)
     show_user_homepage_shirts ($_SESSION[SESSION_LOGIN_USER_ID]);
     
-  // Show whether the user has signed up for the Dead Dog
+  // Show the users what tickets he has purchased.
+  
+  display_header("<p>Tickets Purchased");
+  echo "Please Note:  Tickets that were recently purchased may not show for several minutes.\n";
+  echo "<br><br>\n";
+  show_user_simple_ticket_table($_SESSION[SESSION_LOGIN_USER_ID]);
 
   // Fetch whether the user is expected to submit a bio, and the text of that
   // bio, if one is available

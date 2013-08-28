@@ -540,6 +540,7 @@ function get_event_list(&$events)
 		$event = array();
 		$event['Title'] = $row->Title;
 		$event['SpecialEvent'] = $row->SpecialEvent;
+		$event['GameType'] = $row->GameType;
 		$events[(int)$row->EventId] = $event;
 	}
 }
@@ -848,6 +849,47 @@ function show_user_ticket_table($UserId)
 		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
 		echo "  <td align=\"left\">$trans->Status</td>\n";
 		echo "  <td align=\"left\">$trans->TenderType</td>\n";
+		echo "  <td align=\"left\">$trans->Reference</td>\n";
+		echo "  <td align=\"left\">$trans->Memo</td>\n";
+		echo "</tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
+/* function show_user_simple_ticket_table
+ * 
+ * Used to show the table with all transactions for the given user (simple version).
+ *  
+ * $UserId - the ID of the user in question.
+ * Returns: nothing.
+ */
+function show_user_simple_ticket_table($UserId)
+{
+	get_transactions_for_user($UserId, $Transactions);
+	if (sizeof($Transactions) == 0)
+	{
+		echo "This user has not purchased any tickets.<br><br>\n";
+		return;
+	}
+
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>Ticket Description</th>\n";
+	echo "    <th>Amount Paid</th>\n";
+	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Payment Reference</th>\n";
+	echo "    <th>Cashier's Memo</th>\n";
+	echo "  </tr>\n";
+
+	foreach ($Transactions as $trans)
+	{
+		if (($trans->Status == 'Voided') || ($trans->Status == 'Error'))
+			continue;
+	
+		echo "<tr valign=\"top\">\n";
+		echo "  <td align=\"left\">$trans->Title</td>\n";
+		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
 		echo "  <td align=\"left\">$trans->Reference</td>\n";
 		echo "  <td align=\"left\">$trans->Memo</td>\n";
 		echo "</tr>\n";

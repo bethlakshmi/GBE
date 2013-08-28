@@ -71,7 +71,7 @@ switch ($action)
 	case TRANSACTION_SYNC_PROCESS:
 		if (!array_key_exists('Close', $_POST))
 			process_transaction_bpt_sync();
-		list_users_for_pos();
+		list_ticket_status();
 		break;	
 	
 	case POS_LISTUSERS:
@@ -216,6 +216,9 @@ function display_ticket_item_events($TicketItemId)
 	
 	foreach ($events as $eventid => $event)
 	{	
+		if (($event['GameType'] == 'Class') || ($event['GameType'] == 'Panel'))
+			continue;
+			
 		if (ticket_authorizes_event($TicketItemId, $eventid))
 			$checked = "checked";
 		else
