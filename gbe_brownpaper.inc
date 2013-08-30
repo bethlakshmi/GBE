@@ -9,14 +9,13 @@
  *
  */
  
-//define ('BPT_DEVELOPER_ID', 'vJcVSyKQYa');
-//define ('BPT_CLIENT_ID', 'bostonbabydolls');
-//define ('BPT_ACT_EVENT_ID', '450851');
-
-define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
-define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
-define ('BPT_ACT_TICKETITEM_ID', '431061-2550661');
-define ('BPT_MAIN_TICKETITEM_ID', '431061-2482211');
+//define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
+//define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
+ 
+define ('BPT_DEVELOPER_ID', 'vJcVSyKQYa');
+define ('BPT_CLIENT_ID', 'bostonbabydolls');
+define ('BPT_ACT_TICKETITEM_ID', '450851-2540412');
+define ('BPT_MAIN_TICKETITEM_ID', '450895-2540547');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/');
 define ('BPT_COUNTRY_CODE', '228');
 
@@ -30,8 +29,8 @@ define ('BPT_COUNTRY_CODE', '228');
  */
 function get_bpt_event_list()
 {
-	//return array(450851, 450895);
-	return array(431061);
+	return array(450851, 450895);
+	//return array(431061);
 }
 
 /* function produce_XML_object_tree
