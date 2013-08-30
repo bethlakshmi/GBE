@@ -1397,12 +1397,13 @@ function process_bid_form(&$ActIsPaidFor)
   //echo "message: $msg<br>\n";
 
   if (!$isDraft)
+  {
     if (! intercon_mail ($send_to,
 		       $subject,
 		       $msg,
 		       $email))
       display_error ('Attempt to send mail failed');
-
+  }
   return TRUE;
 }
 
