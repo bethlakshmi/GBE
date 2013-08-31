@@ -43,10 +43,6 @@ function show_cost()
 	printf("Below are the ticket options available for purchase.  ");
 	printf("There are several ways you can be a part of the convention, so ");
 	printf("please read the discriptions carefully.<br><br>\n");
-	printf("Please note:  you will not be able to purchase a ticket if you have ");
-	printf("not registered for the convention.  You can ");
-	printf("<a href=\"/index.php?action=%d\">register here </a> or ", NEW_USER);
-	printf("<a href=\"/index.php\">log in here</a>.<br><br>\n");
 	
 	echo "<table border=\"0\">\n";	
 	foreach ($TicketItems as $item)
