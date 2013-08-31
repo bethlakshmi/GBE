@@ -82,14 +82,14 @@ function show_bid_faq()
   echo "<tr>\n";
   echo "<td bgcolor=\"white\">\n";
   echo "<h3>Questions?</h3>\n";
-  bidfaq_link ('gamekind', 'What kind of events are you looking for?');
-  bidfaq_link ('audience', "What kind of attendees come to ".CON_NAME."?");
-  echo "<p><A href=\"#deadlines\">When do I have to get my bid in?</a></p>\n";
+  bidfaq_link ('classtypes', 'What types of classes does the Expo want?');
+  bidfaq_link ('attendees', "What types of people attend the Expo?");
+  bidfaq_link ('length', "How long are classes?");
   static_link ('bidFollowup', 'What happens when I submit my bid?');
-  bidfaq_link ('', 'Other Frequently Asked Questions About Bidding');
-
+  bidfaq_link ('', 'Other Frequently Asked Questions About Classes and Panels');
+/*
   echo "<h3>What do I have to know if I become a teacher or panelist?</h3>\n";
-  static_link ('GMPolicies', 'GBE Policies and Services');
+  static_link ('GMPolicies', 'GBE Policies and Services');*/
   echo "</td></tr></table>\n";
 
   echo "<table cellspacing=\"2\" cellpadding=\"2\" bgcolor=\"#4B067A\">\n";
