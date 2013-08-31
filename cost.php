@@ -79,13 +79,11 @@ function show_cost_for_single_item($item)
 	printf("  <td align=\"left\" colspan=2>&nbsp</td>\n");
 	echo "</tr>\n";
 	
-	if (isset ($_SESSION[SESSION_LOGIN_USER_ID])) // User is logged in.
-	{
-		$link = create_ticket_refer_link($item->ItemId);
-		echo "<tr valign=\"top\">\n";
-		printf("  <td align=\"left\" colspan=2><a href=\"%s\" target=\"_blank\">", $link);
-		printf("Purchase %s from Brown Paper Tickets</tr>\n", $item->Title);
-	}
+	$link = create_ticket_refer_link($item->ItemId);
+	echo "<tr valign=\"top\">\n";
+	printf("  <td align=\"left\" colspan=2><a href=\"%s\" target=\"_blank\">", $link);
+	printf("Purchase %s from Brown Paper Tickets</tr>\n", $item->Title);
+
 		
 	echo "<tr valign=\"top\">\n";
 	printf("  <td align=\"left\" colspan=2>&nbsp</td>\n");
