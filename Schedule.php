@@ -1156,7 +1156,7 @@ function display_players ($head, $min, $max, $preferred)
 /*
  * game_full
  *
- * Checks whether the game is full.  This is made MUCH more complicated
+ * Checks whether the event is full.  This is made MUCH more complicated
  * by the fact that we're keeping track of how many slots are available
  * by gender.
  */
@@ -1169,7 +1169,7 @@ function game_full (&$msg, $gender, $male, $female,
   if ($male + $female + $neutralcount >= $max_male + $max_female + $max_neutral)
   {
     //    echo "<!-- Above game total -->\n";
-    $msg = 'This game is full';
+    $msg = 'This opportunity is full';
     return TRUE;
   }
 

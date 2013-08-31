@@ -493,9 +493,9 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
   // Select singular or plural for game(s)
 
   if (1 == $num_rows)
-    $games = 'game';
+    $games = 'thing';
   else
-    $games = 'games';
+    $games = 'things';
 
   // Start displaying the table of games
 
