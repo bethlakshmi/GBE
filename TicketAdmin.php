@@ -216,7 +216,7 @@ function display_ticket_item_events($TicketItemId)
 	
 	foreach ($events as $eventid => $event)
 	{	
-		if (($event['GameType'] == 'Class') || ($event['GameType'] == 'Panel'))
+		if (($event['GameType'] == 'Class') || ($event['GameType'] == 'Panel') || ($event['GameType'] == 'Ops'))
 			continue;
 			
 		if (ticket_authorizes_event($TicketItemId, $eventid))
