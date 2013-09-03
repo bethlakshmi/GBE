@@ -69,61 +69,57 @@ define (CON_MAX, 600);
 define (CON_SHORT_NAME, 'GBE');
 define (USE_CON_SHORT_NAME, 1);
 
-define (PAYPAL_ACCOUNT_EMAIL, 'info@burlesque-expo.com');
+/*define (PAYPAL_ACCOUNT_EMAIL, 'info@burlesque-expo.com');
 define (PAYPAL_ITEM_SHIRT, CON_NAME . ' Shirt Payment');
 define (PAYPAL_ITEM_CON, CON_NAME . ' Registration');
 define (PAYPAL_ITEM_THURSDAY, CON_NAME . ' Thursday');
 define (PAYPAL_ITEM_DEAD_DOG, CON_NAME . ' Dead Dog');
+*/
 
-define (CON_MAIL_LETTER, '2013');
+define (CON_MAIL_LETTER, '2014');
 define (NAME_CON_CHAIR, 'Scratch');
 define (EMAIL_CON_CHAIR, 'info@' . CON_DOMAIN);
-define (ADDR_CON_CHAIR, 'NEED ADDRESS');
+define (ADDR_CON_CHAIR, 'Great Burlesque Exposition<br>119 Braintree St.<br>Suite #206<br>Allston, MA 02134<br>USA');
 
 define (NAME_SEND_CHECKS, 'Fake Name');
 define (ADDR_SEND_CHECKS, '123 Fake St<br>Fake, MA 90210');
 
 // EMail Addresses
 
-define (NAME_ADVERTISING, '');
-define (EMAIL_ADVERTISING, '');
+define (NAME_ADVERTISING, 'TBA');
+define (EMAIL_ADVERTISING, 'ads'. CON_DOMAIN);
 
 define (NAME_BID_CHAIR, 'Scandal from Bohemia');
-define (EMAIL_BID_CHAIR, 'Teachers12@Burlesque-Expo.com');
+define (EMAIL_BID_CHAIR, 'Teachers13@'. CON_DOMAIN);
 
-define (NAME_SHOW_CHAIR, 'Scratch');
-define (EMAIL_SHOW_CHAIR, 'info@Burlesque-Expo.com');
+define (NAME_MERCH, 'Abbey Bricker');
+define (EMAIL_MERCH, 'merch@'. CON_DOMAIN);
 
-define (NAME_CON_SUITE, 'NONE');
-define (EMAIL_CON_SUITE, 'none@test.com');
-
-define (NAME_GM_COORDINATOR, 'NONE');
-define (EMAIL_GM_COORDINATOR, 'none@' . CON_DOMAIN);
-
-define (NAME_HOTEL_LIAISON, 'Scratch');
-define (EMAIL_HOTEL_LIAISON, 'info@' . CON_DOMAIN);
-
-define (NAME_OPS, 'Ashley');
-define (EMAIL_OPS, 'ashley@' . CON_DOMAIN);
-define (NAME_OPS2, '');
-define (EMAIL_OPS2, '');
-
-define (NAME_OUTREACH, 'outreach person');
-define (EMAIL_OUTREACH, 'outreach@' . CON_DOMAIN);
-
-define (NAME_REGISTRAR, 'Chad Bergeron');
+define (NAME_REGISTRAR, 'Betty Blaize');
 define (EMAIL_REGISTRAR, 'registrar@' . CON_DOMAIN);
 
-define (NAME_THURSDAY, '');
-define (EMAIL_THURSDAY, '@' . CON_DOMAIN);
+define (NAME_SECURITY, 'Seth Wilhelm');
+define (EMAIL_SECURITY, 'security@' . CON_DOMAIN);
 
-define (NAME_TREASURER, '');
-define (EMAIL_TREASURER, '');
+define (NAME_SHOW_CHAIR, 'private');
+define (EMAIL_SHOW_CHAIR, 'sel-comm@' . CON_DOMAIN);
 
-define (NAME_VENDOR_LIAISON, 'Ashley');
-define (EMAIL_VENDOR_LIAISON, 'vendors@' . CON_DOMAIN);
+define (NAME_TECH_DIR, 'Hunter Heinlen');
+define (EMAIL_TECH_DIR, 'TD@' . CON_DOMAIN);
 
-define (EMAIL_WEBMASTER, 'webmaster@' . CON_DOMAIN);
+define (NAME_VENDOR_LIAISON, 'TBA');
+define (EMAIL_VENDOR_LIAISON, 'sales@' . CON_DOMAIN);
+
+define (NAME_VOLUNTEER_COORD, 'Hoi Polloi');
+define (EMAIL_VOLUNTEER_COORD, 'sales@' . CON_DOMAIN);
+
+define (NAME_COSTUME, 'Bettysioux Tailor');
+define (EMAIL_COSTUME, 'costumes@'. CON_DOMAIN);
+
+define (NAME_ART, 'John Bilotti');
+define (EMAIL_ART, 'art@'. CON_DOMAIN);
+
+//define (EMAIL_WEBMASTER, 'webmaster@' . CON_DOMAIN);
 
 // Con dates
 
