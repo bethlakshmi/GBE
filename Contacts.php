@@ -32,7 +32,7 @@ function DisplayContact ($title, $name, $email)
 
   echo "  <tr valign=top align=left bgcolor=white>\n";
   echo "    <th>$title</th>\n";
-  echo "    <td>$name</td>\n";
+  //echo "    <td>$name</td>\n";
   echo "    <td>$email</td>\n";
   echo "  </tr>\n";
 }
@@ -58,34 +58,27 @@ function DisplayContact2 ($title, $name1, $email1, $name2, $email2)
 
 function DisplayContactsPage ()
 {
-  echo "<h3>Intercon Contacts</h3>\n";
+  echo "<h3>Contacts</h3>\n";
   echo "<p>\n";
-  echo "The following people are in charge of various aspects of the\n";
-  echo CON_NAME . " convention:\n";
+  echo "<b>Mailing Address:</b><br>\n";
+  echo ADDR_CON_CHAIR;
   echo "<p>\n";
   echo "<table cellspacing=2 cellpadding=5 bgcolor=#4b067a>\n";
-  echo "  <tr valign=top align=left bgcolor=white>\n";
-  echo "    <th rowspan=2>Producer</th>\n";
-  printf ("    <td>%s</td><td>%s</td>\n",
-	  NAME_CON_CHAIR,
-	  mailto_or_obfuscated_email_address (EMAIL_CON_CHAIR));
-  echo "  </tr>\n";
-  echo "  <tr bgcolor=white>\n";
-  printf ("    <td colspan=2>%s</td>\n", ADDR_CON_CHAIR);
-  echo "  </tr>\n";
+
+  DisplayContact ('Producer',   NAME_CON_CHAIR,   EMAIL_CON_CHAIR);
 
   DisplayContact ('Advertising/Sponsorships',   NAME_ADVERTISING,   EMAIL_ADVERTISING);
+  DisplayContact ('Art Show', NAME_ART,EMAIL_ART);
   DisplayContact ('Conference Coordinator',     NAME_BID_CHAIR,     EMAIL_BID_CHAIR);
+  DisplayContact ('Costume Exhibit/Fashion Show', NAME_COSTUME,EMAIL_COSTUME);
   DisplayContact ('Merch Table',     NAME_MERCH,     EMAIL_MERCH);
   DisplayContact ('Registration',
 		                 NAME_REGISTRAR,     EMAIL_REGISTRAR);
   DisplayContact ('Security',     NAME_SECURITY,     EMAIL_SECURITY);
   DisplayContact ('Selection Committee',     NAME_SHOW_CHAIR,     EMAIL_SHOW_CHAIR);
-  DisplayContact ('Technical Directory', NAME_TECH_DIR, EMAIL_TECH_DIR);
+  DisplayContact ('Technical Director', NAME_TECH_DIR, EMAIL_TECH_DIR);
   DisplayContact ('Vendor Coordinator',       NAME_VENDOR_LIAISON,EMAIL_VENDOR_LIAISON);
   DisplayContact ('Volunteer Coordinator', NAME_VOLUNTEER_COORD, EMAIL_VOLUNTEER_COORD);
-  DisplayContact ('Costume Exhibit/Fashion Show', NAME_COSTUME,EMAIL_COSTUME);
-  DisplayContact ('Art Show', NAME_ART,EMAIL_ART);
   echo "</table>\n";
   echo "<p>\n";
 }

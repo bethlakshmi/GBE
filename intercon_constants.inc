@@ -87,7 +87,7 @@ define (ADDR_SEND_CHECKS, '123 Fake St<br>Fake, MA 90210');
 // EMail Addresses
 
 define (NAME_ADVERTISING, 'TBA');
-define (EMAIL_ADVERTISING, 'ads'. CON_DOMAIN);
+define (EMAIL_ADVERTISING, 'ads@'. CON_DOMAIN);
 
 define (NAME_BID_CHAIR, 'Scandal from Bohemia');
 define (EMAIL_BID_CHAIR, 'Teachers13@'. CON_DOMAIN);
@@ -111,7 +111,7 @@ define (NAME_VENDOR_LIAISON, 'TBA');
 define (EMAIL_VENDOR_LIAISON, 'sales@' . CON_DOMAIN);
 
 define (NAME_VOLUNTEER_COORD, 'Hoi Polloi');
-define (EMAIL_VOLUNTEER_COORD, 'sales@' . CON_DOMAIN);
+define (EMAIL_VOLUNTEER_COORD, 'ops@' . CON_DOMAIN);
 
 define (NAME_COSTUME, 'Bettysioux Tailor');
 define (EMAIL_COSTUME, 'costumes@'. CON_DOMAIN);
