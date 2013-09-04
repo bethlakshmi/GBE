@@ -908,7 +908,7 @@ function validate_video ($haveFile)
 //echo strcmp($a, $b);
 
 // did the applicant tell us there was a video?
-$haveVideo = strcmp($a, $b);
+$haveVideo = !strcmp($a, $b);
 
   if (  $haveVideo && 
         (validate_file( "video_upload") || (isset($_POST["VideoURL"]) && 
