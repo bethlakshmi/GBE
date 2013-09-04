@@ -1021,7 +1021,7 @@ function process_bid_form(&$ActIsPaidFor)
       $form_ok = FALSE;
 
     $form_ok &= validate_int ('Hours', 1, 12, 'Hours');
-    $form_ok &= validate_int ('Minutes', 1, 4, 'Minutes');
+    $form_ok &= validate_int ('Minutes', 1, 60, 'Minutes');
     $form_ok &= validate_int ('Seconds', 0, 60, 'Seconds');
     $form_ok &= validate_string ('Description');
     $form_ok &= validate_string ('ShortBlurb', 'Short blurb');
