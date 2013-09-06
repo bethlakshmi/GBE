@@ -3309,8 +3309,10 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
   } else {
       $mail = Mail::factory(MAIL_BACKEND);
   }
+  /*
   $result = $mail->send($to, $headers, $msg);
-  return !(PEAR::isError($result));
+  return !(PEAR::isError($result)); */
+  return TRUE;
 }
 
 /*
