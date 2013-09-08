@@ -2,7 +2,7 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 8/15/2013 by MDB
+ * Last Updated 9/8/2013 by MDB
  *
  */
  
@@ -1038,7 +1038,62 @@ function user_paid_act_submittal_fee($UserId)
 	return ($fees_paid >= $acts_submitted);
 }
 
+/* function email_indicates_autogen_user
+ * 
+ * Used to determine if a given email is associated with an auto-generated user
+ *
+ * $Email - the email to query against.
+ * Returns:  true if the user is auto-generated, false otherwise.
+ */
+function email_indicates_autogen_user($EMail)
+{
+	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
+	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", mysql_real_escape_string($EMail));
 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result) > 0);
+}
+
+/* function verify_autogen_user_code
+ * 
+ * Used to dtermine if the given email address and BPT transaction code match - 
+ * indicating the given email address is OK to use for this user.  
+ *
+ * $Email - the email to query against.
+ * $trans_code - the transaction code to match.
+ * Returns:  The valid UserId for the email/code combo, otherwise false
+ */
+function verify_autogen_user_code($EMail, $trans_code)
+{
+	if (strlen($trans_code) == 0)
+		return false;
+		
+	// If the trans code doesn't start with an "A", add it.  This is BPT specific.
+	
+	if (substr($trans_code, 0, 1) != "A")
+		$trans_code = "A" . $trans_code;
+
+	echo "Testing EMail $EMail against Trans Code $trans_code<br>";
+	
+	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
+	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", 
+		mysql_real_escape_string($EMail));
+	$sql .= sprintf(" and Transactions.Reference = '%s'", mysql_real_escape_string($trans_code));
+	
+	echo $sql;
+
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	if (mysql_num_rows($result) <= 0)
+		return false;
+	
+	return mysql_fetch_object($result)->UserId;
+}
 
 ?>
 
