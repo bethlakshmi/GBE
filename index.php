@@ -1772,7 +1772,7 @@ function add_user(&$user_paid_before_reg)
   if ($update)
   {
 	if (is_numeric($autogen_userid))
-		$_SESSION[SESSION_LOGIN_USER_ID] = $autogen_userid
+		$_SESSION[SESSION_LOGIN_USER_ID] = $autogen_userid;
 		
 	$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
   }
