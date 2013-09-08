@@ -2,7 +2,7 @@
 
 /* TicketAdmin.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 8/15/2013 by MDB
+ * Last Updated 9/8/2013 by MDB
  *
  */
  
@@ -93,6 +93,10 @@ switch ($action)
 		
 	case TRANSACTION_STATUS:
 		list_ticket_status();
+		break;
+	
+	case TICKETITEM_LIST_PMTS:
+		list_ticket_payments();
 		break;
 	
 	default:
@@ -491,6 +495,29 @@ function list_ticket_status()
 	echo "</b><br><br>\n";
 		
 	show_ticket_status_table();
+}
+
+/* function list_ticket_payments
+ * 
+ * Used to display the current ticket purchase status for a 
+ * specific ticket item.
+ *  
+ * Returns: nothing.
+ */
+function list_ticket_payments()
+{
+	if (!array_key_exists('TicketItemId', $_REQUEST))
+		return display_error("Cannot list tickets purchased: no ticket item selected.");
+		
+	$ticket_item_id = $_REQUEST['TicketItemId'];
+	
+	$ticket_item = new TicketItem();
+	$ticket_item->load_from_itemid($ticket_item_id);
+	echo "<b>\n";
+	printf("Ticket Purchase Status for Ticket Item %s:  %s", $ticket_item_id, $ticket_item->Title);
+	echo "</b><br><br>\n";
+		
+	show_trans_item_ticket_table($ticket_item_id);
 }
 
 /* function show_ticket_receipt_form

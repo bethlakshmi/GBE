@@ -64,7 +64,11 @@ function show_cost_for_single_item($item)
 {
 	echo "<tr valign=\"top\">\n";
 	printf("  <th align=\"left\">%s </th>\n", $item->Title);
-	printf("  <td align=\"right\">$%0.2f </td>\n", $item->Cost);
+	//printf("  <td align=\"right\">$%0.2f </td>\n", $item->Cost);
+	
+	// Removed cost from this page per scratch.
+	
+	echo "  <td align=\"right\">&nbsp</td>\n");
 	echo "</tr>\n";
 	
 	echo "<tr valign=\"top\">\n";

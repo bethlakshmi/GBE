@@ -713,6 +713,38 @@ function get_transactions_for_user($UserId, &$Transactions)
 	} 
 }
 
+/* function get_transactions_for_ticket_item
+ * 
+ * Used to obtain a list of the transactions (tickets) purchased by 
+ * ticket item.
+ *
+ * $TickeItem - the ID of the ticket item in question.  
+ * $Transactions - an array of Transaction objects in the DB.
+ * Returns: nothing.
+ */
+function get_transactions_for_ticket_item($TickeItem, &$Transactions)
+{
+	$sql = "select * from Transactions, Users ";
+	$sql .= "where Users.UserId = Transactions.UserId "; 
+	$sql .= sprintf("and Transactions.ItemId = '%s' ", mysql_real_escape_string($TickeItem));
+    $sql .= "order by Transactions.UserId";
+	
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+
+	$Transactions = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$trans = new Transaction();
+		$trans->convert_from_sql_row($row);	
+		$trans->UserId = $row->UserId;
+		array_push($Transactions, $trans);
+	} 
+}
+
 /* function create_stand_in_user
  * 
  * Used to create a temporary stand-in user in the event a user purchased tickets 
@@ -856,6 +888,58 @@ function show_user_ticket_table($UserId)
 	echo "</table><br>\n";
 }
 
+/* function show_trans_item_ticket_table
+ * 
+ * Used to show the table with all transactions for the given ticket item
+ *  
+ * $TicketItem - the ticket item to use for the query
+ * Returns: nothing.
+ */
+function show_trans_item_ticket_table($TicketItem)
+{
+	get_transactions_for_ticket_item($TicketItem, $Transactions);
+	if (sizeof($Transactions) == 0)
+	{
+		echo "This Ticket Item has not been purchased.<br><br>\n";
+		return;
+	}
+	
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>UserId</th>\n";
+	echo "    <th>User Name</th>\n";
+	echo "    <th>Stage Name</th>\n";
+	echo "    <th>Nick Name</th>\n";
+	echo "    <th>EMail</th>\n";
+	echo "    <th>Amount Paid</th>\n";
+	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Status</th>\n";
+	echo "    <th>Tender Type</th>\n";
+	echo "    <th>Payment Reference</th>\n";
+	echo "    <th>Cashier's Memo</th>\n";
+	echo "  </tr>\n";
+
+	foreach ($Transactions as $trans)
+	{
+		get_user($trans->UserId, $User);
+		
+		echo "<tr valign=\"top\">\n";
+		printf("  <td align=\"left\">%s</td>\n", $User['UserId']);
+		printf("  <td align=\"left\">%s &nbsp;</td>\n", $User['DisplayName']);
+		printf("  <td align=\"left\">%s &nbsp;</td>\n", $User['StageName']);
+		printf("  <td align=\"left\">%s &nbsp;</td>\n", $User['Nickname']);
+		printf("  <td align=\"left\">%s</td>\n", $User['EMail']);
+		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
+		echo "  <td align=\"left\">$trans->Status</td>\n";
+		echo "  <td align=\"left\">$trans->TenderType</td>\n";
+		echo "  <td align=\"left\">$trans->Reference</td>\n";
+		echo "  <td align=\"left\">$trans->Memo</td>\n";
+		echo "</tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
 /* function show_user_simple_ticket_table
  * 
  * Used to show the table with all transactions for the given user (simple version).
@@ -955,7 +1039,10 @@ function show_ticket_status_table()
 	foreach ($item_list as $id => $title)
 	{
 		echo "<tr valign=\"top\">\n";
-		echo "    <td align=\"left\">$id</td>\n";
+		
+		printf( "  <td align=\"left\"><a href=\"TicketAdmin.php?action=%d&TicketItemId=%s\">%s</td>\n", 
+			TICKETITEM_LIST_PMTS, $id, $id);
+		
 		echo "    <td align=\"left\">$title</td>\n";
 		if (array_key_exists($id, $posted))
 			printf("    <td align=\"left\">%s</td>\n", $posted["$id"]);
