@@ -1722,7 +1722,9 @@ function add_user(&$user_paid_before_reg)
   $sql .= build_sql_string ('HowHeard');
   $sql .= build_sql_string ('PreferredContact');
   
-  if ($update)
+  if ($update and is_numeric($autogen_userid))
+	$sql .= ', ModifiedBy=' . $autogen_userid;
+  else if ($update)
     $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
   else
     $sql .= ', ModifiedBy=UserId';

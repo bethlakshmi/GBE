@@ -1075,15 +1075,11 @@ function verify_autogen_user_code($EMail, $trans_code)
 	
 	if (substr($trans_code, 0, 1) != "A")
 		$trans_code = "A" . $trans_code;
-
-	echo "Testing EMail $EMail against Trans Code $trans_code<br>";
 	
 	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
 	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", 
 		mysql_real_escape_string($EMail));
 	$sql .= sprintf(" and Transactions.Reference = '%s'", mysql_real_escape_string($trans_code));
-	
-	echo $sql;
 
 	$result = mysql_query($sql);	
 	if (!$result)
