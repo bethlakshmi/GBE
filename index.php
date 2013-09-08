@@ -1958,6 +1958,12 @@ function display_user_form ($returning_alumni, $errors='', $user_paid_before_reg
 	echo " Brown Paper Tickets when  you purchased a ticket.\nYour Brown Paper Tickets confirmation ";
 	echo " code will be an eight digit number, typically begining with a 2 or 3.</p>\n";
   }
+  else
+  {
+	echo "<p><b>Please Note:  The email address you use below needs to be the same as the email address ";
+	echo "used to purchase tickets from Brown Paper Tickets, otherwise we cannot match your purchases ";
+	echo "to your account.</b></p>";
+  }	
   
   print ("<form method=\"post\" action=\"index.php\">\n");
   form_add_sequence ();
