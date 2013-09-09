@@ -120,9 +120,12 @@ switch ($action)
     
   case LOGIN_OPENID:
     // Process the open id.  If it fails, try again
+	
+	echo "test_auth<br>";
     if (!test_auth())
     {
       html_begin ();
+	  echo "display_login_form<br>";
       display_login_form ();
       break;
     }
@@ -130,10 +133,11 @@ switch ($action)
     $id = get_openid();
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
     
+	echo "test_reg<br>";
     if (!test_reg($id))
     {
       html_begin ();
-      //echo $id;
+      echo "display_user_form<br>";
       display_user_form (FALSE);
       break;
     }
@@ -156,8 +160,8 @@ switch ($action)
     // Normal login.  Just show the user's homepage
 
     html_begin ();
-    //echo "session open id:  ".$_SESSION[SESSION_LOGIN_OPENID]."<br>";
-    //echo "open id:  ".$id."<br>";
+    echo "session open id:  ".$_SESSION[SESSION_LOGIN_OPENID]."<br>";
+    echo "open id:  ".$id."<br>";
 
     show_user_homepage ();
 
@@ -1764,7 +1768,7 @@ function add_user(&$user_paid_before_reg)
     $sql .= ', LastLogin=NULL, Created=NULL';
   }
 
-  echo "sql: $sql<p>\n";
+  //echo "sql: $sql<p>\n";
 
   $result = mysql_query ($sql);
   // echo "result: $result<br>";
