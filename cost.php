@@ -68,7 +68,7 @@ function show_cost_for_single_item($item)
 	
 	// Removed cost from this page per scratch.
 	
-	echo "  <td align=\"right\">&nbsp</td>\n");
+	echo "  <td align=\"right\">&nbsp</td>\n";
 	echo "</tr>\n";
 	
 	echo "<tr valign=\"top\">\n";
