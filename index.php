@@ -1764,7 +1764,7 @@ function add_user(&$user_paid_before_reg)
     $sql .= ', LastLogin=NULL, Created=NULL';
   }
 
-  //echo "sql: $sql<p>\n";
+  echo "sql: $sql<p>\n";
 
   $result = mysql_query ($sql);
   // echo "result: $result<br>";
