@@ -120,12 +120,9 @@ switch ($action)
     
   case LOGIN_OPENID:
     // Process the open id.  If it fails, try again
-	
-	echo "test_auth<br>";
     if (!test_auth())
     {
       html_begin ();
-	  echo "display_login_form<br>";
       display_login_form ();
       break;
     }
@@ -133,11 +130,10 @@ switch ($action)
     $id = get_openid();
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
     
-	echo "test_reg<br>";
     if (!test_reg($id))
     {
       html_begin ();
-      echo "display_user_form<br>";
+      //echo $id;
       display_user_form (FALSE);
       break;
     }
@@ -160,8 +156,8 @@ switch ($action)
     // Normal login.  Just show the user's homepage
 
     html_begin ();
-    echo "session open id:  ".$_SESSION[SESSION_LOGIN_OPENID]."<br>";
-    echo "open id:  ".$id."<br>";
+    //echo "session open id:  ".$_SESSION[SESSION_LOGIN_OPENID]."<br>";
+    //echo "open id:  ".$id."<br>";
 
     show_user_homepage ();
 
