@@ -1623,8 +1623,8 @@ function add_user(&$user_paid_before_reg)
 	$user_paid_before_reg = email_indicates_autogen_user($EMail);
 	if ($user_paid_before_reg)
 	{
-		$errors = "Another user may have already registered with this email address, or that you ";
-		$errors .= "have alreay purchased an item or ticket for the exposition and have not registered.<p>\n";
+		$errors = "Another user may have already signed up with this email address, or you may ";
+		$errors .= "have alreay purchased a ticket for the exposition and have not logged in to this website.<p>\n";
 	}
 	else
 	{
