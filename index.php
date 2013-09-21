@@ -129,15 +129,27 @@ switch ($action)
     // if there's no user, get them to register
     $id = get_openid();
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
+
+    $registered = test_reg($id);
     
-    if (!test_reg($id))
+    if ($registered == 0)
     {
       html_begin ();
-      //echo $id;
+      echo $id;
       display_user_form (FALSE);
       break;
     }
+    else if ($registered == -1)
+    {
+      html_begin ();
+      if (file_exists(TEXT_DIR.'/loginerror.html'))
+	    include(TEXT_DIR.'/loginerror.html');	
 
+      break;
+    }
+
+    // else - assume registered = 1 and all is good
+    
     // don't ask me why this is here twice, but it fixed a bug.
     $_SESSION[SESSION_LOGIN_OPENID] = $id;    
 
@@ -270,9 +282,18 @@ switch ($action)
     select_user_to_delete ();
     break;
 
+  case SELECT_USER_TO_MERGE:
+    html_begin ();
+    select_user_to_merge ();
+    break;
+
   case SHOW_USER_TO_DELETE:
     html_begin ();
     show_user_to_delete ();
+    break;
+  case SHOW_USER_TO_MERGE:
+    html_begin ();
+    show_user_to_merge ();
     break;
 
   case DELETE_USER:
@@ -280,6 +301,11 @@ switch ($action)
     delete_user ();
     break;
 
+  case MERGE_USER:
+    html_begin ();
+    merge_user ();
+    break;
+    
   case SELECT_USER_TO_VIEW:
     html_begin ();
     select_user_to_view ();
@@ -2975,7 +3001,7 @@ function select_user_to_delete ()
   // Make sure the user is allowed to visit this page
 
   if (! user_has_priv (PRIV_STAFF))
-    return display_error ("You are do not have sufficient privilege to use this page");
+    return display_error ("You do not have sufficient privilegesto use this page");
 
   // Get a list of privileged users.  They'll be highlighted
 
@@ -3008,7 +3034,7 @@ function show_user_to_delete ()
   // Make sure the user is allowed to visit this page
 
   if (! user_has_priv (PRIV_STAFF))
-    return display_error ("You are do not have sufficient privilege to use this page");
+    return display_error ("You do not have sufficient privileges to use this page");
 
   $UserId = intval ($_REQUEST['UserId']);
 
@@ -3049,6 +3075,108 @@ function show_user_to_delete ()
   echo "</CENTER>\n";
   echo "</FORM>\n";
 }
+
+
+/*
+ * select_user_to_merge
+ *
+ * The selected user can then be merged with a second user selected by the 
+ * administrator
+ */
+
+function select_user_to_merge ()
+{
+  // Make sure the user is allowed to visit this page
+
+  if (! user_has_priv (PRIV_STAFF))
+    return display_error ("You do not have sufficient privileges to use this page");
+
+  // Get a list of privileged users.  They'll be highlighted
+  $extracondition = ' WHERE  exists (select * from Transactions WHERE Transactions.UserId = Users.UserId)';
+  $sql = 'SELECT UserId, Priv FROM Users ';
+  $sql .= $extracondition;
+  
+  $result = mysql_query ($sql);
+
+  if (! $result)
+    return display_mysql_error ('Failed to get list of users');
+
+  if ( mysql_num_rows($result) != 0 )
+  {
+
+    select_user ('Select User To Merge',
+	       'index.php?action=' . SHOW_USER_TO_MERGE,
+	       FALSE,
+	       TRUE,
+	       NULL,
+	       true, false, $extracondition);
+  }
+  else
+    echo "no transactions need cleanup</br>";
+}
+
+function show_user_to_merge ()
+{
+  // Make sure the user is allowed to visit this page
+
+  if (! user_has_priv (PRIV_STAFF))
+    return display_error ("You do not have sufficient privileges to use this page");
+
+  $UserId = intval ($_REQUEST['UserId']);
+
+  $sql = 'SELECT DisplayName, CanSignup, EMail FROM Users';
+  $sql .= "  WHERE UserId=$UserId";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Query for user $UserId failed", $sql);
+
+  // Make sure we've gotten a match
+
+  if (0 == mysql_num_rows ($result))
+    return display_error ("Failed to find user $UserId");;
+
+  $row = mysql_fetch_object ($result);
+
+  $name = trim ("$row->DisplayName");
+
+  echo "<H2>User to merge: $name</H2>\n";
+
+  echo "CAUTION:  Merging this user will delete this row from the database, and merge all purchases into the user selected below.  If this user has any other commitments, they must be fixed manually.<br><br>";
+  // Show the games the user is registered for, if any
+
+  show_games ($UserId, "$name is", 'signed up', 'Confirmed');
+  show_games ($UserId, "$name is", 'wait listed', 'Waitlisted');
+
+  // Show any games that the user is the GM for
+
+  show_gm_games ($UserId, $name);
+
+  echo "<FORM METHOD=POST ACTION=index.php>\n";
+  form_add_sequence ();
+  printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%s>\n", MERGE_USER);
+  
+  $sql = 'SELECT UserId, DisplayName';
+  $sql .= ' FROM Users';
+  $sql .= ' WHERE not exists (select * from Transactions WHERE Transactions.UserId = Users.UserId)';
+  $sql .= '  ORDER BY DisplayName';
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Failed to get list of users', $sql);
+  echo "<br><br>";
+  echo 'Select User to Merge:  <select name="mergeUserId">';
+  while ($row = mysql_fetch_object ($result))
+  {
+    echo '<option value="'.$row->UserId.'">'.$row->DisplayName.'</option>';
+  }
+  echo "</select>";
+  echo "<INPUT TYPE=HIDDEN NAME=UserId VALUE=$UserId>\n";
+  echo "<CENTER>\n";
+  echo "<INPUT TYPE=SUBMIT VALUE=\"Merge User\">\n";
+  echo "</CENTER>\n";
+  echo "</FORM>\n";
+}
+
 
 function show_gm_games ($UserId, $name)
 {
@@ -3096,7 +3224,7 @@ function delete_user ()
   // Make sure the user is allowed to visit this page
 
   if (! user_has_priv (PRIV_STAFF))
-    return display_error ("You are do not have sufficient privilege to use this page");
+    return display_error ("You do not have sufficient privilegesto use this page");
 
   $UserId = intval ($_REQUEST['UserId']);
 
@@ -3193,6 +3321,87 @@ function delete_user ()
   echo "<H2>$name has been removed from the database</H2>\n";
   echo "$name has been removed as teacher/panelist from $gm_count\n";
   echo "and withdrawn from $game_count<P>\n";
+}
+
+/*
+ * merge_user
+ *
+ * Delete a user from the database while reconnecting the purchases with
+ * another user.  Note that this deletes the user
+ * completely, not just withdraws them from any games they're signed up for
+ */
+
+function merge_user ()
+{
+  // Make sure the user is allowed to visit this page
+
+  if (! user_has_priv (PRIV_STAFF))
+    return display_error ("You do not have sufficient privilegesto use this page");
+
+  $UserId = intval ($_REQUEST['UserId']);
+  $mergeUserId = intval ($_REQUEST['mergeUserId']);
+
+  // Fetch the user name yet again...
+
+  $sql = 'SELECT DisplayName, EMail FROM Users';
+  $sql .= "  WHERE UserId=$UserId";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Query for user $UserId failed", $sql);
+
+  // Make sure we've gotten a match
+
+  if (0 == mysql_num_rows ($result))
+    return display_error ("Failed to find user $UserId");;
+
+  $row = mysql_fetch_object ($result);
+
+  $name = trim ("$row->DisplayName");
+    
+  // Remove the user as a GM from any games
+  $sql = "UPDATE Transactions SET UserId=".$mergeUserId;
+  $sql .= " WHERE UserId=".$UserId;
+  echo $sql;
+  echo "<br>";
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Failed to delete user record $row->GMId",
+				$sql);
+
+  // update email
+  $sql = "UPDATE Users SET EMail='".$row->EMail."'";
+  $sql .= " WHERE UserId=$mergeUserId";
+  echo $sql;
+  echo "<br>";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Failed to update user record $row->UserId",
+				$sql);
+
+
+  // Finally, delete the user record
+
+  $sql = "DELETE FROM Users WHERE UserId=$UserId";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ("Failed to delete user record $row->GMId",
+				$sql);
+
+  if (1 == $gm_count)
+    $gm_count .= ' conference item';
+  else
+    $gm_count .= ' conference items';
+
+  if (1 == $game_count)
+    $game_count .= ' ops track';
+  else
+    $game_count .= ' ops tracks';
+
+  echo "<H2>$name, Id = $UserId has been merged to User Id $mergeUserId</H2>\n";
+  echo "$name has been changed in the transactions table, and email for ID $mergeUserId has been updated to $row->EMail\n";
 }
 
 /*

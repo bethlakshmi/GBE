@@ -94,6 +94,8 @@ define (SHOW_COMPED_USERS, 17);
 define (SELECT_USER_TO_DELETE, 18);
 define (SHOW_USER_TO_DELETE, 19);
 define (LOGIN_OPENID, 20);
+define (SELECT_USER_TO_MERGE, 21);
+define (SHOW_USER_TO_MERGE, 22);
 define (DELETE_USER, 80);
 define (SELECT_USER_TO_VIEW, 81);
 define (VIEW_USER, 82);
@@ -104,6 +106,7 @@ define (BIO_REPORT, 86);
 define (WHO_IS_WHO, 87);
 define (WITHDRAW_USER_FROM_ALL_GAMES, 88);
 define (WITHDRAW_USER_FROM_ALL_GAMES_CONFIRMED, 89);
+define (MERGE_USER, 90);
 define (SELECT_USER_TO_SET_PASSWORD, 140);
 define (DISPLAY_PASSWORD_FORM_FOR_USER, 141);
 define (PROCESS_PASSWORD_FORM_FOR_USER, 142);
@@ -2015,7 +2018,8 @@ function select_user ($header,
 		      $link_highlit_users,
 		      $highlight,
 		      $exclude_alumni = false,  // Depreciated 
-		      $show_payment = false)    // Depreciated 
+		      $show_payment = false,    // Depreciated 
+		      $extracondition = "")    
 {
   $priv = user_has_priv (PRIV_STAFF);
 
@@ -2047,6 +2051,7 @@ function select_user ($header,
 
   $sql = 'SELECT UserId, DisplayName, LastName, EMail, Priv, LastLogin';
   $sql .= '  FROM Users';
+  $sql .= $extracondition;
   $sql .= '  ORDER BY DisplayName';
   $result = mysql_query ($sql);
   if (! $result)

@@ -34,6 +34,17 @@ function test_auth () {
 
     return $return;
 }
+//
+// Name:  test_reg
+//
+// Description:  tests that the open id provided is in the user table
+//   
+// Returns:
+//   1 - if user id is found and has been set up successfully
+//   0 - if user id is NOT found and therefore user should be registered
+//   -1 - if there has been an error that should be reported instead of 
+//        login
+//
 function test_reg ($id) {
   $foundid = 0;
 
@@ -48,14 +59,17 @@ function test_reg ($id) {
     return display_mysql_error ('Cannot execute query', $sql);
 
   // Make sure we've gotten a single match
+  // echo "Num Rows:  ".mysql_num_rows ($result)."<br>";
 
   if (0 == mysql_num_rows ($result))
   {
-    return FALSE;
+    return 0;
   }
 
   if (1 != mysql_num_rows ($result))
-    return 'Found more than one matching EMail address';
+  {
+    return -1;
+  }
 
   // Extract the UserId for the user being logged in and decode the privileges
 
@@ -68,10 +82,10 @@ function test_reg ($id) {
       $_POST[$key] = $value;
 
     if ($foundid > 0)
-      return TRUE;
+      return 1;
   } 
 
-  return FALSE;
+  return 0;
 }
 
 function get_openid() {
