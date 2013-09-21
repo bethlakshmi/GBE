@@ -1624,7 +1624,7 @@ function add_user(&$user_paid_before_reg)
 	if ($user_paid_before_reg)
 	{
 		$errors = "Another user may have already signed up with this email address, or you may ";
-		$errors .= "have alreay purchased a ticket for the exposition and have not logged in to this website.<p>\n";
+		$errors .= "have already purchased a ticket for the exposition and have not logged in to this website.<p>\n";
 	}
 	else
 	{
