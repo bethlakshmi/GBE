@@ -151,7 +151,7 @@ function list_games_alphabetically ($showOps=FALSE)
     return display_error ('Cannot query game list: ' . mysql_error());
 
   if (0 == mysql_num_rows ($game_result))
-    return display_error ('No games in database');
+    return display_error ('Nothing is available to show.');
 
   global $LIST_GAME_TEXT;
   echo $LIST_GAME_TEXT;
