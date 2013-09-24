@@ -915,7 +915,7 @@ $haveVideo = !strcmp($a, $b);
         		strlen($_POST["VideoURL"]) != 0 )))
     $returnvalue &= display_error("Video description suggests no video, and yet a ".
 								    "video was provided.");
-  if ( !$haveFile && $haveVideo && 
+  if ( !$haveFile && !$haveVideo && 
         (!validate_file( "video_upload") && 
         (!isset($_POST["VideoURL"]) || strlen($_POST["VideoURL"]) == 0)))
     $returnvalue &= display_error("Video description promises a video, and yet no ".
