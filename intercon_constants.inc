@@ -241,7 +241,7 @@ $SHOW_SLOTS['All'] = array('Evening', 'After Midnight'); //all possible bid slot
 
 $SHOW_NAMES['Friday_Evening'] = 'The Rhinestone Review';
 
-$SHOW_NAMES['Friday_After Midnight'] = 'The Last Chance Casino Party';
+$SHOW_NAMES['Friday_After Midnight'] = 'The Bordello';
 
 $SHOW_NAMES['Saturday_Evening'] = 'The Main Event (Competition)';
 
