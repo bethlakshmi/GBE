@@ -1098,6 +1098,10 @@ function user_paid_act_submittal_fee($UserId)
 		return false;
 	}
 
+	// Something is going wrong here, so we are going to bypass this check
+	// until we figure out ticketing.  -MDB
+	
+	/*
 	// Get Number of Acts Submitted
 	
 	$sql = sprintf("select * from Bids where UserId = '%d' and Status in " .
@@ -1123,6 +1127,9 @@ function user_paid_act_submittal_fee($UserId)
 	//echo "fees paid:  $fees_paid  acts_submitted:  $acts_submitted";
 	
 	return ($fees_paid >= $acts_submitted);
+	
+	*/
+	return true;
 }
 
 /* function email_indicates_autogen_user
@@ -1134,6 +1141,10 @@ function user_paid_act_submittal_fee($UserId)
  */
 function email_indicates_autogen_user($EMail)
 {
+	// Something is going wrong here, so we are going to bypass this check
+	// until we figure out ticketing.  -MDB
+	
+	/*
 	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
 	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", mysql_real_escape_string($EMail));
 
@@ -1142,11 +1153,14 @@ function email_indicates_autogen_user($EMail)
 		return display_mysql_error ('Cannot execute query', $sql);
 	
 	return (mysql_num_rows($result) > 0);
+	*/
+	
+	return false;
 }
 
 /* function verify_autogen_user_code
  * 
- * Used to dtermine if the given email address and BPT transaction code match - 
+ * Used to determine if the given email address and BPT transaction code match - 
  * indicating the given email address is OK to use for this user.  
  *
  * $Email - the email to query against.
@@ -1155,6 +1169,10 @@ function email_indicates_autogen_user($EMail)
  */
 function verify_autogen_user_code($EMail, $trans_code)
 {
+	// Something is going wrong here, so we are going to bypass this check
+	// until we figure out ticketing.  -MDB
+	
+	/*
 	if (strlen($trans_code) == 0)
 		return false;
 		
@@ -1176,6 +1194,8 @@ function verify_autogen_user_code($EMail, $trans_code)
 		return false;
 	
 	return mysql_fetch_object($result)->UserId;
+	*/
+	return false;
 }
 
 ?>

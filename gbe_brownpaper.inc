@@ -198,10 +198,13 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	
 	// If the user doesn't exist locally, create a stand in user.
 	
+	// Since we are having problems with Ticketing and OpenId, we are just going to indicate fake
+	// users with a fake user email that the system won't use.  -MDB
+	
 	get_user_by_email((string)$order->email, $user);
 	if ($user == null)
 	{
-		create_stand_in_user((string)$order->fname, (string)$order->lname, (string)$order->email, 
+		create_stand_in_user((string)$order->fname, (string)$order->lname, "FakeUser@FakeDomain.com", 
 			(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
 			(string)$order->zip, (string)$order->country);
 		get_user_by_email((string)$order->email, $user);

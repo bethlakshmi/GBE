@@ -1555,7 +1555,7 @@ function show_user_homepage ()
  * $user_paid_before_reg - if true, this user is likely coming in after 
  * purchasing a ticket.
  * 
- * Returns: user ID of the new user, or a string if an error occured.
+ * Returns: user ID of the new user, or a string if an error occurred.
  */
 
 function add_user(&$user_paid_before_reg)
