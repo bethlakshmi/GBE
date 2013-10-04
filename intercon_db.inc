@@ -707,9 +707,12 @@ function con_signups_frozen () {
 }
 
 function attendees_at_max() {
+
+// Scratch eventually wants something more elaborate here, (event based) but not time right now.  -MDB
+
   $sql = 'SELECT CanSignup, COUNT(*) AS Count FROM Users';
   $sql .= ' WHERE CanSignup<>"Alumni"';
-  $sql .= '   AND CanSignup<>"Unpaid"';
+  $sql .= '   AND CanSignup<>"None"';
   $sql .= ' GROUP BY CanSignup ORDER BY CanSignup';
   $result = mysql_query($sql);
   if (! $result)
@@ -718,7 +721,7 @@ function attendees_at_max() {
   $attendees = 0;
   while ($row = mysql_fetch_object($result))
   {
-    if (('Alumni' <> $row->CanSignup) && ('Unpaid' <> $row->CanSignup))
+    if (('Alumni' <> $row->CanSignup) && ('None' <> $row->CanSignup))
       $attendees += $row->Count;
   }
   
@@ -1831,6 +1834,9 @@ function schedule_table_entry ($key)
  // GMs signing up for thier games are also checked (and allowed) at that
  // time.  HOWEVER, it's assumed that if they get to that point, that
  // we've already checked that they've paid
+ *
+ *  The CanSignup check has been removed replacement of Ticketing.  -MDB
+ *
  */
 
 function can_signup () {
@@ -1846,11 +1852,7 @@ function can_signup () {
         if (0 == mysql_num_rows ($result))
             display_error ('Failed to find UserId ' . $_SESSION[SESSION_LOGIN_USER_ID]);
 
-        $row = mysql_fetch_object ($result);
-//        if (is_unpaid ($row->CanSignup))
-//            $GLOBALS['USER_CAN_SIGNUP'] = false;
-//        else
-            $GLOBALS['USER_CAN_SIGNUP'] = true;
+        $GLOBALS['USER_CAN_SIGNUP'] = true;
     }
     
     return $GLOBALS['USER_CAN_SIGNUP'];
@@ -2049,7 +2051,7 @@ function select_user ($header,
 
   // Get a list of all users
 
-  $sql = 'SELECT UserId, DisplayName, LastName, EMail, Priv, LastLogin';
+  $sql = 'SELECT UserId, DisplayName, LastName, EMail, Priv, CanSignup, LastLogin';
   $sql .= '  FROM Users';
   $sql .= $extracondition;
   $sql .= '  ORDER BY DisplayName';
@@ -2116,7 +2118,8 @@ function select_user ($header,
 
     echo "    <TD><A HREF=mailto:$row->EMail>$row->EMail</A></TD>\n";
 	
-	// Put Payment Status Here... in future?
+    $status = $row->CanSignup;     
+	echo "    <TD NOWRAP>$status</TD>\n";
 
     if ($priv)
     {
@@ -3420,6 +3423,10 @@ function user_is_gm ()
     return false;
 }
 
+/*
+
+Function is depreciated for Ticketing.  -MDB
+
 function is_unpaid ($value)
 {
   if (('Unpaid' == $value) || ('Alumni' == $value))
@@ -3427,6 +3434,7 @@ function is_unpaid ($value)
   else
     return false;
 }
+*/
 
 /*
  * include_alumni

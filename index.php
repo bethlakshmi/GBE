@@ -15,6 +15,9 @@ if (! intercon_db_connect ())
 // Note that unlike all other scripts, we delay displaying the boilerplate
 // so we can update it when the user successfully logs in
 /*
+
+PayPal is not used in this way, replaced with Ticketing.  Leave commented out.  -MDB
+
 // If this appears to be a PayPal message, log a copy of it
 
 if (array_key_exists ('txn_type', $_POST))
@@ -958,9 +961,10 @@ function show_user_homepage_plugs ($UserId)
  * mark_user_paid
  *
  * If the user has just paid through PayPal, update his status
- * This should be depreciated -MDB
+ 
+ * This should be depreciated in replacement of Ticketing.  -MDB
  */
-
+/*
 function mark_user_paid ()
 {
 
@@ -1117,6 +1121,8 @@ function mark_user_paid ()
   return login_with_data ($row, $EMail);
 }
 
+*/
+
 function display_signup_status ()
 {
 
@@ -1207,7 +1213,7 @@ function show_user_homepage_status ()
   $row = mysql_fetch_object ($result);
 
   $name = $row->DisplayName;
-  $status = $row->CanSignup;
+  //$status = $row->CanSignup;
 
   display_header ("Welcome $name");
 
@@ -1391,7 +1397,7 @@ function show_unpaid_messages()
   echo "Until you pay, you won't be able to attend the conference - you'll get access ";
   echo "to any show or class you've been accepted for, but won't be able to partipate in ";
   echo "any other part of the conference, shows or vendor exhibits. ";
-  echo "<a href=\"PaymentStatus.php\">Click here to pay!</a>\n";
+  //echo "<a href=\"PaymentStatus.php\">Click here to pay!</a>\n";
 
   return true;
 }
@@ -2259,27 +2265,30 @@ function display_user_form_for_others ()
 
   user_form_section(CON_NAME . ' User Status');
 
-  $PaidChecked = '';
+  // Updated with new user status system.  -MDB
+  
+  $NoneChecked = '';
   $CompChecked = '';
   $MktChecked =  '';
   $VendChecked = '';
-  $UnpaidChecked = '';
   $AlumniChecked = '';
   $RollChecked = '';
+  $SignedInChecked = '';
 
   if (! array_key_exists ('CanSignup', $_POST))
-    $UnpaidChecked = 'CHECKED';
+    $NoneChecked = 'CHECKED';
   else
   {
     switch ($_POST['CanSignup'])
     {
+	  case 'Signed-In': $SignedInChecked = 'CHECKED'; break; 
       case 'Alumni':    $AlumniChecked = 'CHECKED'; break;
       case 'Paid':      $PaidChecked = 'CHECKED'; break;
       case 'Comp':      $CompChecked = 'CHECKED'; break;
       case 'Marketing': $MktChecked =  'CHECKED'; break;
       case 'Rollover':  $RollChecked = 'CHECKED'; break;
       case 'Vendor':    $VendChecked = 'CHECKED'; break;
-      default:          $UnpaidChecked = 'CHECKED'; break;
+      default:          $NoneChecked = 'CHECKED'; break;
     }
   }
 
@@ -2288,9 +2297,7 @@ function display_user_form_for_others ()
   print ("    <TD>\n");
   print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Alumni\" $AlumniChecked>Alumni\n");
   print ("    &nbsp;&nbsp;&nbsp;\n");
-  print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Unpaid\" $UnpaidChecked>Not Paid\n");
-  print ("    &nbsp;&nbsp;&nbsp;\n");
-  print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Paid\" $PaidChecked>Paid\n");
+  print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Signed-In\" $SignedInChecked>Signed-In\n");
   print ("    &nbsp;&nbsp;&nbsp;\n");
   print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Comp\" $CompChecked>Comp\n");
   print ("    <br>\n");
@@ -2299,6 +2306,8 @@ function display_user_form_for_others ()
   print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"Vendor\" $VendChecked>Vendor\n");
   print ("    &nbsp;&nbsp;&nbsp;\n");
   print ("    <input type=radio name=CanSignup value=\"Rollover\" $RollChecked>Rollover\n");
+  print ("    &nbsp;&nbsp;&nbsp;\n");
+  print ("    <INPUT TYPE=RADIO NAME=CanSignup VALUE=\"None\" $NoneChecked>None\n");
   print ("    </TD>\n");
   print ("  </TR>\n");
 
@@ -2348,7 +2357,7 @@ function display_user_form_for_others ()
       $row = mysql_fetch_object ($result);
 
       echo "<P>Payment status last modified by $row->DisplayName, $StatusModified\n";
-      echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
+      //echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
     }
   }
 
@@ -2969,6 +2978,7 @@ function display_comped_users ()
 
   $n = mysql_num_rows ($result);
   display_header ("$n Comp'd users by User");
+  display_header( "Someday it will be nice to fix this.  :)  -MDB");
 
   if (0 != $n)
   {
@@ -3751,7 +3761,7 @@ function view_user ()
       $row = mysql_fetch_object ($result);
 
       echo "<P>Payment status last modified by $row->FirstName $row->LastName, $StatusModified\n";
-      echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
+      //echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
     }
   }
 */

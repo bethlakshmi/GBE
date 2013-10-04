@@ -181,14 +181,14 @@ function login_with_data ($row, $EMail)
   $name = trim ("$row->FirstName $row->LastName");
 
   // Update the login time.  If the user was an Alumni, promote him or her to
-  // Unpaid, since he's expressed an interest in this con
+  // None, since he's expressed an interest in this con
 
   $returning_alumni = false;
 
   $sql = 'UPDATE Users SET LastLogin=NULL';
   if ('Alumni' == $row->CanSignup)
   {
-    $sql .= ', CanSignup="Unpaid", CanSignupModified=NULL';
+    $sql .= ', CanSignup="None", CanSignupModified=NULL';
     $returning_alumni = true;
   }
   $sql .= " WHERE UserId=$UserId";

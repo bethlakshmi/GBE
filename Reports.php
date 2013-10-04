@@ -1,4 +1,7 @@
 <?php
+
+// Note:  This report functionality basically doesn't work at all, so leave it alone for now.  -MDB
+
 include ("intercon_db.inc");
 
 // If the user's not logged in, send him to the entrypoint
@@ -172,7 +175,6 @@ function report_per_user ()
   $sql = 'SELECT UserId, FirstName, LastName';
   $sql .= ' FROM Users';
   $sql .= ' WHERE CanSignup!="Alumni"';
-  $sql .= '   AND CanSignup!="Unpaid"';
   $sql .= ' ORDER BY LastName, FirstName';
 
   $result = mysql_query ($sql);
@@ -909,7 +911,6 @@ function whos_not_playing_when ()
   $users = array();
 
   $sql = 'SELECT UserId FROM Users';
-  $sql .= ' WHERE CanSignup<>"Unpaid"';
   $sql .= '   AND CanSignup<>"Alumni"';
 
   $result = mysql_query ($sql);

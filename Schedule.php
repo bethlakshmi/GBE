@@ -4733,8 +4733,7 @@ function display_gm_list ()
 	$comped = 'X';
       else
       {
-	if (($comped_count < COMPS_PER_GAME) &&
-	    (('Unpaid' == $row->CanSignup) || ('Alumni' == $row->CanSignup)))
+	if (($comped_count < COMPS_PER_GAME) && ('Alumni' == $row->CanSignup))
 	{
 	  $comped = sprintf ('<a href="Schedule.php?action=%d&UserId=%d&' .
 			     'EventId=%d">Comp this '.$gms.'</a>',
@@ -4765,8 +4764,7 @@ function display_gm_list ()
 
       // Check for unpaid GMs
 
-      if (is_unpaid ($row->CanSignup))
-	array_push ($unpaid_gms, "$row->DisplayName");
+	  array_push ($unpaid_gms, "$row->DisplayName");
     }
     echo "</TABLE><P>\n";
   }
@@ -4888,7 +4886,7 @@ function comp_user_for_event_locked ($EventId, $UserId)
 				$sql);
   $row = mysql_fetch_object ($result);
 
-  if (('Unpaid' != $row->CanSignup) && ('Alumni' != $row->CanSignup))
+  if ('Alumni' != $row->CanSignup)
   {
     $name = trim ("$row->FirstName $row->LastName");
     return display_error ("$name is not eligible to be comped");

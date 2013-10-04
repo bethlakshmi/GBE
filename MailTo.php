@@ -3,7 +3,7 @@ define (MAIL_LIST_NONE, 0);
 define (MAIL_LIST_ALL, 1);
 define (MAIL_LIST_ATTENDEES, 2);
 define (MAIL_LIST_INTERESTED, 3);
-define (MAIL_LIST_UNPAID, 4);
+//define (MAIL_LIST_UNPAID, 4);
 define (MAIL_LIST_ALUMNI, 5);
 define (MAIL_LIST_GMS_BY_GAME, 6);
 define (MAIL_LIST_GMS_BY_NAME, 7);
@@ -222,7 +222,6 @@ function get_mail_lists ()
 
   if (user_has_priv (PRIV_MAIL_UNPAID))
   {
-    array_push ($avail_mail_lists, MAIL_LIST_UNPAID);
     array_push ($avail_mail_lists, MAIL_LIST_INTERESTED);
   }
 
@@ -791,7 +790,6 @@ function name_mail_list ($i)
   {
     case MAIL_LIST_NONE: return 'Not a mail list';
     case MAIL_LIST_ALL:  return 'All Users in the Database (includes alumni)';
-    case MAIL_LIST_UNPAID:  return 'Unpaid Users for ' . CON_NAME;
     case MAIL_LIST_INTERESTED:  return 'Users who\'ve expressed interest in ' . CON_NAME;
     case MAIL_LIST_ALUMNI:  return 'Alumni (not registered for ' . CON_NAME . ')';
     case MAIL_LIST_ATTENDEES: return CON_NAME . ' Attendees (paid, comp, etc.)';
@@ -813,7 +811,6 @@ function show_a_list ($to, $bCSV)
 
     case MAIL_LIST_ALL:
     case MAIL_LIST_ATTENDEES:
-    case MAIL_LIST_UNPAID:
     case MAIL_LIST_ALUMNI:
     case MAIL_LIST_INTERESTED:
       return show_user_list ($to, $bCSV);
@@ -844,14 +841,16 @@ function show_user_list ($to, $bCSV)
 
     case MAIL_LIST_ATTENDEES:
       $title = 'All Users Attending ' . CON_NAME . ' (Paid, Comp, etc.)';
-      $where = 'WHERE CanSignup!="Unpaid" AND CanSignup!="Alumni"';
+      $where = 'WHERE CanSignup!="Alumni"';
       break;
 
+	/*   
     case MAIL_LIST_UNPAID:
       $title = 'Unpaid Users';
-      $where = 'WHERE CanSignup="Unpaid"';
+      $where = 'WHERE CanSignup="None"';
       break;
-
+    */
+	
     case MAIL_LIST_ALUMNI:
       $title = CON_SHORT_NAME.' Alumni';
       $where = 'WHERE CanSignup="Alumni"';

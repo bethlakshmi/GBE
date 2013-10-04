@@ -39,7 +39,7 @@ function display_all_signups ()
 
   $sql = 'SELECT UserId, FirstName, LastName, Nickname';
   $sql .= ' FROM Users';
-  $sql .= ' WHERE (CanSignup!="Unpaid" AND CanSignup!="Alumni")';
+  $sql .= ' WHERE (CanSignup!="Alumni")';
   $sql .= ' ORDER BY LastName, FirstName, Nickname';
 
   $result = mysql_query ($sql);
