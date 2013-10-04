@@ -4693,8 +4693,6 @@ function display_gm_list ()
 
   $comped_count = $row->CompCount;
 
-  $unpaid_gms = array ();
-
   $sql = 'SELECT Users.DisplayName, Users.CompEventId,';
   $sql .= '  Users.CanSignup, Users.UserId, GMs.Role,';
   $sql .= '  GMs.GMId, GMs.Submitter, GMs.DisplayAsGM, GMs.DisplayEMail,';
@@ -4761,15 +4759,15 @@ function display_gm_list ()
       echo "  </TR>\n";
 
       $i++;
-
-      // Check for unpaid GMs
-
-	  array_push ($unpaid_gms, "$row->DisplayName");
     }
     echo "</TABLE><P>\n";
   }
 
-/*  printf ("%s comped for this game.  Each game is allowed up to %d comped\n",
+  //    It appears this code is mostly old checks for comped or paid entires.  Since we're
+  //	overhauling all of this for Ticketing, going to remove the feature for now.  -MDB
+  
+/*  
+	printf ("%s comped for this game.  Each game is allowed up to %d comped\n",
 	  (1 == $comped_count) ?
 	      '1 registration is' :
 	      "$comped_count registrations are",
@@ -4782,7 +4780,7 @@ function display_gm_list ()
   echo "them as a GM.  If you need to reset someone to Unpaid, send mail to the\n";
   printf ("<a href=mailto:%s>GM Coordinator</a> or\n", EMAIL_GM_COORDINATOR);
   printf ("<a href=mailto:%s>Webmaster</a><p>\n", EMAIL_WEBMASTER);
-*/
+
   if (count ($unpaid_gms) > 0)
   {
     echo "<b><font color=red>WARNING:</font></b>\n";
@@ -4805,6 +4803,7 @@ function display_gm_list ()
     printf ("For Performers - Contact the <A HREF=MAILTO:%s>Show Coordinator</A>.<P>\n",
 	    EMAIL_SHOW_CHAIR);
   }
+ */
 
   $sql = 'SELECT Events.Author';
   $sql .= '  FROM Events';
