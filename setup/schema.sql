@@ -377,6 +377,33 @@ LOCK TABLES `Bios` WRITE;
 /*!40000 ALTER TABLE `Bios` ENABLE KEYS */;
 UNLOCK TABLES;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `BPTEventList`
+--
+
+DROP TABLE IF EXISTS `BPTEventList`;
+CREATE TABLE IF NOT EXISTS `BPTEventList` (
+  `BPTEvent` varchar(30) NOT NULL,
+  `Primary` tinyint(1) NOT NULL,
+  `ActSubmitFee` tinyint(1) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `BPTSettings`
+--
+
+DROP TABLE IF EXISTS `BPTSettings`;
+CREATE TABLE IF NOT EXISTS `BPTSettings` (
+  `DeveloperID` varchar(30) NOT NULL,
+  `ClientID` varchar(30) NOT NULL,
+  `LastPollTime` datetime NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
 --
 -- Table structure for table `Con`
 --
@@ -936,6 +963,8 @@ CREATE TABLE IF NOT EXISTS `Transactions` (
   `UserId` int(11) NOT NULL,
   `Amount` double(10,2) NOT NULL,
   `Datestamp` datetime NOT NULL,
+  `PaymentDate` datetime NOT NULL,
+  `PaymentSource` varchar(30) NOT NULL,
   `Status` enum('Posted','Settled','Voided','Error') NOT NULL,
   `TenderType` enum('Cash','Check','Charge','Comp') NOT NULL,
   `Reference` varchar(30) NOT NULL,
@@ -975,11 +1004,10 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `BestTime` char(128) NOT NULL DEFAULT '',
   `HowHeard` char(64) NOT NULL DEFAULT '',
   `PaymentNote` char(128) NOT NULL DEFAULT '',
-  `PaymentAmount` int(11) NOT NULL DEFAULT '0',
   `TShirt` enum('No','S','M','L','XL','XXL') NOT NULL DEFAULT 'No',
   `PreferredContact` enum('EMail','DayPhone','EvePhone') DEFAULT NULL,
   `Priv` set('BidCom','Staff','Admin','BidChair','GMLiaison','MailToGMs','MailToAttendees','MailToAll','MailToVendors','Registrar','Outreach','ConCom','Scheduling','MailToUnpaid','MailToAlumni','PreConBidChair','PreConScheduling','ShowCom','ShowChair') NOT NULL DEFAULT '',
-  `CanSignup` enum('Alumni','Unpaid','Paid','Comp','Marketing','Vendor','Rollover') NOT NULL DEFAULT 'Unpaid',
+  `CanSignup` enum('Alumni','Comp','Marketing','Vendor','Rollover','None','Signed-In') NOT NULL DEFAULT 'None',
   `CanSignupModifiedId` int(10) unsigned NOT NULL DEFAULT '0',
   `CompEventId` int(10) unsigned NOT NULL DEFAULT '0',
   `ModifiedBy` int(11) NOT NULL DEFAULT '0',
