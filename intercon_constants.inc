@@ -1,10 +1,27 @@
 <?php
 
-require ('db_constants.inc');
+require ("db_constants.inc");
+
+
+
+require ("lookandfeel.inc");
+
 
 
 // For site isolation, change the session name below to something appropriate
-// when deploying a new Intercon site.
+// when <?
+// Per-con values - The values of all of these should be visible on
+
+// the status page
+
+
+
+
+// basic storage location for files 
+define (FILE_UPLOAD_LOC, "/Applications/MAMP/uploads/");
+define (FILE_DISPLAY_LOC, "/media/");
+
+// deploying a new Intercon site.
 
 session_name ('expo_1');
 session_start ();
@@ -164,11 +181,6 @@ $ROOM_TYPES =  array( "No Preference", "Movement", "Lecture", "Workshop" );
 //define (COLOR_MENU_PUBLIC_BG, "#bdf");
 //define (COLOR_MENU_PRIV_FG, "#237723");
 //define (COLOR_MENU_PRIV_BG, "#bfb");
-
-define (COLOR_MENU_PUBLIC_FG, "#224099");
-define (COLOR_MENU_PUBLIC_BG, "#b9d1ec");
-define (COLOR_MENU_PRIV_FG, "#ca9a00");
-define (COLOR_MENU_PRIV_BG, "#FADB5E");
 
 //These are for the NavMenu
 define (NAV_SHOW_COST, 1);
