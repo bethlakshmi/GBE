@@ -138,7 +138,7 @@ switch ($action)
     if ($registered == 0)
     {
       html_begin ();
-      echo $id;
+      //echo $id;
       display_user_form (FALSE);
       break;
     }
@@ -217,11 +217,11 @@ switch ($action)
       break;
     }
 
-    $result = add_user($user_paid_before_reg);
+    $result = add_user();
     html_begin ();
     if (!is_numeric ($result))  
 	{
-		display_user_form(false, $result, $user_paid_before_reg);
+		display_user_form(false, $result);
 	}
     else
       show_user_homepage();   
@@ -1558,13 +1558,12 @@ function show_user_homepage ()
  *
  * Updated by MDB - 
  * 
- * $user_paid_before_reg - if true, this user is likely coming in after 
- * purchasing a ticket.
+ * Removed reg confirmation code system - didn't work.  -MDB
  * 
  * Returns: user ID of the new user, or a string if an error occurred.
  */
 
-function add_user(&$user_paid_before_reg)
+function add_user()
 {
   $update = isset ($_SESSION[SESSION_LOGIN_USER_ID]);
   $isOpenId = isset ($_SESSION[SESSION_LOGIN_OPENID]); 
@@ -1617,7 +1616,7 @@ function add_user(&$user_paid_before_reg)
 
   // Check that the EMail address isn't already being used by another player
 
-  $sql = "SELECT UserId FROM Users WHERE EMail='$EMail'";
+  $sql = "SELECT UserId FROM Users WHERE EMail='$EMail' LIMIT 0, 1";
   $result = mysql_query ($sql);
   if (! $result)
     return "Check for EMail address $EMail failed: ". mysql_error ();
@@ -1638,31 +1637,10 @@ function add_user(&$user_paid_before_reg)
 
   $errors = '';
 
-  $autogen_userid = false;
-  
-  if (isset($_POST['AutoRegTransCode']))
+  if ($email_in_use)
   {
-	// Then we are attempting to register an auto-generated user.  
-	// if it all works out (trans code is valid for user), we'll treat this path as an update.
-	
-	$autogen_userid = verify_autogen_user_code($EMail, $_POST['AutoRegTransCode']);
-	if (is_numeric($autogen_userid))
-	  $update = true;
-  }
-  
-  if ($email_in_use && !is_numeric($autogen_userid))
-  {
-	$user_paid_before_reg = email_indicates_autogen_user($EMail);
-	if ($user_paid_before_reg)
-	{
-		$errors = "Another user may have already signed up with this email address, or you may ";
-		$errors .= "have already purchased a ticket for the exposition and have not logged in to this website.<p>\n";
-	}
-	else
-	{
-		$errors = "Another user has already registered with an EMail address of \"$EMail\".";
-		$errors .= "  Please choose a different EMail address or login with a different method.<P>\n";
-	}
+	$errors = "Another user has already registered with an EMail address of \"$EMail\".";
+	$errors .= "  Please choose a different EMail address or login with a different method.<P>\n";
 	return $errors;
   }
   
@@ -1754,27 +1732,14 @@ function add_user(&$user_paid_before_reg)
   $sql .= build_sql_string ('HowHeard');
   $sql .= build_sql_string ('PreferredContact');
   
-  if ($update and is_numeric($autogen_userid))
-	$sql .= ', ModifiedBy=' . $autogen_userid;
-  else if ($update)
+  if ($update)
     $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
   else
     $sql .= ', ModifiedBy=UserId';
   $sql .= ', Modified=NULL';
 
-  if ($update and is_numeric($autogen_userid))
-  {
- 	// This is a special case.... updating an auto-generated user with open ID
-	
-	if ($isOpenId)
-	  $sql .= build_sql_string('openid', $_SESSION[SESSION_LOGIN_OPENID]);
-	else
-	  $sql .= build_sql_string ('HashedPassword', $HashedPassword);
-		
-	$sql .= ' WHERE UserId = ' . $autogen_userid;
-  }
   // yes no
-  else if ($update && !$isOpenId)
+  if ($update && !$isOpenId)
   {
     $sql .= ' WHERE UserId = ' . $_SESSION[SESSION_LOGIN_USER_ID];
     $sql .= " AND HashedPassword='$HashedPassword'";
@@ -1805,9 +1770,6 @@ function add_user(&$user_paid_before_reg)
 
   if ($update)
   {
-	if (is_numeric($autogen_userid))
-		$_SESSION[SESSION_LOGIN_USER_ID] = $autogen_userid;
-		
 	$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
   }
   else
@@ -1930,13 +1892,9 @@ function show_con_price ($now)
  *
  * Display a form for the user to fill out to register for Intercon
  *
- * Updates by MDB:
- *
- * $user_paid_before_reg - indicates that the email given represents an auto-gen user
- * with a paid ticket of some sort.
  */
 
-function display_user_form ($returning_alumni, $errors='', $user_paid_before_reg = false)
+function display_user_form ($returning_alumni, $errors='')
 {
   // If we've got errors from a previous attempt to add a user, display them
   // now
@@ -1978,24 +1936,7 @@ function display_user_form ($returning_alumni, $errors='', $user_paid_before_reg
   echo "contact information is optional.  If you have concerns about\n";
   echo "sharing this information, please do not enter it.  But if you do\n";
   echo "not provide it, GBE staff may not be able to send you Expo-related\n";
-  echo "materials.</p>\n";
-  
-  // Updates by MDB - check if this is an auto genreated user from ticketing.
-  
-  if ($user_paid_before_reg)
-  {
-	echo "<p><FONT color=\"red\"><b>The email you have given indicates you have purchased a ticket";
-	printf(" for the %s already, but have not created a user with the site.  </font></b>", CON_NAME);
-	echo " If this is true, please enter any confirmation code below that was given to you from ";
-	echo " Brown Paper Tickets when  you purchased a ticket.\nYour Brown Paper Tickets confirmation ";
-	echo " code will be an eight digit number, typically begining with a 2 or 3.</p>\n";
-  }
-  else
-  {
-	echo "<p><b>Please Note:  The email address you use below needs to be the same as the email address ";
-	echo "used to purchase tickets from Brown Paper Tickets, otherwise we cannot match your purchases ";
-	echo "to your account.</b></p>";
-  }	
+  echo "materials.</p>\n";	
   
   print ("<form method=\"post\" action=\"index.php\">\n");
   form_add_sequence ();
@@ -2017,13 +1958,6 @@ function display_user_form ($returning_alumni, $errors='', $user_paid_before_reg
   if ($isOpenId)
   {
     echo "<FONT color=\"red\"><b>Please register to setup your account.</b></font>";
-  }
-  
-  if ($user_paid_before_reg)
-  {
-	$_POST['AutoRegTransCode'] = '';
-	form_text (30, 'Brown Paper Tickets Confirmation Code', 'AutoRegTransCode', 0, TRUE);
-	echo "<tr><td colsize=2><br></td></tr>";
   }
 	
   form_text (30, 'First Name', 'FirstName', 0, TRUE);

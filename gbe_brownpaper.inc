@@ -5,16 +5,10 @@
  * 
  * NOTE:  This file MUST be included AFTER the gbe_ticketing file has been included.  
  * 
- * Last Updated 8/22/2013 by MDB
+ * Last Updated 10/3/2013 by MDB
  *
  */
  
-//define ('BPT_DEVELOPER_ID', '9MLmigzTE2');
-//define ('BPT_CLIENT_ID', 'marcus.deboyz@gmail.com');
- 
-define ('BPT_DEVELOPER_ID', 'vJcVSyKQYa');
-define ('BPT_CLIENT_ID', 'bostonbabydolls');
-define ('BPT_ACT_TICKETITEM_ID', '450851-2540412');
 define ('BPT_MAIN_TICKETITEM_ID', '367968');
 define ('BPT_EVENT_LINK', 'http://www.brownpapertickets.com/');
 define ('BPT_COUNTRY_CODE', '228');
@@ -22,15 +16,86 @@ define ('BPT_COUNTRY_CODE', '228');
 /* function get_bpt_event_list
  * 
  * Used to obtain an array of the current events we watch on the BPT website.
- * Yes, this is super ugly but it was the fastest way to get multiple events 
- * supported for Scratch.
  *
  * Returns: The array of BPT event numbers.
  */
 function get_bpt_event_list()
 {
-	return array(450851, 450895, 367968, 451945, 451953, 450897, 451534, 451079, 451539, 451548, 451897);
-	//return array(431061);
+	$sql = sprintf("select * from BPTEventList");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are no BPT Events in the database. Please add.");
+
+	$event_list = array();
+	while ($row = mysql_fetch_object($result))
+	{
+		array_push($event_list, $row->BPTEvent);
+	}
+	return $event_list;
+}
+
+/* function get_bpt_devloper_id
+ * 
+ * Used to obtain the developer ID to be used with Brown Paper Tickets.
+ *
+ * Returns: the developer ID.
+ */
+function get_bpt_devloper_id()
+{
+	$sql = sprintf("select * from BPTSettings limit 0, 1");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are no BPT settings in the database. Please add.");
+
+	return mysql_fetch_object($result)->DeveloperID;
+}
+
+/* function get_bpt_client_id
+ * 
+ * Used to obtain the client ID to be used with Brown Paper Tickets.
+ *
+ * Returns: the client ID.
+ */
+function get_bpt_client_id()
+{
+	$sql = sprintf("select * from BPTSettings limit 0, 1");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are no BPT settings in the database. Please add.");
+
+	return mysql_fetch_object($result)->ClientID;
+}
+
+/* function get_bpt_last_poll_time
+ * 
+ * Used to obtain the last time the system poled BPT for transactions.
+ *
+ * Returns: the last poll time ID.
+ */
+function get_bpt_last_poll_time()
+{
+	$sql = sprintf("select * from BPTSettings limit 0, 1");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There are no BPT settings in the database. Please add.");
+
+	return mysql_fetch_object($result)->LastPollTime;
 }
 
 /* function produce_XML_object_tree
@@ -97,7 +162,7 @@ function perform_bpt_api_call($event_call)
 function get_bpt_event_date_id($event_id)
 {
 	$date_call = sprintf("https://www.brownpapertickets.com/api2/datelist?id=%s&event_id=%s", 
-		BPT_DEVELOPER_ID, $event_id);
+		get_bpt_devloper_id(), $event_id);
 	
 	$date_xml = perform_bpt_api_call($date_call);
 	return $date_xml->date->date_id;
@@ -118,7 +183,7 @@ function get_bpt_price_list()
 	{
 		$date_id = get_bpt_event_date_id($event_id);
 		$price_call = sprintf("https://www.brownpapertickets.com/api2/pricelist?id=%s&event_id=%s&date_id=%s", 
-			BPT_DEVELOPER_ID, $event_id, $date_id);
+			get_bpt_devloper_id(), $event_id, $date_id);
 		$price_list_xml = perform_bpt_api_call($price_call);
 		
 		foreach ($price_list_xml->price as $price)
@@ -151,7 +216,7 @@ function process_bpt_order_list()
 	foreach ($event_array as $event_id)
 	{
 		$order_list_call = sprintf("https://www.brownpapertickets.com/api2/orderlist?id=%s&event_id=%s&account=%s", 
-			BPT_DEVELOPER_ID, $event_id, BPT_CLIENT_ID);
+			get_bpt_devloper_id(), $event_id, get_bpt_client_id());
 		$order_list_xml = perform_bpt_api_call($order_list_call);
 		
 		foreach ($order_list_xml->item as $order)
@@ -204,7 +269,7 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	get_user_by_email((string)$order->email, $user);
 	if ($user == null)
 	{
-		create_stand_in_user((string)$order->fname, (string)$order->lname, "FakeUser@FakeDomain.com", 
+		create_stand_in_user((string)$order->fname, (string)$order->lname, "*FAKE USER*" + (string)$order->email, 
 			(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
 			(string)$order->zip, (string)$order->country);
 		get_user_by_email((string)$order->email, $user);
@@ -252,10 +317,42 @@ function create_ticket_refer_link($TicketItemId)
  */
 function create_act_fee_refer_link()
 {
-	$url = sprintf("http://www.brownpapertickets.com/event/%d", BPT_ACT_TICKETITEM_ID);
+	$sql = sprintf("SELECT * FROM BPTEventList where ActSubmitFee = '1' limit 0, 1");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There is not BPT act submittal event in the database. Please add.");
+
+	$url = sprintf("http://www.brownpapertickets.com/event/%d", 
+		mysql_fetch_object($result)->BPTEvent);
 	return $url;
 }
 
+/* function create_act_fee_refer_link
+ * 
+ * Used to create a link that will refer the user to BPT to pay the fee for 
+ * act submission.  Assumes the first price is the act submission price.
+ *
+ * Returns: the link that will be used for the refer.
+ */
+function create_main_fee_refer_link()
+{
+	$sql = sprintf("SELECT * FROM BPTEventList where Primary = '1' limit 0, 1");
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There is not BPT primary event in the database. Please add.");
+
+	$url = sprintf("http://www.brownpapertickets.com/event/%d", 
+		mysql_fetch_object($result)->BPTEvent);
+	return $url;
+}
 
 
 

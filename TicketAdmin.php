@@ -31,6 +31,12 @@ if (!user_has_priv(PRIV_REGISTRAR))
 	exit ();
 }
 
+//echo "<br>this is my test spot.<br>";
+
+//echo "<br>end test spot.<br>";
+
+
+
 if (array_key_exists('action', $_REQUEST))
 	$action = $_REQUEST['action'];
 else
@@ -119,6 +125,7 @@ function list_ticket_items()
 	}
 	
 	display_header("Click on a type of ticket to edit or delete it, or click the button below to add.<br>");
+	echo "Note:  The Active flag below indicates of the ticket item is displayed to end users.<br><br>";
 	
 	echo "</b>\n";
 	echo "<table border=\"1\">\n";
@@ -358,11 +365,13 @@ function process_ticket_item_bpt_sync()
 	if (sizeof($bpt_ticket_items) == 0)
 		return;	
 	get_ticketitem_list($local_ticket_items);
-	if (count($local_ticket_items == 0))
+	if (count($local_ticket_items) == 0)
 		$local_ticket_items = array();
 	
+	$count = 0;
+	
 	foreach ($bpt_ticket_items as $bpt_item)
-	{
+	{		
 		$found = false;
 		foreach ($local_ticket_items as $local_item)
 		{
@@ -373,8 +382,13 @@ function process_ticket_item_bpt_sync()
 			}
 		}
 		if (!$found)
+		{
 			$bpt_item->save_to_db();
+			$count++;
+		}
 	}
+	
+	printf("<b>Ticket Item Import:  %d items imported.</b><br><br>", $count);
 }
 
 /* function display_transaction_bpt_sync

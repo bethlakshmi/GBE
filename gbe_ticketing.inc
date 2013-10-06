@@ -1092,11 +1092,11 @@ function ticketed_user_count()
  */
 function user_paid_act_submittal_fee($UserId)
 {
-	if (!ticket_item_exists(BPT_ACT_TICKETITEM_ID))
-	{
-		display_error("Cannot verify if user paid act submittal: ticket type doesn't exist");
-		return false;
-	}
+	//if (!ticket_item_exists(BPT_ACT_TICKETITEM_ID))
+	//{
+	//	display_error("Cannot verify if user paid act submittal: ticket type doesn't exist");
+	//	return false;
+	//}
 
 	// Something is going wrong here, so we are going to bypass this check
 	// until we figure out ticketing.  -MDB
@@ -1130,72 +1130,6 @@ function user_paid_act_submittal_fee($UserId)
 	
 	*/
 	return true;
-}
-
-/* function email_indicates_autogen_user
- * 
- * Used to determine if a given email is associated with an auto-generated user
- *
- * $Email - the email to query against.
- * Returns:  true if the user is auto-generated, false otherwise.
- */
-function email_indicates_autogen_user($EMail)
-{
-	// Something is going wrong here, so we are going to bypass this check
-	// until we figure out ticketing.  -MDB
-	
-	/*
-	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
-	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", mysql_real_escape_string($EMail));
-
-	$result = mysql_query($sql);	
-	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
-	
-	return (mysql_num_rows($result) > 0);
-	*/
-	
-	return false;
-}
-
-/* function verify_autogen_user_code
- * 
- * Used to determine if the given email address and BPT transaction code match - 
- * indicating the given email address is OK to use for this user.  
- *
- * $Email - the email to query against.
- * $trans_code - the transaction code to match.
- * Returns:  The valid UserId for the email/code combo, otherwise false
- */
-function verify_autogen_user_code($EMail, $trans_code)
-{
-	// Something is going wrong here, so we are going to bypass this check
-	// until we figure out ticketing.  -MDB
-	
-	/*
-	if (strlen($trans_code) == 0)
-		return false;
-		
-	// If the trans code doesn't start with an "A", add it.  This is BPT specific.
-	
-	if (substr($trans_code, 0, 1) != "A")
-		$trans_code = "A" . $trans_code;
-	
-	$sql = "select * from Users, Transactions where Transactions.UserId = Users.UserId";
-	$sql .= sprintf(" and Users.openid = '' and Users.Email = '%s'", 
-		mysql_real_escape_string($EMail));
-	$sql .= sprintf(" and Transactions.Reference = '%s'", mysql_real_escape_string($trans_code));
-
-	$result = mysql_query($sql);	
-	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
-	
-	if (mysql_num_rows($result) <= 0)
-		return false;
-	
-	return mysql_fetch_object($result)->UserId;
-	*/
-	return false;
 }
 
 ?>
