@@ -1096,56 +1096,6 @@ function ticketed_user_count()
 	return (mysql_num_rows($result));
 }
 
-/* function user_paid_act_submittal_fee
- * 
- * Used to determine if a given UserId has paid for act submittal in the 
- * transactions table.
- *
- * $UserId:  the UserId in question
- * Returns:  true if the user has paid, false if not.
- */
-function user_paid_act_submittal_fee($UserId)
-{
-	//if (!ticket_item_exists(BPT_ACT_TICKETITEM_ID))
-	//{
-	//	display_error("Cannot verify if user paid act submittal: ticket type doesn't exist");
-	//	return false;
-	//}
-
-	// Something is going wrong here, so we are going to bypass this check
-	// until we figure out ticketing.  -MDB
-	
-	/*
-	// Get Number of Acts Submitted
-	
-	$sql = sprintf("select * from Bids where UserId = '%d' and Status in " .
-		"('Pending','Under Review','Accepted','Rejected');", $UserId);
-	 
-	$result = mysql_query($sql);	
-	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
-	
-	$acts_submitted = (mysql_num_rows($result));
-	
-	// Get number of act fees paid
-	
-	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId = '%s'",
-		$UserId, BPT_ACT_TICKETITEM_ID);
-	 
-	$result = mysql_query($sql);	
-	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
-	
-	$fees_paid = (mysql_num_rows($result));
-
-	//echo "fees paid:  $fees_paid  acts_submitted:  $acts_submitted";
-	
-	return ($fees_paid >= $acts_submitted);
-	
-	*/
-	return true;
-}
-
 ?>
 
 

@@ -402,6 +402,41 @@ function create_main_fee_refer_link()
 	return $url;
 }
 
+/* function user_paid_act_submittal_fee
+ * 
+ * Used to determine if a given UserId has paid for act submittal in the 
+ * transactions table.
+ *
+ * $UserId:  the UserId in question
+ * Returns:  true if the user has paid, false if not.
+ */
+function user_paid_act_submittal_fee($UserId)
+{
+	// For now, leave this disabled until we are comfortable turning it on.
+	
+	return true;
+	
+	/*
+	$sql = sprintf("SELECT * FROM BPTEventList where ActSubmitFee = '1' limit 0, 1");
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+	if (0 == mysql_num_rows($result))
+		return display_error("There is not BPT act submittal event in the database. Please add.");
+	
+	$bpt_act_submit_fee_id = mysql_fetch_object($result)->BPTEvent;
+	
+	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId = '%s'",
+		$UserId, $bpt_act_submit_fee_id);
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result) > 0);
+	*/
+}
 
 
 ?>
