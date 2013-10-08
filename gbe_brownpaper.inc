@@ -337,11 +337,11 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 function create_ticket_refer_link($TicketItemId)
 {
 	if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
-		return display_error("Cannot forward user for Payment:  Not logged in.");
-	
-	$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+		$UserId = "None";
+	else
+		$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
 			
-	$url = sprintf("http://www.brownpapertickets.com/event/ID-%d/%d", $UserId, 
+	$url = sprintf("http://www.brownpapertickets.com/event/ID-%s/%d", $UserId, 
 		$TicketItemId);
 	
 	return $url;
@@ -356,8 +356,12 @@ function create_ticket_refer_link($TicketItemId)
  */
 function create_act_fee_refer_link()
 {
+	if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
+		$UserId = "None";
+	else
+		$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+	
 	$sql = sprintf("SELECT * FROM BPTEventList where ActSubmitFee = '1' limit 0, 1");
-
 	$result = mysql_query($sql);
 
 	if (!$result)
@@ -365,7 +369,7 @@ function create_act_fee_refer_link()
 	if (0 == mysql_num_rows($result))
 		return display_error("There is not BPT act submittal event in the database. Please add.");
 
-	$url = sprintf("http://www.brownpapertickets.com/event/%d", 
+	$url = sprintf("http://www.brownpapertickets.com/event/ID-%s/%d", $UserId, 
 		mysql_fetch_object($result)->BPTEvent);
 	return $url;
 }
@@ -379,6 +383,11 @@ function create_act_fee_refer_link()
  */
 function create_main_fee_refer_link()
 {
+	if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
+		$UserId = "None";
+	else
+		$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+		
 	$sql = sprintf("SELECT * FROM BPTEventList where Primary = '1' limit 0, 1");
 
 	$result = mysql_query($sql);
@@ -388,7 +397,7 @@ function create_main_fee_refer_link()
 	if (0 == mysql_num_rows($result))
 		return display_error("There is not BPT primary event in the database. Please add.");
 
-	$url = sprintf("http://www.brownpapertickets.com/event/%d", 
+	$url = sprintf("http://www.brownpapertickets.com/event/ID-%s/%d", $UserId, 
 		mysql_fetch_object($result)->BPTEvent);
 	return $url;
 }
