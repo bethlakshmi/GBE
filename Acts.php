@@ -1346,10 +1346,6 @@ function process_bid_form(&$ActIsPaidFor)
   // to Draft.  We will warn later in display_bid_etc().  -MDB
 	
   $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
-  
-  // Note:  This call will synch the entire transaction table with BPT.
-  
-  process_bpt_order_list();
   $ActIsPaidFor = user_paid_act_submittal_fee($UserId);
   
   if (!$ActIsPaidFor)
