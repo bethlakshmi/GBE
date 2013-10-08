@@ -195,6 +195,8 @@ class Transaction
 	public $UserId;
 	public $Amount;
 	public $Datestamp;
+	public $PaymentDate;
+	public $PaymentSource;
 	public $Status;
 	public $TenderType;
 	public $Reference;
@@ -241,6 +243,8 @@ class Transaction
 		$this->UserId = (int)$row->UserId;
 		$this->Amount = (float)$row->Amount;
 		$this->Datestamp = (string)$row->Datestamp;
+		$this->PaymentDate = (string)$row->PaymentDate;
+		$this->PaymentSource = (string)$row->PaymentSource;
 		$this->Status = (string)$row->Status;
 		$this->TenderType = (string)$row->TenderType;
 		$this->Reference = (string)$row->Reference;
@@ -289,6 +293,8 @@ class Transaction
 		$sql .= build_sql_string('UserId', $this->UserId);
 		$sql .= build_sql_string('Amount', $this->Amount);
 		$sql .= build_sql_string('Datestamp', $this->Datestamp);
+		$sql .= build_sql_string('PaymentDate', $this->PaymentDate);
+		$sql .= build_sql_string('PaymentSource', $this->PaymentSource);		
 		$sql .= build_sql_string('Status', $this->Status);
 		$sql .= build_sql_string('TenderType', $this->TenderType);
 		$sql .= build_sql_string('Reference', $this->Reference);
@@ -593,9 +599,9 @@ function get_user($UserId, &$User)
 	if (!$result)
 		return display_mysql_error('Cannot execute query', $sql);
 	if (0 == mysql_num_rows($result))
-		return display_error("The user with UserID $UserId doesn't exist");
-	
-	$User = mysql_fetch_array($result);
+		$User = null;
+	else
+		$User = mysql_fetch_array($result);
 }
 
 /* function get_user_by_email
@@ -762,7 +768,10 @@ function get_transactions_for_ticket_item($TickeItem, &$Transactions)
  * $zip - the zip of the user, or nothing
  * $country - the country of the user, or nothing.
  * Returns: nothing.
+ *
+ * Function no longer used - caused problems with OpenID.  -MDB
  */
+ /*
 function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $state, $zip, $country)
 {
 	// Check that the email address isn't already being used by another player.
@@ -804,6 +813,7 @@ function create_stand_in_user($fname, $lname, $email, $phone, $address, $city, $
 	if (! $result)
 		return display_mysql_error ('Insert into Users table failed');
 }
+*/
 
 /* function ticket_item_exists
  * 
@@ -912,7 +922,9 @@ function show_trans_item_ticket_table($TicketItem)
 	echo "    <th>Nick Name</th>\n";
 	echo "    <th>EMail</th>\n";
 	echo "    <th>Amount Paid</th>\n";
-	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Payment Source</th>\n";
+	echo "    <th>Payment Date</th>\n";
+	echo "    <th>Import Date</th>\n";
 	echo "    <th>Status</th>\n";
 	echo "    <th>Tender Type</th>\n";
 	echo "    <th>Payment Reference</th>\n";
@@ -930,6 +942,8 @@ function show_trans_item_ticket_table($TicketItem)
 		printf("  <td align=\"left\">%s &nbsp;</td>\n", $User['Nickname']);
 		printf("  <td align=\"left\">%s</td>\n", $User['EMail']);
 		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
+		echo "  <td align=\"left\">$trans->PaymentSource</td>\n";
+		echo "  <td align=\"left\">$trans->PaymentDate</td>\n";
 		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
 		echo "  <td align=\"left\">$trans->Status</td>\n";
 		echo "  <td align=\"left\">$trans->TenderType</td>\n";
@@ -960,7 +974,7 @@ function show_user_simple_ticket_table($UserId)
 	echo "  <tr>\n";
 	echo "    <th>Ticket Description</th>\n";
 	echo "    <th>Amount Paid</th>\n";
-	echo "    <th>Date Stamp</th>\n";
+	echo "    <th>Payment Date</th>\n";
 	echo "    <th>Payment Reference</th>\n";
 	echo "    <th>Cashier's Memo</th>\n";
 	echo "  </tr>\n";
@@ -973,7 +987,7 @@ function show_user_simple_ticket_table($UserId)
 		echo "<tr valign=\"top\">\n";
 		echo "  <td align=\"left\">$trans->Title</td>\n";
 		printf("  <td align=\"left\">%0.2f</td>\n", $trans->Amount);
-		echo "  <td align=\"left\">$trans->Datestamp</td>\n";
+		echo "  <td align=\"left\">$trans->PaymentDate</td>\n";
 		echo "  <td align=\"left\">$trans->Reference</td>\n";
 		echo "  <td align=\"left\">$trans->Memo</td>\n";
 		echo "</tr>\n";

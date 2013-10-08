@@ -30,11 +30,11 @@ if (!user_has_priv(PRIV_REGISTRAR))
 	html_end ();
 	exit ();
 }
+/*
+echo "<br>this is my test spot.<br>";
 
-//echo "<br>this is my test spot.<br>";
-
-//echo "<br>end test spot.<br>";
-
+echo "<br>end test spot.<br>";
+*/
 
 
 if (array_key_exists('action', $_REQUEST))
@@ -506,7 +506,10 @@ function list_ticket_status()
 {
 	echo "<b>\n";
 	printf("Ticket Purchase Status for %s:", CON_NAME);
-	echo "</b><br><br>\n";
+	echo "</b><br>\n";
+	
+	printf("<br>The Ticket System was last synchronized with BPT at %s UTC.<br><br>",
+		get_bpt_last_poll_time());
 		
 	show_ticket_status_table();
 }

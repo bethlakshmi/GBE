@@ -38,13 +38,13 @@ function get_bpt_event_list()
 	return $event_list;
 }
 
-/* function get_bpt_devloper_id
+/* function get_bpt_developer_id
  * 
  * Used to obtain the developer ID to be used with Brown Paper Tickets.
  *
  * Returns: the developer ID.
  */
-function get_bpt_devloper_id()
+function get_bpt_developer_id()
 {
 	$sql = sprintf("select * from BPTSettings limit 0, 1");
 
@@ -96,6 +96,23 @@ function get_bpt_last_poll_time()
 		return display_error("There are no BPT settings in the database. Please add.");
 
 	return mysql_fetch_object($result)->LastPollTime;
+}
+
+/* function set_bpt_last_poll_time
+ * 
+ * Used to set the last time the system poled BPT for transactions to current time.
+ *
+ * Returns: nothing
+ */
+function set_bpt_last_poll_time()
+{
+	$sql = sprintf("update BPTSettings set LastPollTime = '%s' where DeveloperId = '%s'",
+		date("Y-m-d H:i:s", time()), get_bpt_developer_id());
+
+	$result = mysql_query($sql);
+
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
 }
 
 /* function produce_XML_object_tree
@@ -162,7 +179,7 @@ function perform_bpt_api_call($event_call)
 function get_bpt_event_date_id($event_id)
 {
 	$date_call = sprintf("https://www.brownpapertickets.com/api2/datelist?id=%s&event_id=%s", 
-		get_bpt_devloper_id(), $event_id);
+		get_bpt_developer_id(), $event_id);
 	
 	$date_xml = perform_bpt_api_call($date_call);
 	return $date_xml->date->date_id;
@@ -183,7 +200,7 @@ function get_bpt_price_list()
 	{
 		$date_id = get_bpt_event_date_id($event_id);
 		$price_call = sprintf("https://www.brownpapertickets.com/api2/pricelist?id=%s&event_id=%s&date_id=%s", 
-			get_bpt_devloper_id(), $event_id, $date_id);
+			get_bpt_developer_id(), $event_id, $date_id);
 		$price_list_xml = perform_bpt_api_call($price_call);
 		
 		foreach ($price_list_xml->price as $price)
@@ -215,8 +232,8 @@ function process_bpt_order_list()
 	
 	foreach ($event_array as $event_id)
 	{
-		$order_list_call = sprintf("https://www.brownpapertickets.com/api2/orderlist?id=%s&event_id=%s&account=%s", 
-			get_bpt_devloper_id(), $event_id, get_bpt_client_id());
+		$order_list_call = sprintf("https://www.brownpapertickets.com/api2/orderlist?id=%s&event_id=%s&account=%s&includetracker=1", 
+			get_bpt_developer_id(), $event_id, get_bpt_client_id());
 		$order_list_xml = perform_bpt_api_call($order_list_call);
 		
 		foreach ($order_list_xml->item as $order)
@@ -234,6 +251,7 @@ function process_bpt_order_list()
 			}
 		}
 	}
+	set_bpt_last_poll_time();
 	return $count;
 }
 
@@ -266,16 +284,30 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	// Since we are having problems with Ticketing and OpenId, we are just going to indicate fake
 	// users with a fake user email that the system won't use.  -MDB
 	
-	get_user_by_email((string)$order->email, $user);
+	$PurchaserUserId = (int)substr((string)$order->tracker_id, 3);
+	get_user($PurchaserUserId, $user);
+	
 	if ($user == null)
 	{
-		create_stand_in_user((string)$order->fname, (string)$order->lname, "*FAKE USER*" + (string)$order->email, 
-			(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
-			(string)$order->zip, (string)$order->country);
 		get_user_by_email((string)$order->email, $user);
-		if ($user == null)
-			return display_error(sprintf("Unable to create a local temporary user for: %s", 
-			(string)$order->email));
+	}
+	
+	if ($user == null)
+	{
+		return display_error(sprintf("Cannot save payment %s (Name:  %s, Email:  %s) - User Not Found",
+			$order->ticket_number, $order->fname . " " . $order->lname, $order->email));
+		
+		// No longer create fake users - we'll just have enter these manually.  -MDB
+		
+		//create_stand_in_user((string)$order->fname, (string)$order->lname, (string)$order->email, 
+		//	(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
+		//	(string)$order->zip, (string)$order->country);
+			
+			
+		//get_user_by_email((string)$order->email, $user);
+		//if ($user == null)
+		//	return display_error(sprintf("Unable to create a local temporary user for: %s", 
+		//	(string)$order->email));
 	}	
 	
 	$trans = new Transaction();
@@ -286,8 +318,9 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	$trans->Status = 'Settled';
 	$trans->TenderType = 'Charge';
 	$trans->Cashier = null;
-	$trans->Memo = sprintf("BPT Order (%s) @ %s", 
-		(string)$order->shipping_method, (string)$order->order_time);
+	$trans->PaymentDate = (string)$order->order_time;
+	$trans->PaymentSource = "BPT";
+	$trans->Memo = (string)$order->shipping_method; 
 	if (strlen(trim((string)$order->order_notes)) > 0)
 		$trans->Memo .= " Notes:  " . (string)$order->order_notes;
 	$trans->Override = false;
@@ -303,7 +336,13 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
  */
 function create_ticket_refer_link($TicketItemId)
 {
-	$url = sprintf("http://www.brownpapertickets.com/event/%d", $TicketItemId);
+	if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
+		return display_error("Cannot forward user for Payment:  Not logged in.");
+	
+	$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+			
+	$url = sprintf("http://www.brownpapertickets.com/event/ID-%d/%d", $UserId, 
+		$TicketItemId);
 	
 	return $url;
 }

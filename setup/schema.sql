@@ -400,7 +400,8 @@ DROP TABLE IF EXISTS `BPTSettings`;
 CREATE TABLE IF NOT EXISTS `BPTSettings` (
   `DeveloperID` varchar(30) NOT NULL,
   `ClientID` varchar(30) NOT NULL,
-  `LastPollTime` datetime NOT NULL
+  `LastPollTime` datetime NOT NULL,
+  PRIMARY KEY (`DeveloperID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
