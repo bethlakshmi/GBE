@@ -412,11 +412,6 @@ function create_main_fee_refer_link()
  */
 function user_paid_act_submittal_fee($UserId)
 {
-	// For now, leave this disabled until we are comfortable turning it on.
-	
-	return true;
-	
-	/*
 	$sql = sprintf("SELECT * FROM BPTEventList where ActSubmitFee = '1' limit 0, 1");
 	$result = mysql_query($sql);
 
@@ -427,17 +422,37 @@ function user_paid_act_submittal_fee($UserId)
 	
 	$bpt_act_submit_fee_id = mysql_fetch_object($result)->BPTEvent;
 	
-	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId = '%s'",
-		$UserId, $bpt_act_submit_fee_id);
-	 
-	$result = mysql_query($sql);	
+	// Get Number of Acts Submitted
+
+	$sql = sprintf("select * from Bids where UserId = '%d' and " .
+		"Status in ('Pending','Under Review','Accepted','Rejected') and " .
+		"GameType = 'Performance'", $UserId);
+	
+	echo $sql . "<br>";
+		
+	$result = mysql_query($sql);
 	if (!$result)
 		return display_mysql_error ('Cannot execute query', $sql);
-	
-	return (mysql_num_rows($result) > 0);
-	*/
-}
 
+	$acts_submitted = (mysql_num_rows($result));
+
+	// Get number of act fees paid
+
+	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId like '%s%%'",
+		$UserId, $bpt_act_submit_fee_id);
+	
+	echo $sql . "<br>";
+
+	$result = mysql_query($sql);
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+
+	$fees_paid = (mysql_num_rows($result));
+
+	echo "fees paid: $fees_paid acts_submitted: $acts_submitted" . "<br>";
+
+	return ($fees_paid >= $acts_submitted);
+}
 
 ?>
 
