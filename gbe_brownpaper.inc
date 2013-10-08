@@ -428,7 +428,7 @@ function user_paid_act_submittal_fee($UserId)
 		"Status in ('Pending','Under Review','Accepted','Rejected') and " .
 		"GameType = 'Performance'", $UserId);
 	
-	echo $sql . "<br>";
+	//echo $sql . "<br>";
 		
 	$result = mysql_query($sql);
 	if (!$result)
@@ -441,7 +441,7 @@ function user_paid_act_submittal_fee($UserId)
 	$sql = sprintf("select * from Transactions where UserId = '%d' and ItemId like '%s%%'",
 		$UserId, $bpt_act_submit_fee_id);
 	
-	echo $sql . "<br>";
+	//echo $sql . "<br>";
 
 	$result = mysql_query($sql);
 	if (!$result)
@@ -449,7 +449,7 @@ function user_paid_act_submittal_fee($UserId)
 
 	$fees_paid = (mysql_num_rows($result));
 
-	echo "fees paid: $fees_paid acts_submitted: $acts_submitted" . "<br>";
+	//echo "fees paid: $fees_paid acts_submitted: $acts_submitted" . "<br>";
 
 	return ($fees_paid >= $acts_submitted);
 }
