@@ -320,7 +320,7 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	$trans->Cashier = null;
 	$trans->PaymentDate = (string)$order->order_time;
 	$trans->PaymentSource = "BPT";
-	$trans->Memo = (string)$order->shipping_method; 
+	$trans->Memo = (string)$order->shipping_method . " " . (string)$order->tracker_id; 
 	if (strlen(trim((string)$order->order_notes)) > 0)
 		$trans->Memo .= " Notes:  " . (string)$order->order_notes;
 	$trans->Override = false;
