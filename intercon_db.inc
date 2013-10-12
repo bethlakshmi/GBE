@@ -2978,7 +2978,7 @@ function display_login_form ($error='', $dest='')
 
   // Show a list of available games
 
-  display_available_games ();
+//  display_available_games ();
 
 //  if (file_exists(TEXT_DIR.'/loginbottom.html'))
 //	include(TEXT_DIR.'/loginbottom.html');	
