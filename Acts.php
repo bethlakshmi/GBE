@@ -668,7 +668,7 @@ function display_bid_form ($first_try)
 
     echo "  <TR>\n";
     echo "    <TD COLSPAN=2>\n";
-    echo "      <br><b>I/We would like to be considered for...</b>\n";
+    echo "      <br><b>I/We would like to be considered for... <font color=\"red\">*</font></b>\n";
     echo "    </TD>\n";
     echo "  </TR>\n";
   
