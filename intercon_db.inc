@@ -2980,8 +2980,8 @@ function display_login_form ($error='', $dest='')
 
   display_available_games ();
 
-  if (file_exists(TEXT_DIR.'/loginbottom.html'))
-	include(TEXT_DIR.'/loginbottom.html');	
+//  if (file_exists(TEXT_DIR.'/loginbottom.html'))
+//	include(TEXT_DIR.'/loginbottom.html');	
 }
 
 /*
