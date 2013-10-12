@@ -696,7 +696,7 @@ function display_bid_form ($first_try)
 	    echo "        </tr>\n";
 	  }
 	}
-
+    echo "      </table>";
 
 
     $label =  "I/We have performed at...";
