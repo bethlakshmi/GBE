@@ -139,7 +139,8 @@ function list_games ($type = 0, $showOps=FALSE)
 function list_games_alphabetically ($showOps=FALSE)
 {
   $sql = 'SELECT EventId, GameType, Title, Hours FROM Events';
-  $sql .= ' WHERE SpecialEvent=0';
+  $sql .= ' WHERE ';
+  $sql .= ' (SpecialEvent=0 OR GameType = \'Drop-In\') ';
   if ($showOps)
     $sql .= ' AND IsOps = \'Y\'';
   else
@@ -290,7 +291,8 @@ function list_games_by ($type, $showOps=FALSE)
   $sql .= ' Runs.StartHour, Runs.Day, Runs.EventId, Runs.ScheduleNote,';
   $sql .= ' Events.Hours, Events.Title, Runs.Rooms';
   $sql .= ' FROM Events, Runs';
-  $sql .= ' WHERE Events.EventId=Runs.EventId AND Events.SpecialEvent=0';
+  $sql .= ' WHERE Events.EventId=Runs.EventId AND ';
+  $sql .= ' (Events.SpecialEvent=0 OR Events.GameType = \'Drop-In\') ';
   if ($showOps)
     $sql .= ' AND Events.IsOps = \'Y\'';
   else
