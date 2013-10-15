@@ -212,8 +212,11 @@ function list_panels ()
     echo "      time slots available over the weekend.  The expo aims to\n";
     echo "      create a power packed agenda of balanced content across a \n";
     echo "      wide selection time slots.  Your flexibility is vital.<p>\n";
-    echo "      Please pick your top three preferences for when you'd like to\n";
-    echo "      run your game and be conservative in the use of 'Prefer Not'.\n";
+    echo "      Please pick your top three preferences for times when you'd like to run ";
+    echo "      your panel.  <i>Mornings</i> are 9am to noon; <i>Early Afternoon</i> is noon to 3:00 p.m.;"; 
+    echo "      <i>Late Afternoon</i> is 3:00 p.m. to 5:00 p.m.  We'll do our best to meet your ";
+    echo "      preferences.  Remember: the less you use the 'Prefer Not' option, ";
+    echo "      the easier it is for us to meet your scheduling needs.";
     echo "    </TD>\n";
     echo "  </TR>\n";
   
