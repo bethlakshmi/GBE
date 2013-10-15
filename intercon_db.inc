@@ -3683,6 +3683,7 @@ function form_hidden_value ($name, $value)
 
 function form_checkbox ($name, $checked, $value='')
 {
+  $chk;
   if ($checked)
     $chk = 'checked';
   else

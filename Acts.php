@@ -4,6 +4,7 @@ include ("files.php");
 //include ("display_common.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
+include ("gbe_acts.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -235,17 +236,9 @@ function show_bid ()
       $bid_row[$key] = $value;
   }
 
-  //Get the Bid Preferred Slot Info
-  $sql = 'SELECT * FROM BidTimes WHERE BidId=' . $BidId;
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query for BidId $BidId failed");
-
   $bid_pref_slots = array();
-  while ($row = mysql_fetch_assoc($result)) {
-    $bid_pref_slots[$row['Day'].$row['Slot']] = $row['Pref'];
-	}
-
+  get_preferred_shows($BidId, &$bid_pref_slots);
+  
   echo "<TABLE BORDER=0 WIDTH=\"100%\">\n";
   echo "  <TR VALIGN=TOP>\n";
   echo "    <TD>\n";
@@ -334,35 +327,8 @@ function show_bid ()
     show_text ($show, $BidChoice[$show]);
   
   
-  global $SHOW_DAYS;
-  global $SHOW_SLOTS;
-  global $SHOW_NAMES;
-
-  echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD ALIGN=RIGHT><br><br><B>Preferred Shows:</B></TD>\n";
-  echo "    <TD>\n";
-  echo "      <TABLE BORDER=1>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($SHOW_DAYS as $day)
-  	echo "          <TD COLSPAN=".count($SHOW_SLOTS[$day]).">{$day}</TD>\n";
-  echo "        </tr>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($SHOW_DAYS as $day)
-  	foreach ($SHOW_SLOTS[$day] as $slot)
-  		echo "          <TD>".$SHOW_NAMES[$day."_".$slot]."</TD>\n";
-  echo "        </tr>\n";
-  echo "        <TR ALIGN=CENTER>\n";
-  foreach ($SHOW_DAYS as $day)
-  	foreach ($SHOW_SLOTS[$day] as $slot)
-  		if (isset($bid_pref_slots[$day.$slot]))
-  			show_table_entry ($bid_pref_slots[$day.$slot]);
-  		else
-  			show_table_entry ('&nbsp;');
-  echo "        </tr>\n";
-  echo "      </TABLE>\n";
-  echo "    </TD>\n";
-  echo "  </tr>\n";
-
+  display_show_pref($bid_pref_slots);
+  
   show_text ('Performer/Troupe History', $bid_row['Premise']);
 
   show_section ('About Act');
@@ -395,6 +361,44 @@ function show_bid ()
   echo "<P>\n";
 }
 
+ /*
+ * display_show_pref
+ *
+ * Display the show preferences for this bid as a table
+ */
+
+ function display_show_pref (&$bid_pref_slots)
+
+  {
+    global $SHOW_DAYS;
+    global $SHOW_SLOTS;
+    global $SHOW_NAMES;
+
+    echo "  <TR VALIGN=TOP>\n";
+    echo "    <TD ALIGN=RIGHT><br><br><B>Preferred Shows:</B></TD>\n";
+    echo "    <TD>\n";
+    echo "      <TABLE BORDER=1>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($SHOW_DAYS as $day)
+  	  echo "          <TD COLSPAN=".count($SHOW_SLOTS[$day]).">{$day}</TD>\n";
+    echo "        </tr>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($SHOW_DAYS as $day)
+  	  foreach ($SHOW_SLOTS[$day] as $slot)
+  		echo "          <TD>".$SHOW_NAMES[$day."_".$slot]."</TD>\n";
+    echo "        </tr>\n";
+    echo "        <TR ALIGN=CENTER>\n";
+    foreach ($SHOW_DAYS as $day)
+  	  foreach ($SHOW_SLOTS[$day] as $slot)
+  		if (isset($bid_pref_slots[$day.$slot]))
+  			show_table_entry ($bid_pref_slots[$day.$slot]);
+  		else
+  			show_table_entry ('&nbsp;');
+    echo "        </tr>\n";
+    echo "      </TABLE>\n";
+    echo "    </TD>\n";
+    echo "  </tr>\n";
+  }
 
 /*
  * display_bid_form
@@ -1417,7 +1421,7 @@ function table_value ($value)
  * Display the bids for review
  */
 
-function display_bids_for_review ($isAct)
+function display_bids_for_review ()
 {
   // Depends on whether the pages is accessed as an Act or as a Conference Bid
   $reviewTopic = "Act";
@@ -1601,6 +1605,7 @@ function display_bids_for_review ($isAct)
       }
     }
 
+
 	$sql = "SELECT * FROM BidTimes WHERE BidId=".$row->BidId.";";
 	$btresult = mysql_query ($sql);
 	if (! $btresult)
@@ -1614,6 +1619,11 @@ function display_bids_for_review ($isAct)
 	}
 	mysql_free_result ($btresult);
 
+   	$Act = new Act();
+    if ( $row->Status == 'Accepted')
+    {
+	  $Act->load_from_bidid($row->BidId);
+    }
 
 
     $name = $row->DisplayName;
@@ -1652,11 +1662,17 @@ function display_bids_for_review ($isAct)
   	    }
 
     if (user_has_priv (PRIV_SHOW_CHAIR))
-      printf ("    <TD><A HREF=Acts.php?action=%d&BidId=%d>$row->Status</A></TD>\n",
+      printf ("    <TD><A HREF=Acts.php?action=%d&BidId=%d>$row->Status</A>",
 	      BID_CHANGE_STATUS,
 	      $row->BidId);
     else
-      echo "    <TD>$row->Status</TD>\n";
+      echo "    <TD>$row->Status";
+
+    if ( $row->Status == 'Accepted')
+    {
+	  echo " - ".$Act->get_show_name();
+    }
+    echo "    </td>\n";
 
     echo "    <TD>$row->LastUpdatedFMT</TD>\n";
     echo "    <TD>$row->CreatedFMT</TD>\n";
@@ -1788,11 +1804,58 @@ function change_bid_status ()
       return display_error ("Invalid Status: $row->Status");
   }
 
-  echo "</SELECT>\n";
+  echo "</SELECT><br><br>\n";
+  
+  if ($row->Status == 'Accepted' || $row->Status == 'Under Review' )
+  {
+    $showId = 0;
+    $isGroup = false;
+    if ( $row->Status == 'Accepted')
+    {
+      $Act = new Act();
+  	  $Act->load_from_bidid($BidId);
+  	  $showId = $Act->ShowId;
+  	  form_hidden_value("ActId",$Act->ActId);
+  	  $isGroup = $Act->isGroup;
+    }
+    
+    display_show_list($showId);
+    echo "Is this a group act?  ";
+    form_checkbox("isGroup", $isGroup);
+    
+    $bid_pref_slots = array();
+    get_preferred_shows($BidId, &$bid_pref_slots);
+    display_show_pref($bid_pref_slots);
 
+  }
+  
   echo "<P>\n";
   echo "<INPUT TYPE=SUBMIT VALUE=\"Update Status\">\n";
   echo "</FORM>\n";
+}
+
+/*
+ * display_show_list
+ *
+ * Show a list of the current shows that the act can be assigned to
+ *  Mark the show that the act is currently in
+ */
+
+function display_show_list ($currentShowId)
+{
+	get_show_list($shows);
+	
+	echo "Cast Act in show:  <br>";
+	echo "<table>";
+	foreach ($shows as $showId => $show)
+	{	
+      echo "<tr><td>&nbsp;&nbsp;&nbsp;</td><td>".$show["Title"].":  </td><td>";
+	  $selected = ($showId == $currentShowId);
+      form_radio ("ShowId", $showId, $selected);
+      echo "</td></tr>\n";
+	}
+	echo "</table><br>\n";
+
 }
 
 /*
@@ -1823,6 +1886,10 @@ function process_status_change ()
   if (1 == get_magic_quotes_gpc())
     $Status = stripslashes ($Status);
 
+  $ShowId = intval (trim ($_REQUEST['ShowId']));
+  if (0 == $ShowId && $Status == 'Accepted')
+    return display_error ("Show not specified!");
+
   // Fetch the status to see if this is really a change
 
   $sql = "SELECT Title, Status, EventId From Bids WHERE BidId=$BidId";
@@ -1851,7 +1918,7 @@ function process_status_change ()
   // Handle dropped bids
 
   if ('Dropped' == $Status)
-    return drop_bid ($BidId, $row->EventId);
+    return drop_bid ($BidId);
 
   // Bids that have moved to Under Review need to have a discussion entry
   // added
@@ -1890,23 +1957,7 @@ function process_status_change ()
 
 //  dump_array ("_POST", $_POST);
 
-  // If the EventId is 0, create an event
 
-  if (0 != $row['EventId'])
-    $EventId = intval ($row['EventId']);
-  else
-  {
-    $EventId = add_event ($row);
-    if (! is_int ($EventId))
-      return FALSE;
-
-    // Update the bid with the event ID
-
-    $sql = "UPDATE Bids SET EventId='$EventId' WHERE BidId=$BidId";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to update EventId for BidId $BidId");
-  }
 
   // If the submitter is unpaid, comp him or her now
 
@@ -1925,15 +1976,13 @@ function process_status_change ()
   if (is_unpaid ($row->CanSignup))
     comp_user ($UserId, $EventId);
 */
-  // Add the lead GM as a GM for the game
 
-  $sql = "INSERT INTO GMs SET EventId=$EventId, UserId=$UserId,";
-  $sql .= '  Submitter="Y", ReceiveConEMail="Y",';
-  $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("GM insertion failed");
+  // Set up the Act links for scheduling the act and performer
+  $Act = new Act();
+  $Act->convert_from_array($_POST);
+  $Act->save_to_db();
+  $Act->load_from_bidid($BidId);
+  $Act->add_performer($UserId);
 
   return TRUE;
 }
@@ -2223,100 +2272,7 @@ function  create_feedback_forum ($BidId)
   return true;
 }
 
-/*
- * add_event
- *
- * Add an event from the bid information
- * GBE - this needs a big change!!! the act is no longer booked as an
- * event, it is now scheduled into a show!!!
- *
- */
 
-function add_event ($bid_row)
-{
-  // Verify that the title isn't in the database yet
-
-  $Title = $bid_row['Title'];
-  if ('' == $Title)
-    return display_error ('A blank Title is invalid');
-
-  // Check that the title isn't already in the Events table
-
-  if (! title_not_in_events_table ($Title))
-    return false;
-
-  $sql = 'INSERT Events SET ';
-  $sql .= build_sql_string ('Title', $Title, false);
-  $sql .= build_sql_string ('Author');
-  $sql .= build_sql_string ('GameEMail');
-  $sql .= build_sql_string ('Organization');
-  $sql .= build_sql_string ('Homepage');
-
-  $sql .= build_sql_string ('MinPlayersMale');
-  $sql .= build_sql_string ('MaxPlayersMale');
-  $sql .= build_sql_string ('PrefPlayersMale');
-
-  $sql .= build_sql_string ('MinPlayersFemale');
-  $sql .= build_sql_string ('MaxPlayersFemale');
-  $sql .= build_sql_string ('PrefPlayersFemale');
-
-  $sql .= build_sql_string ('MinPlayersNeutral');
-  $sql .= build_sql_string ('MaxPlayersNeutral');
-  $sql .= build_sql_string ('PrefPlayersNeutral');
-
-  $sql .= build_sql_string ('Hours');
-  $sql .= build_sql_string ('Minutes');
-  $sql .= build_sql_string ('Seconds');
-
-  $sql .= build_sql_string ('Description');
-  $sql .= build_sql_string ('ShortBlurb');
-  $sql .= build_sql_string ('GameType');
-
-/*  $sql .= build_sql_string ('IsSmallGameContestEntry'); */
-
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
-
-  //  echo "$sql<P>\n";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Insert into Events failed");
-
-  return mysql_insert_id();
-}
-
-/*
- * password_from_title
- *
- * Build a password from a game title
- */
-
-function password_from_title ($title)
-{
-  // Start by making sure the title has title case
-
-  $title = ucwords ($title);
-
-  // Remove any quotes
-
-  $title = str_replace ("'", '', $title);
-  $title = str_replace ("\"", '', $title);
-
-  // Create a password from the games' title
-
-  $words = explode (" ", $title);
-  $password = '';
-
-  foreach ($words as $w)
-  {
-    $password .= $w;
-    if (strlen ($password) > 8)
-      return $password;
-  }
-
-  $password .= 'ChangeMe';
-  return $password;
-}
 
 /*
  * drop_bid
@@ -2324,71 +2280,14 @@ function password_from_title ($title)
  * Change the status of a bid from Accepted to Dropped
  */
 
-function drop_bid ($BidId, $EventId)
+function drop_bid ($BidId)
 {
-  // If the EventId is 0, we don't have to do anything more
-
-  if (0 == $EventId)
-    return true;
-
-  // Fetch the Event information and use it to update the bid
-
-  $sql = "SELECT * From Events WHERE EventId=$EventId";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query failed for EventId $EventId");
-
-  if (0 == mysql_num_rows ($result))
-    return display_error ("Failed to find EventId $EventId");
-
-  if (1 != mysql_num_rows ($result))
-    return display_error ("Found multiple entries for EventId $EventId");
-
-  $row = mysql_fetch_array ($result, MYSQL_ASSOC);
-
-  // Copy the information into the $_POST array so that build_sql_string
-  // will find it
-
-  foreach ($row as $key => $value)
-  {
-    if (1 == get_magic_quotes_gpc())
-      $_POST[$key] = mysql_real_escape_string ($value);
-    else
-      $_POST[$key] = $value;
-  }
 
   // Build the string to update the game information in the bid
 
   $sql = 'UPDATE Bids SET ';
 
-  $sql .= build_sql_string ('Title', $Title, false);
-  $sql .= build_sql_string ('Author');
-  $sql .= build_sql_string ('Homepage');
-  $sql .= build_sql_string ('GameEMail');
-  $sql .= build_sql_string ('Organization');
-
-  $sql .= build_sql_string ('MinPlayersMale');
-  $sql .= build_sql_string ('MaxPlayersMale');
-  $sql .= build_sql_string ('PrefPlayersMale');
-
-  $sql .= build_sql_string ('MinPlayersFemale');
-  $sql .= build_sql_string ('MaxPlayersFemale');
-  $sql .= build_sql_string ('PrefPlayersFemale');
-
-  $sql .= build_sql_string ('MinPlayersNeutral');
-  $sql .= build_sql_string ('MaxPlayersNeutral');
-  $sql .= build_sql_string ('PrefPlayersNeutral');
-
-  $sql .= build_sql_string ('Hours');
-  $sql .= build_sql_string ('Minutes');
-  $sql .= build_sql_string ('Seconds');
-  $sql .= build_sql_string ('CanPlayConcurrently');
-  $sql .= build_sql_string ('Description');
-//  printf ("    <td><A NAME=BidStatus%d>$title</A></td>\n", $row->BidStatusId);
-
-  $sql .= build_sql_string ('ShortBlurb');
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
-
+  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
   $sql .= ', EventId=0';
 
   $sql .= " WHERE BidId=$BidId";
@@ -2399,17 +2298,13 @@ function drop_bid ($BidId, $EventId)
 
   // Now remove the entry from the Events table
 
-  $sql = "DELETE FROM Events WHERE EventId=$EventId";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Deletion from Events failed for $EventId");
 
-  // And remove any GMs for that game
 
-  $sql = "DELETE FROM GMs WHERE EventId=$EventId";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Deletion from GMs failed for Event $EventId");
+  // Set up the Act links for scheduling the act and performer
+  $Act = new Act();
+  $Act->load_from_bidid($BidId);
+  $Act->remove_from_db();
+
 
   return TRUE;
 }

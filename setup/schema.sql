@@ -16,6 +16,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `Acts`
+--
+
+CREATE TABLE `ExpoTest`.`Acts` (
+`ActId` INT unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+`BidId` INT NOT NULL COMMENT 'Link to original bid',
+`ShowId` INT NOT NULL COMMENT 'Link to assigned show',
+`RehearsalId` INT NOT NULL COMMENT 'Link to Rehearsal RunId',
+`ActInfoId` INT NOT NULL COMMENT 'Link to Act Info',
+`GroupBio` VARCHAR( 500 ) NOT NULL COMMENT 'Bio for Group',
+`isGroup` INT NOT NULL COMMENT 'Boolean - for whether or not this a group act',
+PRIMARY KEY ( `ActId` )
+) ENGINE = InnoDB;
+
+--
 -- Table structure for table `Away`
 --
 
@@ -552,7 +567,7 @@ CREATE TABLE `GMs` (
   `ReceiveConEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `ReceiveSignupEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
-  `Role` enum( "panelist", "moderator" ) NULL DEFAULT NULL,
+  `Role` enum( "panelist", "moderator","performer" ) NULL DEFAULT NULL,
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`GMId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
