@@ -848,10 +848,13 @@ function show_user_homepage_bids ($UserId)
   while ($row = mysql_fetch_object ($result))
   {
     $type = "Bids";
+    $status = $row->Status;
     if ($row->GameType == "Performance")
       $type = "Acts";
+    if ($row->Status == "Pending")
+      $status = "Submitted Successfully";
     echo "  <TR>\n";
-    echo "    <TD>$row->Status:</TD>\n";
+    echo "    <TD>$status:</TD>\n";
     printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
     	$row->GameType,
      	$type,
