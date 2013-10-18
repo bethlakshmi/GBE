@@ -339,7 +339,7 @@ define (SUN_MIN, 8);     // 8AM
 define (SUN_MAX, 24);    // 4PM
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
-define (SESSION_LOGIN_USER_TEACHER, 'LoginUserTeach_' . CON_ID);
+define (SESSION_LOGIN_USER_PRESENTER, 'LoginUserPresent_' . CON_ID);
 define (SESSION_LOGIN_USER_PERFORMER, 'LoginUserPerf_' . CON_ID);
 define (SESSION_LOGIN_USER_SPECIAL, 'LoginUserSpecial_' . CON_ID);
 define (SESSION_LOGIN_USER_VENDOR, 'LoginUserVendor_' . CON_ID);
@@ -3424,6 +3424,37 @@ function user_is_gm ()
 }
 
 /*
+ * user_is_presenter
+ *
+ * Checks the session data to see whether the user is a GM for one or more
+ * games
+ */
+
+function user_is_presenter ()
+{
+  if (array_key_exists (SESSION_LOGIN_USER_PRESENTER, $_SESSION))
+    return $_SESSION[SESSION_LOGIN_USER_PRESENTER];
+  else
+    return false;
+}
+
+/*
+ * user_is_performer
+ *
+ * Checks the session data to see whether the user is a GM for one or more
+ * games
+ */
+
+function user_is_performer ()
+{
+  if (array_key_exists (SESSION_LOGIN_USER_PERFORMER, $_SESSION))
+    return $_SESSION[SESSION_LOGIN_USER_PERFORMER];
+  else
+    return false;
+}
+
+
+/*
 
 Function is depreciated for Ticketing.  -MDB
 
@@ -3863,14 +3894,67 @@ function form_con_rooms($display, $key)
 }
 
 // Add a GM to the given event
-function add_gm($EventId, $UserId) 
+function add_gm($EventId, $UserId, $role=NULL) 
 {
     $sql = "INSERT INTO GMs SET EventId=$EventId, UserId=$UserId,";
     $sql .= '  Submitter="Y", ReceiveConEMail="Y",';
+    if ( role != NULL )
+      $sql .= ' Role="'.$role.'",';
     $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
-
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ("GM insertion failed");
 }
+
+/*
+ * show_user_homepage_bids
+ *
+ * Add links to any games the user is a GM for
+ */
+
+function show_user_homepage_bids ($UserId,$Type=NULL)
+{
+  $sql = 'SELECT BidId, Status, Title, GameType FROM Bids';
+  $sql .= "  WHERE UserId=$UserId";
+  if ($Type != NULL)
+    $sql .= " AND GameType=\"".$Type."\"";
+  $sql .= '  ORDER BY Title';
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Failed to get list of bid games');
+
+  if (0 == mysql_num_rows ($result))
+    return true;
+
+  if ($Type == NULL)
+     display_header ("<P>Status of Classes, Panels and Acts you've offered:");
+  else
+     display_header ("<P>To edit an existing $Type, click the title below:");
+
+  echo "<TABLE CELLPADDING=2>\n";
+  while ($row = mysql_fetch_object ($result))
+  {
+    $type = "Bids";
+    $status = $row->Status;
+    if ($row->GameType == "Performance")
+      $type = "Acts";
+    if ($row->Status == "Pending")
+      $status = "Submitted Successfully";
+    echo "  <TR>\n";
+    echo "    <TD>$status:</TD>\n";
+    printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
+    	$row->GameType,
+     	$type,
+	    BID_GAME,
+	    $row->BidId,
+	    $row->Title);
+    echo "  </TR>\n";
+  }
+
+  echo "</TABLE>\n";
+
+  return true;
+}
+
 ?>

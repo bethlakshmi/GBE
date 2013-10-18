@@ -469,6 +469,12 @@ function display_bid_form ($first_try)
 	  echo "</div>\n";
   }
 
+  echo "<br><br>\n";
+
+  show_user_homepage_bids ($_SESSION[SESSION_LOGIN_USER_ID],"Performance");
+
+  echo "<br><br>\n";
+  
   // If this is an existing bid, fetch the data
   if (0 != $BidId)
   {
