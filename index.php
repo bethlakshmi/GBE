@@ -3634,6 +3634,7 @@ function view_user ()
 
   show_gm_games ($UserId, $name);
   
+  show_user_homepage_bids($UserId);
 }
 
 /*

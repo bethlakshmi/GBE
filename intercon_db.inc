@@ -3928,7 +3928,10 @@ function show_user_homepage_bids ($UserId,$Type=NULL)
     return true;
 
   if ($Type == NULL)
-     display_header ("<P>Status of Classes, Panels and Acts you've offered:");
+    if ($UserId == $_SESSION[SESSION_LOGIN_USER_ID])
+       display_header ("<P>Status of Classes, Panels and Acts you've offered:");
+    else 
+       display_header ("<P>Status of Classes, Panels and Acts user has offered:");
   else
      display_header ("<P>To edit an existing $Type, click the title below:");
 
