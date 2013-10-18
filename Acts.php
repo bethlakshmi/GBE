@@ -2063,7 +2063,7 @@ function show_bid_feedback_summary()
 
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";
-  echo "    <th align=\"left\">Game</th>\n";
+  echo "    <th align=\"left\">Act</th>\n";
   echo "    <th>Status / Updated</th>\n";
   foreach ($committee as $key => $value)
   {
@@ -2093,7 +2093,7 @@ function show_bid_feedback_summary()
     {
       if (user_has_priv (PRIV_SHOW_CHAIR))
       {
-	$prefix = sprintf ('<a href="Acts.php?action=%dBidStatusId=%d&UserId=%d">',
+	$prefix = sprintf ('<a href="Acts.php?action=%d&BidStatusId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $row->BidStatusId,
 			   $committee_users[$key]);
@@ -2663,7 +2663,7 @@ function show_bid_feedback_entry_form()
     // If we don't have a FeedbackId, we'd better have a BidStatusId
 
     if (! array_key_exists ('BidStatusId', $_REQUEST))
-      return display_error ('Failed to find BidStatusIdId in $_REQUEST array');
+      return display_error ('Failed to find BidStatusId in $_REQUEST array');
 
     $BidStatusId = intval($_REQUEST['BidStatusId']);
     if (0 == $BidStatusId)
