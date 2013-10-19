@@ -267,6 +267,8 @@ function process_bpt_order_list()
  */
 function create_trans_from_bpt_order($eventid, $order, &$trans)
 {
+	$trans = null;
+	
 	// If the ticket item doesn't exist, throw an error.
 	
 	$ticketItemId = sprintf("%s-%s", $eventid, (string)$order->price_id);
