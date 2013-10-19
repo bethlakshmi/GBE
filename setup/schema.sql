@@ -19,7 +19,7 @@
 -- Table structure for table `Acts`
 --
 
-CREATE TABLE `ExpoTest`.`Acts` (
+CREATE TABLE`Acts` (
 `ActId` INT unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
 `BidId` INT NOT NULL COMMENT 'Link to original bid',
 `ShowId` INT NOT NULL COMMENT 'Link to assigned show',
@@ -402,7 +402,8 @@ DROP TABLE IF EXISTS `BPTEventList`;
 CREATE TABLE IF NOT EXISTS `BPTEventList` (
   `BPTEvent` varchar(30) NOT NULL,
   `Primary` tinyint(1) NOT NULL,
-  `ActSubmitFee` tinyint(1) NOT NULL
+  `ActSubmitFee` tinyint(1) NOT NULL,
+  PRIMARY KEY (`BPTEvent`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -567,7 +568,7 @@ CREATE TABLE `GMs` (
   `ReceiveConEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `ReceiveSignupEMail` enum('Y','N') NOT NULL DEFAULT 'N',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
-  `Role` enum( "panelist", "moderator","performer" ) NULL DEFAULT NULL,
+  `Role` enum( "panelist", "moderator","performer","teacher") NULL DEFAULT NULL,
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`GMId`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -644,6 +645,8 @@ CREATE TABLE `PanelBids` (
   `UserId` int(10) unsigned NOT NULL DEFAULT '0',
   `Interest` enum('no involvement', 'being a panelist', 'being the moderator') NOT NULL,
   `Expertise` text,
+  'Panelist' int(1),
+  'Moderator' int(1),
   PRIMARY KEY  (`PanelBidsId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 

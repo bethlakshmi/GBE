@@ -182,18 +182,26 @@ function list_panels ()
 	    echo "<tr><td colspan=2><B>Description:</b>\n$row->Description\n</td></tr>";
       
       $text = "I am would like to be a... ";
-      global $PANELIST_TYPE;
       form_hidden_value ('BidId-'.$n, $row->BidId);            
-      $select = $PANELIST_TYPE[0];
+      $panel = false;
+      $moderator = false;
 
-      if ( isset($_POST['Interest-'.$n]) )
+      if ( isset($_POST['Panelist-'.$n]) )
       {
-        $select = $_POST['Interest-'.$n];
+        $panel = $_POST['Panelist-'.$n];
+      }
+      if ( isset($_POST['Moderator-'.$n]) )
+      {
+        $moderator = $_POST['Moderator-'.$n];
       }
 
       echo "  <TR>\n";
       echo "    <TD COLSPAN=2><br>\n";
-      form_single_select($text,"Interest-".$n, $PANELIST_TYPE, $select);
+      echo "<b>I am interested in participating as a...</b><br>";
+      form_checkbox("Panelist-".$n, $panel);
+      echo "  Panelist<br>";
+      form_checkbox("Moderator-".$n, $moderator);
+      echo "  Moderator  ";
       echo "    </TD>\n";
       echo "  </TR>\n";
 
@@ -296,9 +304,8 @@ function process_bid_panel_form ()
   $form_ok &= validate_int ('NumBids', 1, 100, 'Number of Bids');
   for ($n=0; $n < $_POST['NumBids']; $n++)
   {
-    $form_ok &= validate_string ('Interest-'.$n);
-    if ($_POST['Interest-'.$n] != "no involvement")
-       $form_ok &= validate_string ('Expertise-'.$n);
+    if ( isset($_POST['Panelist-'.$n]) ||  isset($_POST['Moderator-'.$n]) )
+      $form_ok &= validate_string ('Expertise-'.$n);
   }
   
   // Scheduling Information
@@ -322,15 +329,21 @@ function process_bid_panel_form ()
 
   for ($n=0; $n < $_POST['NumBids']; $n++)
   {
-    if ($_POST['Interest-'.$n] != "no involvement")
+    if ( isset($_POST['Panelist-'.$n]) ||  isset($_POST['Moderator-'.$n]) )
     {
       $sql = "INSERT PanelBids SET ";
       $sql .= build_sql_string ('BidId', $_POST['BidId-'.$n],FALSE);
       $sql .= build_sql_string ('UserId', $_SESSION[SESSION_LOGIN_USER_ID]);
-      $sql .= build_sql_string ('Interest', $_POST['Interest-'.$n]);
+
+      if ( isset($_POST['Panelist-'.$n]) )
+        $sql .= build_sql_string('Panelist',1);
+        
+      if ( isset($_POST['Moderator-'.$n]) )
+        $sql .= build_sql_string('Moderator',1);
+
       $sql .= build_sql_string ('Expertise', $_POST['Expertise-'.$n]);
 	
-	  //echo $sql;
+	  // echo $sql;
       $result = mysql_query ($sql);
       if (! $result)
         return display_mysql_error ("Add ".$_POST['BidId-'.$n]." to BidTimes failed");
