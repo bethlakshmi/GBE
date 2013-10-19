@@ -30,6 +30,38 @@ class Act
 	public $GroupBio;
 	public $isGroup;
 	
+	/* function get_Title
+	 * 
+	 * Get the title the performer used in bidding this act.
+	 *
+	 * Returns: the title as a string or a null value if not found.
+	 */
+	function get_Title()
+	{
+	  $Title = NULL;
+	  
+	  // Check for user
+	  $sql = sprintf("select Title from Bids where BidId = '%s'", 
+			$this->BidId);
+		 
+	  $result = mysql_query($sql);
+		
+	  if (!$result)
+		display_mysql_error ('Cannot execute query', $sql);
+	  else if (mysql_num_rows($result) > 1)
+	    display_error("Error:  multiple Bids found with same ID");	
+	  else if (1 != mysql_num_rows($result))
+	    display_error("Bid not found:  $UserId");
+	  else {
+	    $row = mysql_fetch_object($result);
+
+	    $Title = $row->Title;
+      }
+      
+      return $Title;
+      
+    }
+
 	/* function add_performer
 	 * 
 	 * Used to add a perfomer link to this act.  Performer must already
@@ -53,13 +85,29 @@ class Act
 		if (1 != mysql_num_rows($result))
 			return display_error("User not found:  $UserId");
 		
+		// check if this is an add or an update
+		$sql = sprintf("select * from GMs where UserId = '%s' and EventId = %s and Role=\"performer\"", 
+			mysql_real_escape_string($UserId), $this->ActId);
+		 
+		$result = mysql_query($sql);
+		
+		$action = "INSERT INTO ";
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple users  found with same ID in show assignment list");	
+		if (1 == mysql_num_rows($result))
+			$action = "UPDATE ";
+
 		// Add the lead GM as a GM for the game
 
-        $sql = "INSERT INTO GMs SET EventId=$this->ActId, UserId=$UserId,";
+        $sql = $action."GMs SET EventId=$this->ActId, UserId=$UserId,";
         $sql .= '  Submitter="Y", ReceiveConEMail="Y", role="performer",';
         $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+		if (mysql_num_rows($result) == 1)
+			$sql .= sprintf(" where EventId = '%s' and Role=\"performer\"", $this->ActId);
 
-        echo $sql;
+        //echo $sql;
 
         $result = mysql_query ($sql);
         if (! $result)
@@ -155,6 +203,7 @@ class Act
 		$this->ActInfoId = (int)$row->ActInfoId;
 		$this->GroupBio = (string)$row->GroupBio;	
 		$this->isGroup = (bool)$row->isGroup;
+		
 	}
 	
 	/* function convert_from_array
@@ -325,6 +374,7 @@ function set_act_in_show($BidId, $ShowId, $isGroup = false)
 	$act->save_to_db();
 }
 
+
 /* function get_preferred_shows
  * 
  * Function retrieves the preferred shows from the bid information
@@ -347,3 +397,5 @@ function get_preferred_shows($BidId, &$bid_pref_slots)
     $bid_pref_slots[$row['Day'].$row['Slot']] = $row['Pref'];
   }
 }
+?>
+

@@ -9,6 +9,7 @@ include ("pcsg.inc");
 include ("files.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
+include ("gbe_users.inc");
 
 // Connect to the database
 
@@ -1354,35 +1355,6 @@ function get_counts_for_run ($RunId, &$confirmed, &$waitlisted)
   return true;
 }
 
-/*
- * user_is_gm_for_game
- *
- * Returns true if the user is a GM for the specified game.
- */
-
-function user_is_gm_for_game ($UserId, $EventId)
-{
-  // If the user isn't logged in, then they're not a GM, are they?
-
-  if (0 == $UserId)
-    return false;
-
-  // Query the database to see if the user is GM
-
-  $sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
-  $sql .= '  LIMIT 1';
-
-  //  echo "Query: $sql<p>\n";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for GMs failed');
-
-  $num = mysql_num_rows ($result);
-  mysql_free_result ($result);
-
-  return $num != 0;
-}
 
 /*
  * is_user_gm_for_game
@@ -1512,21 +1484,16 @@ function show_game ()
   else
     $RunId = 0;
 
-  // Note if this is one of the GMs
-
-  if (array_key_exists (SESSION_LOGIN_USER_ID, $_SESSION))
-    $is_gm = user_is_gm_for_game ($_SESSION[SESSION_LOGIN_USER_ID], $EventId);
-  else
-    $is_gm = false;
-
   // checks convention wide setting.
   $signups_allowed = con_signups_allowed();
 
   // If this is a GM, or a privileged user, they can edit the game.
 
-  $can_edit_game = $is_gm;
+  $can_edit_game = false;
 
-  if (user_has_priv (PRIV_SCHEDULING) || user_has_priv (PRIV_GM_LIAISON))
+  if (user_has_priv (PRIV_SCHEDULING) || user_has_priv (PRIV_GM_LIAISON)
+       || user_is_moderator ($_SESSION[SESSION_LOGIN_USER_ID], $EventId)
+       || user_is_teacher ($_SESSION[SESSION_LOGIN_USER_ID], $EventId) )
     $can_edit_game = true;
 
   $can_signup = can_signup();
@@ -3046,61 +3013,22 @@ function display_game_form ()
   form_text (64, 'Contact Email', 'GameEMail');
   form_text (64, 'Homepage', '', 128);
   form_text (64, 'Organization');
-//  display_players_entry ("Male");
-//  display_players_entry ("Female");
-  display_players_entry ("Neutral");
 
-
-/*  $conmail_gamemail_checked = '';
-  $conmail_gms_checked = '';
- 
-  switch ($_POST['ConMailDest'])
-  {
-    case 'GameMail':
-      $conmail_gamemail_checked = 'checked';
-      break;
-    case 'GMs':
-      $conmail_gms_checked = 'checked';
-      break;
-  }
-  echo "  <tr valign=\"top\">\n";
-  echo "    <td>Send con mail to:</td>\n";
-  echo "    <td>\n";
-  printf ('      <input type="radio" name="ConMailDest" %s value="GameMail">' .
-	  " Game EMail address<br>\n",
-	  $conmail_gamemail_checked);
-  printf ('      <input type="radio" name="ConMailDest" %s value="GMs">' .
-	  " GMs who have elected to receive mail from the con\n",
-	  $conmail_gms_checked);
-  echo "    </td>\n";
-  echo "  </tr>\n";
- */
-  if ('Y' == trim ($_POST['CanPlayConcurrently']))
-    $concurrent_state = "is";
-  else
-    $concurrent_state = "is not";
-
-  echo "  <tr>\n";
-  echo "    <td colspan=\"2\">\n";
-  echo "      This item <b>$concurrent_state</b> ticketed.\n";
-  echo "    </td>\n";
-  echo "  </tr>\n";
-
-  $is_event = scheduling_priv_option ('Ops', 'IsOps', 'CheckIsOps');
-/*  $is_event |= scheduling_priv_option ('ConSuite', 'IsConSuite',
-				       'CheckIsConSuite');
-  scheduling_priv_option ('Iron GM', 'IsIronGm', 'CheckIsIronGm');
-  scheduling_priv_option ('a LARPA Small Game Contest Entry',
-			  'IsSmallGameContestEntry',
-			  'CheckIsSmallGameContestEntry');
-*/
   if ($is_event)
     $event_type = 'event';
   else
     $event_type = 'game';
 
+
   if (user_has_priv (PRIV_SCHEDULING))
+  {
+    display_players_entry ("Neutral");
+
+    $is_event = scheduling_priv_option ('Ops', 'IsOps', 'CheckIsOps');
+
+
     form_text (2, 'Hours');
+  }
   else
   {
     if (1 == $_POST['Hours'])
@@ -3122,22 +3050,9 @@ function display_game_form ()
 
   }
 
-/*
-  if (array_key_exists ('CheckIsAgeRestricted', $_POST))
-    $is_age_restricted = 'checked';
-  else
-    $is_age_restricted = '';
-
-  echo "  <tr>\n";
-  echo "    <td colspan=2>\n";
-  echo "      <input type=checkbox $is_age_restricted name=CheckIsAgeRestricted>This event is Age Restricted\n";
-  echo "    </td>\n";
-  echo "  </tr>\n";
- */
-
   form_textarea ('Short paragraph (50 words or less) displayed in all lists', 'ShortBlurb', 4, TRUE, TRUE);
-  form_textarea ('Description.  <FONT COLOR=red>The description must contain HTML tags for formatting.  Line breaks will be ignored by browsers.', 'Description', 20, TRUE, TRUE);
-  form_submit ('Update Game');
+  form_textarea ('Description', 'Description', 20, TRUE, TRUE);
+  form_submit ('Update Info');
 
   print ("</TABLE>\n");
   print ("</FORM>\n");

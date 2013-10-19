@@ -261,6 +261,12 @@ function build_gm_subnavbar() {
   return $gmSection;
 }
 
+function build_myact_subnavbar() {
+  $actSection = new SubNavBar("Manage My Acts");
+  $actSection->push(NavBarItem::newAction("Manage Acts", "ManageAct.php"));
+  return $actSection;
+}
+
 function build_shirts_subnavbar() {
   $shirtsSection = new SubNavBar((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME) . " <NOBR>Shirts</NOBR>");
   $shirtsSection->push(NavBarItem::newAction("Order Shirts", "TShirts.php"));
@@ -471,8 +477,10 @@ function display_main_navbar() {
     $navbar->push(build_bids_subnavbar());
   if ( user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON) )
     $navbar->push(build_acts_subnavbar());
-  if (user_is_gm() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
+  if (user_is_presenter() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
     $navbar->push(build_gm_subnavbar());
+  if (user_is_performer() )
+    $navbar->push(build_myact_subnavbar());
 //  if (is_logged_in() || user_has_priv(PRIV_CON_COM))
 //    $navbar->push(build_shirts_subnavbar());
   if (user_has_priv(PRIV_CON_COM))

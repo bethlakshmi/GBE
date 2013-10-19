@@ -1446,9 +1446,9 @@ function build_sql_string ($column, $value='',
     $res = '';
 
   if (1 == get_magic_quotes_gpc())
-    $res .= $column . "='$value'";
+    $res .= $column . "=\"$value\"";
   else
-    $res .= $column . '="' . mysql_real_escape_string ($value) . '"';
+    $res .= $column . '="\" . mysql_real_escape_string ($value) . \""';
 
   //  echo "3: $res<p>\n";
 
@@ -3174,7 +3174,12 @@ function display_schedule_pref ($BidId, $isPanel,$pickPanel=FALSE)
 
   	    echo "        <TR ALIGN=CENTER>\n";
   	    echo "          <TD>".$panelist->DisplayName."</TD>\n";
-  	    echo "          <TD>".$panelist->Interest."</TD>\n";
+  	    echo "          <TD>";
+  	    if ($panelist->Panelist == 1)
+  	      echo "Panelist<br>";
+  	    if ($panelist->Moderator == 1)
+  	      echo "Moderator<br>";
+  	    echo "</TD>\n";
         foreach ($CLASS_DAYS as $day)
   	      foreach ($BID_SLOTS[$day] as $slot)
   		    if (isset($bid_pref_slots[$day.$slot]))

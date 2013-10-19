@@ -230,7 +230,7 @@ function login_with_data ($row, $EMail)
 
   // Check whether this is a GM
 
-  $sql = 'SELECT GMId FROM GMs';
+  $sql = 'SELECT GMId, Role FROM GMs';
   $sql .= " WHERE UserId=$UserId";
 
   $result = mysql_query ($sql);
@@ -239,23 +239,25 @@ function login_with_data ($row, $EMail)
 
   $is_gm = mysql_num_rows($result);
 
-  // Check whether this is an Iron GM
-
-  $sql = 'SELECT IronGmId FROM IronGm';
-  $sql .= " WHERE UserId=$UserId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Cannot query IronGm list");
-
-  $is_gm += mysql_num_rows($result);
+  $_SESSION[SESSION_LOGIN_USER_PRESENTER] = 0;
+  $_SESSION[SESSION_LOGIN_USER_PERFORMER] = 0;
 
   if (0 == $is_gm)
     $_SESSION[SESSION_LOGIN_USER_GM] = 0;
   else
   {
     $_SESSION[SESSION_LOGIN_USER_GM] = 1;
-
+    
+    // GM now covers any special participant.  This is to specify what 
+    // specific type we are talking about.
+    while ($row = mysql_fetch_object ($result))
+    {
+      if ($row->Role == "teacher" || $row->Role == "panelist" || $row->Role == "moderator")
+        $_SESSION[SESSION_LOGIN_USER_PRESENTER] = 1;
+	  else if ($row->Role == "performer")
+        $_SESSION[SESSION_LOGIN_USER_PERFORMER] = 1;
+    }
+    
     // If the user is a GM, he may be able to see the schedule now...
 
     if (0 == $_SESSION[SESSION_CON_SHOW_SCHEDULE])

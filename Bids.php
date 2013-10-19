@@ -2004,11 +2004,11 @@ function process_status_change ()
     comp_user ($UserId, $EventId);
 */
 
-  // Add the lead GM as a GM for the game
+  // Add the submitter as a teacher for the class
   // if this is a panel, don't add, they have to be selected later.
   if ($row['GameType'] != 'Panel')
   {
-    add_gm($EventId, $UserId);
+    add_gm($EventId, $UserId, "teacher");
   }
   return TRUE;
 }
@@ -2470,7 +2470,8 @@ function drop_bid ($BidId, $EventId)
 
   // And remove any GMs for that game
 
-  $sql = "DELETE FROM GMs WHERE EventId=$EventId";
+  $sql = "DELETE FROM GMs WHERE EventId=$EventId and ";
+  $sql .= "(Role=\"teacher\" or Role=\"moderator\" or Role=\"panelist\")";
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Deletion from GMs failed for Event $EventId");
