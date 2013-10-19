@@ -1443,7 +1443,7 @@ function display_bids_for_review ()
       (! user_has_priv (PRIV_GM_LIAISON)))
         return display_access_error ();
 
-  $order = 'Status, Title';
+  $order = 'Status, DisplayName, Title';
   $desc = 'Status';
 
   if (array_key_exists ('order', $_REQUEST))
@@ -1514,10 +1514,10 @@ function display_bids_for_review ()
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Acts.php?action=%d&order=Game\">" . $reviewTopic . "</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Submitter\">Submitter</th>\n",
 	  BID_REVIEW_BIDS);
   printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Acts.php?action=%d&order=Submitter\">Submitter</th>\n",
+	  "<a href=\"Acts.php?action=%d&order=Game\">" . $reviewTopic . "</th>\n",
 	  BID_REVIEW_BIDS);
   echo "    <TH ROWSPAN=3>Time<br>mm.ss</TH>\n";
   echo "    <TH COLSPAN={$numslots}>Preferred Shows</TH>\n";
@@ -1646,6 +1646,8 @@ function display_bids_for_review ()
     if (('Pending' == $row->Status) && (! $priv))
       $game_link = false;
 
+    echo "    <TD ALIGN=LEFT><A HREF=mailto:$row->EMail>$name</A></TD>\n";
+
     if ($game_link)
       $title = sprintf ("<A HREF=Acts.php?action=%d&BidId=%d>$row->Title</A>",
 	      BID_SHOW_BID,
@@ -1654,7 +1656,6 @@ function display_bids_for_review ()
       $title = $row->Title;
     echo "    <TD ALIGN=LEFT>$title</TD>\n";
 
-    echo "    <TD ALIGN=LEFT><A HREF=mailto:$row->EMail>$name</A></TD>\n";
 
     echo "    <TD>$row->Minutes:$row->Seconds</TD>\n";
 
