@@ -769,9 +769,9 @@ function schedule_day ($day, $away_all_day, $away_hours,
   $sql .= ' Runs.Span, Runs.ScheduleNote, Runs.Rooms, Runs.Track,';
   $sql .= ' Events.EventId, Events.SpecialEvent, Events.Hours, Events.Title,';
   $sql .= ' Events.CanPlayConcurrently, LENGTH(Events.Description) AS DescLen,';
-  $sql .= ' MaxPlayersMale, MaxPlayersFemale, MaxPlayersNeutral, ';
-  $sql .= ' MinPlayersMale, MinPlayersFemale, MinPlayersNeutral, ';
-  $sql .= ' PrefPlayersMale, PrefPlayersFemale, PrefPlayersNeutral, ';
+  $sql .= ' MaxPlayersNeutral, ';
+  $sql .= ' MinPlayersNeutral, ';
+  $sql .= ' PrefPlayersNeutral, ';
   $sql .= ' Events.IsOps, Events.IsConSuite ';
   $sql .= ' FROM Events, Runs';
   $sql .= " WHERE Events.EventId=Runs.EventId AND Day='$day'";

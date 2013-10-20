@@ -822,6 +822,7 @@ DROP TABLE IF EXISTS `Runs`;
 CREATE TABLE `Runs` (
   `RunId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `EventId` int(11) NOT NULL DEFAULT '0',
+  `ShowId` int(10) DEFAULT NULL COMMENT 'Only for rehearsals - the show that this is a rehearsal for',
   `Track` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Span` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `Day` enum('Fri','Sat','Sun') NOT NULL DEFAULT 'Fri',
@@ -837,6 +838,7 @@ CREATE TABLE `Runs` (
 	"Vendor Hall (Shows/Special Events)",
 	"William Dawes A (Lectures)",
 	"William Dawes B (Movement; Panels)") NOT NULL DEFAULT '',
+  `Viewable` enum('protect') DEFAULT NULL COMMENT 'Whether this should be viewable on everyone''s calendars or for only specialized cases',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`RunId`)
