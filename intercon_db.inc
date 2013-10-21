@@ -20,6 +20,7 @@ require ('db_constants.inc');
 require ('intercon_navbar.inc');
 require ('Mail.php');
 require ('display_common.php');
+include ("gbe_acts.inc");
 
 define (SHOW_TSHIRTS, 1);
 define (TSHIRT_DOLLARS, 20);
@@ -3226,6 +3227,29 @@ function display_schedule_pref ($BidId, $isPanel,$pickPanel=FALSE)
   } // if it's not a panel
 
   echo "      </TABLE>\n";
+
+}
+
+/*
+ * display_show_list
+ *
+ * Show a list of the current shows that the act can be assigned to
+ *  Mark the show that the act is currently in
+ */
+
+function display_show_list ($currentShowId, $required=false)
+{
+	get_show_list($shows);
+	
+	echo "<table>";
+	foreach ($shows as $showId => $show)
+	{	
+      echo "<tr><td>&nbsp;&nbsp;&nbsp;</td><td>".$show["Title"].":  </td><td>";
+	  $selected = ($showId == $currentShowId);
+      form_radio ("ShowId", $showId, $selected);
+      echo "</td></tr>\n";
+	}
+	echo "</table><br>\n";
 
 }
 

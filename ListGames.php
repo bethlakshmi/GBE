@@ -407,7 +407,8 @@ function list_games_by ($type, $showOps=FALSE)
 function add_run_form ($update)
 {
   // If we're updating the run, fill the $_POST array
-
+  $showId = 0;
+  
   if (! $update)
   {
     $action = "Add";
@@ -422,7 +423,7 @@ function add_run_form ($update)
     $RunId = $_REQUEST['RunId'];
 
     $sql = 'SELECT EventId, Track, Span, Day, TitleSuffix, ScheduleNote,';
-    $sql .= ' StartHour, TitleSuffix, Rooms';
+    $sql .= ' StartHour, TitleSuffix, Rooms, ShowId';
     $sql .= " FROM Runs WHERE RunId=$RunId";
 
     $result = mysql_query ($sql);
@@ -445,6 +446,7 @@ function add_run_form ($update)
 
     $EventId = $row['EventId'];
     $_POST['Rooms'] = explode(',', $row['Rooms']);
+    $showId = $row['ShowId'];
   }
 
   // Start by fetching the title, type & BidId 
@@ -488,6 +490,10 @@ function add_run_form ($update)
   form_start_hour ('Start Hour', 'StartHour');
   form_text (32, 'Title Suffix', 'TitleSuffix');
   form_text (32, 'Schedule Note', 'ScheduleNote');
+  
+  echo "<tr><td colspan = 2><hr></td></tr>";
+
+  
   form_con_rooms('Rooms(s)', 'Rooms');
 
   if ( $row->GameType == "Class" || $row->GameType == "Panel")
@@ -512,7 +518,19 @@ function add_run_form ($update)
     mysql_free_result ($bidrow);
 
   }
+  
+  global $OPS_TYPES;
+  if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+       || $row->GameType == $OPS_TYPES[3])
+  {
+    echo "<tr><td colspan = 2><hr></td></tr>";
 
+    echo "<tr><td>Select Show:</td><td>";
+
+    display_show_list($showId);
+
+    echo "</td></tr>";
+  }
   if ($update)
     form_submit2 ('Update Run', 'Delete Run', 'DeleteRun');
   else
@@ -605,7 +623,7 @@ function process_add_run ()
 
   // Start by fetching the title
 
-  $sql = "SELECT Title FROM Events WHERE EventId=$EventId";
+  $sql = "SELECT Title, GameType FROM Events WHERE EventId=$EventId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
@@ -657,6 +675,16 @@ function process_add_run ()
     return true;
   }
 
+  global $OPS_TYPES;
+  if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+       || $row->GameType == $OPS_TYPES[3] )
+    if ( !validate_int ('ShowId', 1, 2000))
+    {
+      $form_ok &= false;
+      display_error("...which means... You must pick a show for this type of Ops run<br>\n");
+    }
+
+
   if (! validate_day_time ('StartHour', 'Day'))
     return false;
 
@@ -671,6 +699,13 @@ function process_add_run ()
   $sql .= build_sql_string ('ScheduleNote');
   $sql .= build_sql_string ('Rooms', $Rooms);
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+
+  if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+        || $row->GameType == $OPS_TYPES[3])
+    $sql .= build_sql_string ('ShowId');
+
+  if ( $row->GameType == $OPS_TYPES[2] || $row->GameType == $OPS_TYPES[3])
+    $sql .= build_sql_string ('Viewable','protect');
 
   if ($Update)
     $sql .= "WHERE RunId=$RunId";
@@ -729,6 +764,14 @@ function process_add_ops ()
       //calculate and check end hour
       $EndHour = $_POST['StartHour'] + ($_POST['Hours']*$_POST['Sessions']) - 1;
       $form_ok &= validate_day_time_by_val ($EndHour, trim ($_POST['Day']));
+
+      if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+             || $row->GameType == $OPS_TYPES[3])
+        if ( !validate_int ('ShowId', 1, 2000))
+        {
+          $form_ok &= false;
+          display_error("...which means... You must pick a show for this type of Ops run<br>\n");
+		}
     }
     else 
       $set_runs = FALSE;
@@ -761,7 +804,7 @@ function process_add_ops ()
   $sql .= build_sql_string ('Title');
   $sql .= build_sql_string ('Author');
   $sql .= build_sql_string ('GameEMail');
-  $sql .= build_sql_string ('GameType','Ops');
+  $sql .= build_sql_string ('GameType');
   $sql .= build_sql_string ('Description');
   $sql .= build_sql_string ('ShortBlurb');
   $sql .= build_sql_string ('Hours');
@@ -803,11 +846,22 @@ function process_add_ops ()
       $sql .= build_sql_string ('StartHour', $RunHour);
       //$sql .= build_sql_string ('TitleSuffix');
       $sql .= build_sql_string ('ScheduleNote');
+      if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+           || $row->GameType == $OPS_TYPES[3])
+          $sql .= build_sql_string ('ShowId');
+
+      if ( $row->GameType == $OPS_TYPES[2] || $row->GameType == $OPS_TYPES[3])
+          $sql .= build_sql_string ('Viewable','protect');
+
       $sql .= build_sql_string ('Rooms', $Rooms);
       $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
       echo "Created run of ".$_POST['Title']." at ".start_hour_to_am_pm($RunHour)." on ".$_POST['Day'].".<br>";
       $RunHour = $RunHour + $_POST['Hours'];
 
+
+
+
+	  
       //  echo "Command: $sql\n";
       $result = mysql_query ($sql);
       if (! $result)
@@ -855,20 +909,9 @@ function add_ops($type=0)
   
   // Display what we're proposing to do for the user
 
-  echo "<h2>Add Runs for <i>Ops</i></h2>";
+   if (file_exists(TEXT_DIR.'/AddRunsForOps.html'))
+	include(TEXT_DIR.'/AddRunsForOps.html');	
   
-  echo "This form is for a <i>series of runs</i> for an Operations track.  ";
-  echo "If you want to edit an existing run, click a link in the table, please. ";
-  echo "You can add just one run here, just enter 1 as the number of blocks.";
-  echo "<br /><br />";
-  echo "Use this form by providing a title, select a day and a start time. ";
-  echo "Select the # of hours, and the number of sessions <i>for a day</i>.";  
-  echo "You must repeat the form for each day.  Runs will naturally occur ";
-  echo "sequentially - for example if you select 8 sessions, of 1 hour, starting 9AM,";
-  echo " you will get 1 run an hour from 9AM to 5PM.<br /><br />";
-  echo "Choosing a room is optional.  If your event takes place in a location not";
-  echo "shown, then add a location note on where to meet.<br /><br />";
-  echo "<p><font color=red>*</font> indicates a required field</p>\n";
 
   // Check that we've got one (and only one) event marked as Ops!
   $update = FALSE;
@@ -924,7 +967,21 @@ function add_ops($type=0)
   form_text (2, 'Number of Sessions', 'Sessions');
   //form_text (32, 'Title Suffix', 'TitleSuffix');
   form_text (32, 'Location Note', 'ScheduleNote');
+  
+  
+  echo "<tr><td colspan = 2><hr></td></tr>";
+  
   form_con_rooms('Rooms(s)', 'Rooms');
+  
+  echo "<tr><td colspan = 2><hr></td></tr>";
+
+  echo "<tr><td>Select Show:</td><td>";
+
+  $showId = 0;
+  display_show_list($showId);
+
+  echo "</td></tr>";
+
 
   form_section ('Event Information');
 
@@ -943,8 +1000,14 @@ function add_ops($type=0)
 	echo "</td></tr>";
   }
 
+  echo "<tr><td align=right>";
+  global $OPS_TYPES;
+  form_single_select('Ops Type:</td><td>', 'GameType', $OPS_TYPES, $_POST['GameType']);
+
   form_text (2, 'Length', 'Hours', 0, TRUE);
   form_players_entry ('Neutral',false);
+  echo "</td></tr>";
+
 
    $text = "A <b>short blurb</b> (50 words or less) to be used for\n";
    $text .= "volunteer listings.\n";

@@ -4,7 +4,6 @@ include ("files.php");
 //include ("display_common.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
-include ("gbe_acts.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -325,7 +324,6 @@ function show_bid ()
   show_text("Other show experience","");
   foreach ($OTHER_SHOWS as $show)
     show_text ($show, $BidChoice[$show]);
-  
   
   display_show_pref($bid_pref_slots);
   
@@ -1825,7 +1823,7 @@ function change_bid_status ()
   	  form_hidden_value("ActId",$Act->ActId);
   	  $isGroup = $Act->isGroup;
     }
-    
+    echo "Cast Act in show:  <br>";
     display_show_list($showId);
     echo "Is this a group act?  ";
     form_checkbox("isGroup", $isGroup);
@@ -1841,29 +1839,6 @@ function change_bid_status ()
   echo "</FORM>\n";
 }
 
-/*
- * display_show_list
- *
- * Show a list of the current shows that the act can be assigned to
- *  Mark the show that the act is currently in
- */
-
-function display_show_list ($currentShowId)
-{
-	get_show_list($shows);
-	
-	echo "Cast Act in show:  <br>";
-	echo "<table>";
-	foreach ($shows as $showId => $show)
-	{	
-      echo "<tr><td>&nbsp;&nbsp;&nbsp;</td><td>".$show["Title"].":  </td><td>";
-	  $selected = ($showId == $currentShowId);
-      form_radio ("ShowId", $showId, $selected);
-      echo "</td></tr>\n";
-	}
-	echo "</table><br>\n";
-
-}
 
 /*
  * process_status_change

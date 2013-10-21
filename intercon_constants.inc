@@ -233,6 +233,10 @@ global $OPENIDURLS;
 $OPENIDURLS = array();
 $OPENIDURLS['livejournal'] = "http://$username.livejournal.com";
 
+// Goes into GameType in Events
+global $OPS_TYPES;
+$OPS_TYPES = array('Ops','Tech Rehearsal','Act Rehearsal Slot','Call');
+
 //These must match the text values in the BidTimes table slot field.
 global $BID_SLOTS;
 $BID_SLOTS = array();
