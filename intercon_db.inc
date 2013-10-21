@@ -2949,15 +2949,13 @@ function display_login_form ($error='', $dest='')
   }
 
   // Build the login form
-  	if (file_exists(TEXT_DIR.'/openidme.html'))
-		include(TEXT_DIR.'/openidme.html');	
 
   echo "<form method=POST action=\"index.php\">\n";
   form_add_sequence ();
   form_hidden_value('action', LOGIN_USER);
   form_hidden_value('dest', $dest);
   echo "<table border=\"0\">\n";
-  /*
+  
   form_text (64, 'EMail');
   
   print ("  <TR>\n");
@@ -2968,7 +2966,7 @@ function display_login_form ($error='', $dest='')
   echo "</TD>\n";
   print ("  </TR>\n");
   form_submit("Login");
-*/
+
   echo "</table>\n";
   echo "</form>\n";
   
