@@ -3309,9 +3309,10 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
   }
 
   if ('' == $reply_to)
-    $reply_to = sprintf (CON_SHORT_NAME.' Webmaster<%s>', EMAIL_WEBMASTER);
+    $reply_to = EMAIL_WEBMASTER;
 
-  $headers = array("From" => sprintf(CON_SHORT_NAME." Webmaster<%s>", EMAIL_WEBMASTER),
+  $headers = array(
+    "From" => EMAIL_WEBMASTER,
     "To" => $to,
     "Subject" => $subject,
     "Reply-To" => $reply_to,
@@ -3321,13 +3322,14 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
     "Errors-To" => EMAIL_WEBMASTER,
     "Return-Path" => EMAIL_WEBMASTER);
 
+
 //  echo "No email sent<p>\n";
 //  return true;
 
-//  ini_set ('sendmail_from', EMAIL_WEBMASTER);
-//  $ret =  mail ($to, $subject, $msg, $headers, '-f' . EMAIL_WEBMASTER);
-//  ini_restore ('sendmail_from');
-//  return $ret;
+  // ini_set ('sendmail_from', EMAIL_WEBMASTER);
+  // $ret =  mail ($to, $subject, $msg, $headers, '-f' . EMAIL_WEBMASTER);
+  // ini_restore ('sendmail_from');
+  // return $ret;
 
 //echo "mail to: $to<br>\n";
 //echo "subject: $subject<br>\n";
@@ -3343,12 +3345,15 @@ function intercon_mail ($to, $subject, $msg, $reply_to='')
           'password' => SMTP_PASSWORD
           ));
   } else {
+
       $mail = Mail::factory(MAIL_BACKEND);
   }
-  /*
+  
+  //$result = $mail->send($to, $headers, $msg);
   $result = $mail->send($to, $headers, $msg);
-  return !(PEAR::isError($result)); */
-  return TRUE;
+
+  return !(PEAR::isError($result)); 
+
 }
 
 /*

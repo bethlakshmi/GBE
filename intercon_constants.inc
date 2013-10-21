@@ -136,7 +136,7 @@ define (EMAIL_COSTUME, 'costumes@'. CON_DOMAIN);
 define (NAME_ART, 'John Bilotti');
 define (EMAIL_ART, 'art@'. CON_DOMAIN);
 
-//define (EMAIL_WEBMASTER, 'webmaster@' . CON_DOMAIN);
+define (EMAIL_WEBMASTER, 'info@' . CON_DOMAIN);
 
 // Con dates
 

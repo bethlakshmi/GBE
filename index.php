@@ -1908,7 +1908,7 @@ function display_user_form ($returning_alumni, $errors='')
   else 
     $button_title = 'Update';
 
-  if (!$isOpenId)
+  if (!$isOpenId && $update)
   {
     echo "  <tr><td colspan=\"2\">\n";
     echo "    &nbsp;<BR>Enter your current password to verify your identity.\n";
