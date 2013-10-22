@@ -2955,7 +2955,7 @@ function display_login_form ($error='', $dest='')
   form_hidden_value('dest', $dest);
   echo "<table border=\"0\">\n";
   
-  form_text (64, 'Email');
+  form_text (64, 'EMail');
   
   print ("  <TR>\n");
   printf ("    <TD ALIGN=RIGHT>Password:</TD>\n");
