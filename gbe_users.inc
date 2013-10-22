@@ -1,6 +1,6 @@
 <?php
 
-include ("gbe_acts.inc");
+//include ("gbe_acts.inc");
 
 /* function get_acts_for_user
  * 
