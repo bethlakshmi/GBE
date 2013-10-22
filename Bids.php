@@ -1102,13 +1102,6 @@ function process_bid_form ()
     if ($_POST['currentDraft'] == TRUE && !$isDraft)
       $sql .= build_sql_string('Status','Pending');
 
-    $sql .= build_sql_string ('MinPlayersMale');
-    $sql .= build_sql_string ('MaxPlayersMale');
-    $sql .= build_sql_string ('PrefPlayersMale');
-
-    $sql .= build_sql_string ('MinPlayersFemale');
-    $sql .= build_sql_string ('MaxPlayersFemale');
-    $sql .= build_sql_string ('PrefPlayersFemale');
 
     $sql .= build_sql_string ('MinPlayersNeutral');
     $sql .= build_sql_string ('MaxPlayersNeutral');
@@ -1408,9 +1401,9 @@ function display_class_table ($order,$desc)
   $sql .= ' Bids.EventId, Bids.UserId,';
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
   $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
-  $sql .= ' Bids.MinPlayersMale+Bids.MinPlayersFemale+Bids.MinPlayersNeutral AS Min,';
-  $sql .= ' Bids.MaxPlayersMale+Bids.MaxPlayersFemale+Bids.MaxPlayersNeutral AS Max,';
-  $sql .= ' Bids.PrefPlayersMale+Bids.PrefPlayersFemale+Bids.PrefPlayersNeutral AS Pref';
+  $sql .= ' Bids.MinPlayersNeutral AS Min,';
+  $sql .= ' Bids.MaxPlayersNeutral AS Max,';
+  $sql .= ' Bids.PrefPlayersNeutral AS Pref';
   $sql .= ' FROM Bids, Users';
   $sql .= ' WHERE Users.UserId=Bids.UserId';
   $sql .= ' AND Bids.GameType = \'Class\' AND Bids.Status != \'Draft\' ';
@@ -1508,9 +1501,9 @@ function display_class_table ($order,$desc)
     if (0 != $row->EventId)
     {
       $sql = "SELECT ";
-      $sql .= ' MinPlayersMale+MinPlayersFemale+MinPlayersNeutral AS Min,';
-      $sql .= ' MaxPlayersMale+MaxPlayersFemale+MaxPlayersNeutral AS Max,';
-      $sql .= ' PrefPlayersMale+PrefPlayersFemale+PrefPlayersNeutral AS Pref';
+      $sql .= ' MinPlayersNeutral AS Min,';
+      $sql .= ' MaxPlayersNeutral AS Max,';
+      $sql .= ' PrefPlayersNeutral AS Pref';
       $sql .= " FROM Events WHERE EventId=$row->EventId";
 
       $event_result = mysql_query ($sql);
@@ -2321,14 +2314,6 @@ function add_event ($bid_row)
   $sql .= build_sql_string ('Organization');
   $sql .= build_sql_string ('Homepage');
 
-  $sql .= build_sql_string ('MinPlayersMale');
-  $sql .= build_sql_string ('MaxPlayersMale');
-  $sql .= build_sql_string ('PrefPlayersMale');
-
-  $sql .= build_sql_string ('MinPlayersFemale');
-  $sql .= build_sql_string ('MaxPlayersFemale');
-  $sql .= build_sql_string ('PrefPlayersFemale');
-
   $sql .= build_sql_string ('MinPlayersNeutral');
   $sql .= build_sql_string ('MaxPlayersNeutral');
   $sql .= build_sql_string ('PrefPlayersNeutral');
@@ -2432,14 +2417,6 @@ function drop_bid ($BidId, $EventId)
   $sql .= build_sql_string ('Homepage');
   $sql .= build_sql_string ('GameEMail');
   $sql .= build_sql_string ('Organization');
-
-  $sql .= build_sql_string ('MinPlayersMale');
-  $sql .= build_sql_string ('MaxPlayersMale');
-  $sql .= build_sql_string ('PrefPlayersMale');
-
-  $sql .= build_sql_string ('MinPlayersFemale');
-  $sql .= build_sql_string ('MaxPlayersFemale');
-  $sql .= build_sql_string ('PrefPlayersFemale');
 
   $sql .= build_sql_string ('MinPlayersNeutral');
   $sql .= build_sql_string ('MaxPlayersNeutral');

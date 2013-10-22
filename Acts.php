@@ -1475,9 +1475,9 @@ function display_bids_for_review ()
   $sql .= ' Bids.Organization, Bids.EventId, Bids.UserId,';
   $sql .= ' DATE_FORMAT(Bids.LastUpdated, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS LastUpdatedFMT,';
   $sql .= ' DATE_FORMAT(Bids.Created, "%H:%i <NOBR>%d-%b-%y</NOBR>") AS CreatedFMT,';
-  $sql .= ' Bids.MinPlayersMale+Bids.MinPlayersFemale+Bids.MinPlayersNeutral AS Min,';
-  $sql .= ' Bids.MaxPlayersMale+Bids.MaxPlayersFemale+Bids.MaxPlayersNeutral AS Max,';
-  $sql .= ' Bids.PrefPlayersMale+Bids.PrefPlayersFemale+Bids.PrefPlayersNeutral AS Pref';
+  $sql .= ' Bids.MinPlayersNeutral AS Min,';
+  $sql .= ' Bids.MaxPlayersNeutral AS Max,';
+  $sql .= ' Bids.PrefPlayersNeutral AS Pref';
   $sql .= ' FROM Bids, Users';
   $sql .= ' WHERE Users.UserId=Bids.UserId';
   $sql .= $submitFilter;
@@ -1585,9 +1585,9 @@ function display_bids_for_review ()
     if (0 != $row->EventId)
     {
       $sql = "SELECT ";
-      $sql .= ' MinPlayersMale+MinPlayersFemale+MinPlayersNeutral AS Min,';
-      $sql .= ' MaxPlayersMale+MaxPlayersFemale+MaxPlayersNeutral AS Max,';
-      $sql .= ' PrefPlayersMale+PrefPlayersFemale+PrefPlayersNeutral AS Pref';
+      $sql .= ' MinPlayersNeutral AS Min,';
+      $sql .= ' MaxPlayersNeutral AS Max,';
+      $sql .= ' PrefPlayersNeutral AS Pref';
       $sql .= " FROM Events WHERE EventId=$row->EventId";
 
       $event_result = mysql_query ($sql);
