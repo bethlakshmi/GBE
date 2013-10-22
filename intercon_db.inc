@@ -2938,11 +2938,6 @@ function display_login_form ($error='', $dest='')
 
   //  echo "dest: $dest\n";
 
-  if ('' == $dest)
-  {
-  	if (file_exists(TEXT_DIR.'/logintop.html'))
-		include(TEXT_DIR.'/logintop.html');	
-  }
 
   // If there's an error from a prior screen, display it now
 
@@ -2960,7 +2955,7 @@ function display_login_form ($error='', $dest='')
   form_hidden_value('dest', $dest);
   echo "<table border=\"0\">\n";
   
-  form_text (64, 'EMail');
+  form_text (64, 'Email');
   
   print ("  <TR>\n");
   printf ("    <TD ALIGN=RIGHT>Password:</TD>\n");
@@ -2974,7 +2969,12 @@ function display_login_form ($error='', $dest='')
   echo "</table>\n";
   echo "</form>\n";
   
-  
+  if ('' == $dest)
+  {
+  	if (file_exists(TEXT_DIR.'/logintop.html'))
+		include(TEXT_DIR.'/logintop.html');	
+  }
+
 
   if ('' != $dest)
     return false;
