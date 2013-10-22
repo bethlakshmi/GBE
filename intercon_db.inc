@@ -607,17 +607,20 @@ function html_begin ($bShowLogo=true)
   if (file_exists(TEXT_DIR.'/header.html'))
 	include(TEXT_DIR.'/header.html');	
 
+  // Show the con logo.  Some pages may want to handle this themselves
+  if ($bShowLogo)
+    echo "<div class=print_logo><img src=".PAGE_BANNER."></div>\n";
+
   display_navbar();
+
+  echo "<div class=main_area>";
 
   if (DEVELOPMENT_VERSION)
     printf ("<p class=dev_warning>Development Version  %s@%s</p>\n",
 	    DB_NAME,
 	    DB_SERVER);
 
-  // Show the con logo.  Some pages may want to handle this themselves
 
-  if ($bShowLogo)
-    echo "<div class=print_logo><img src=".PAGE_BANNER."></div>\n";
 }
 
 /*
@@ -628,6 +631,7 @@ function html_begin ($bShowLogo=true)
 
 function html_end ($bShowCopyright=true)
 {
+  echo "</div>";
   if ($bShowCopyright)
   {
      if (file_exists(TEXT_DIR.'/copyright.html'))

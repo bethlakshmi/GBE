@@ -4,9 +4,9 @@ header("Content-type: text/css");
 ?>
 body
 {
-	margin: 135px 0 0 0;
-	padding: 0 7% 0 220px;
-	background-image: url("PageBanner.png");
+	margin: 0 0 0 0;
+	padding: 0 7% 0 0;
+	// background-image: url("http://localhost:8888/src/GBE/Bid-10.jpg");
 	background-repeat: no-repeat;
 	background-color: #ffffff;
 	background-position: 9px 5px;
@@ -16,6 +16,10 @@ body
 
 a img {
   border: 0;
+}
+
+.main_area {
+	padding: 0 7% 0 220;
 }
 
 .navbar
@@ -308,7 +312,7 @@ ul.menu li.info {
 
 .print_logo
 {
-	display: none;
+	position: left top;
 }
 
 .copyright
