@@ -216,7 +216,7 @@ function list_panels ()
 
     echo "  <TR>\n";
     echo "    <TD COLSPAN=2>\n";
-    echo "      The expo can schedule your {$thingstring} into the\n";
+    echo "      The expo can schedule your panel into the\n";
     echo "      time slots available over the weekend.  The expo aims to\n";
     echo "      create a power packed agenda of balanced content across a \n";
     echo "      wide selection time slots.  Your flexibility is vital.<p>\n";
@@ -256,7 +256,7 @@ function list_panels ()
     echo "    </TD>\n";
     echo "  </tr>\n";
 
-    $text = "Are there any other scheduling constraints on your {$thingstring}?  For\n";
+    $text = "Are there any other scheduling constraints on your time?  For\n";
     $text .= "example, are you proposing another class, panel, or performance? \n";
     form_textarea ($text, 'SchedulingConstraints', 5);
 
