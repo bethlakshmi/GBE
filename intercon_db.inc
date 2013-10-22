@@ -609,7 +609,7 @@ function html_begin ($bShowLogo=true)
 
   // Show the con logo.  Some pages may want to handle this themselves
   if ($bShowLogo)
-    echo "<div class=print_logo><img src=".PAGE_BANNER."></div>\n";
+    echo "<div class=print_logo><a href=\"index.php\"><img src=".PAGE_BANNER."></a></div>\n";
 
   display_navbar();
 
