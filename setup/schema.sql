@@ -19,6 +19,7 @@
 -- Table structure for table `Acts`
 --
 
+DROP TABLE IF EXISTS `Acts`;
 CREATE TABLE`Acts` (
 `ActId` INT unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
 `BidId` INT NOT NULL COMMENT 'Link to original bid',
@@ -645,8 +646,8 @@ CREATE TABLE `PanelBids` (
   `UserId` int(10) unsigned NOT NULL DEFAULT '0',
   `Interest` enum('no involvement', 'being a panelist', 'being the moderator') NOT NULL,
   `Expertise` text,
-  'Panelist' int(1),
-  'Moderator' int(1),
+  `Panelist` int(1),
+  `Moderator` int(1),
   PRIMARY KEY  (`PanelBidsId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
