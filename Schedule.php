@@ -10,7 +10,7 @@ include ("files.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
-
+include ("gbe_event.inc");
 // Connect to the database
 
 if (! intercon_db_connect ())
@@ -1498,25 +1498,11 @@ function show_game ()
 
   $can_signup = can_signup();
 
-  // Get the information about this game
+  // Create an Event object
 
-  $sql = 'SELECT Events.*,';
-  $sql .= ' DATE_FORMAT(Events.LastUpdated, "%d-%b-%Y %H:%i") AS Timestamp';
-  $sql .= ' FROM Events';
-  $sql .= " WHERE EventId=$EventId";
+  $event = new Event;
+  $event->load_from_eventid($EventId);
 
-  //  print ($sql . "\n<p>\n");
- 
-  $game_result = mysql_query ($sql);
-  if (! $game_result)
-    return display_mysql_error ('Cannot query database');
-
-  // We should have matched exactly one game
-
-  if (1 != mysql_num_rows ($game_result))
-    return display_error ("Failed to find entry for EventId $EventId");
-
-  $game_row = mysql_fetch_object ($game_result);
 
   // If this is a special event, it can't be edited here
 
@@ -1527,26 +1513,26 @@ function show_game ()
   }
 
   global $GM_TYPES;
-  $gms = $GM_TYPES[$game_row->GameType];
+  $gms = $GM_TYPES[$event->GameType];
 
   // Note if this is a volunteer event (ConSuite or Ops)
 
-  $volunteer_event = ($game_row->IsOps=='Y') || ($game_row->IsConSuite=='Y');
+  $volunteer_event = ($event->IsOps=='Y') || ($event->IsConSuite=='Y');
 
   // Note if this is a LARPA Small Game Contest entry
 
-  $is_small_game_contest_entry = ('Y' == $game_row->IsSmallGameContestEntry);
+  $is_small_game_contest_entry = ('Y' == $event->IsSmallGameContestEntry);
 
   // Note if there are 0 players.  We'll use this later
 
-  $max_signups = $game_row->MaxPlayersMale +
-                 $game_row->MaxPlayersFemale +
-                 $game_row->MaxPlayersNeutral;
+  $max_signups = $event->MaxPlayersMale +
+                 $event->MaxPlayersFemale +
+                 $event->MaxPlayersNeutral;
 
   // Save the game title in the session information, since we'll need
   // it a bunch
 
-  $_SESSION['GameTitle'] = $game_row->Title;
+  $_SESSION['GameTitle'] = $event->Title;
 
   if ($can_edit_game)
   {
@@ -1566,7 +1552,7 @@ function show_game ()
 
     $sql = 'SELECT DisplayName ';
     $sql .= ' FROM Users';
-    $sql .= " WHERE UserId=$game_row->UpdatedById";
+    $sql .= " WHERE UserId=$event->UpdatedById";
 
     $updated_result = mysql_query ($sql);
     if (! $updated_result)
@@ -1577,31 +1563,31 @@ function show_game ()
 	      $name = trim ("$updated_row->DisplayName");
       mysql_free_result ($updated_result);
     }
-    echo "<li class=\"info\"><b>Last updated</b><br/>$game_row->Timestamp<br/>by $name</li>";
+    echo "<li class=\"info\"><b>Last updated</b><br/>$event->Timestamp<br/>by $name</li>";
     echo '</ul>';
   }
 
   // Display the title
 
-  echo "<h2><i>$game_row->Title</i></h2>\n";
+  echo "<h2><i>$event->Title</i></h2>\n";
 
   $num_gms = 0;
 
   echo "<table>\n";
 
     if ($volunteer_event)
-      display_one_col ('Head of Area', $game_row->Author);
+      display_one_col ('Head of Area', $event->Author);
     //else
-    //  display_one_col ('Author(s)', $game_row->Author);
+    //  display_one_col ('Author(s)', $event->Author);
 
     // only expose emails if this is a privileged person.
-    if ('' != $game_row->GameEMail && $can_edit_game)
+    if ('' != $event->GameEMail && $can_edit_game)
     {
-      $email = mailto_or_obfuscated_email_address ($game_row->GameEMail);
+      $email = mailto_or_obfuscated_email_address ($event->GameEMail);
       if ($volunteer_event)
         display_one_col ('Email', $email);
       else  
-        display_one_col ('Head of '.$game_row->GameType, $email);
+        display_one_col ('Head of '.$event->GameType, $email);
     }
 
     // Fetch the list of GMs
@@ -1631,7 +1617,7 @@ function show_game ()
       {
 	    echo "        <TR VALIGN=TOP>\n";
 	    $name = $gm_row->DisplayName.'&nbsp;';
-	    if ($game_row->GameType == "Panel")
+	    if ($event->GameType == "Panel")
 	     $name .= '-&nbsp;'.$gm_row->Role."&nbsp;";
 	
 	    if ('Y' != $gm_row->DisplayEMail)
@@ -1650,19 +1636,32 @@ function show_game ()
       }
     echo "      </TABLE>\n    </TD>\n  </TR>\n";
   
+<<<<<<< Updated upstream
     if (""  != $game_row->Organization)
       display_one_col ('Organization', $game_row->Organization);
   }
+=======
+      if (""  != $event->Organization)
+      	 display_one_col ('Organization', $event->Organization);
+     }  // end if ($num_gms!=0)
+
+>>>>>>> Stashed changes
 
   // Make sure the homepage URL has a scheme ('http://')
-  if ('' != $game_row->Homepage)
+  if ('' != $event->Homepage)
   {
+<<<<<<< Updated upstream
     $parts = parse_url ($game_row->Homepage);
+=======
+
+
+    $parts = parse_url ($event->Homepage);
+>>>>>>> Stashed changes
 
     if (array_key_exists ('scheme', $parts))
-      $homepage = $game_row->Homepage;
+      $homepage = $event->Homepage;
     else
-      $homepage = 'http://' . $game_row->Homepage;
+      $homepage = 'http://' . $event->Homepage;
 
     display_one_col ('Home Page',
 		     "<a href=\"$homepage\" target=\"_blank\">$homepage</a>");
@@ -1673,29 +1672,34 @@ function show_game ()
     echo "  <tr>\n";
     if ($volunteer_event)
       echo "    <th>Volunteers Needed:</th>\n";
-    else if ($game_row->GameType == "Show")
+    else if ($event->GameType == "Show")
       echo "    <th>Total Crew:</th>\n";
-    if ($volunteer_event || $game_row->GameType == "Show")
+    if ($volunteer_event || $event->GameType == "Show")
     printf ("    <td>Min: %d / Max: %d</td>\n",
-	    $game_row->MinPlayersMale +
-	    $game_row->MinPlayersFemale +
-	    $game_row->MinPlayersNeutral,
-	    $game_row->MaxPlayersMale +
-	    $game_row->MaxPlayersFemale +
-	    $game_row->MaxPlayersNeutral);
+	    $event->MinPlayersMale +
+	    $event->MinPlayersFemale +
+	    $event->MinPlayersNeutral,
+	    $event->MaxPlayersMale +
+	    $event->MaxPlayersFemale +
+	    $event->MaxPlayersNeutral);
     echo "  </tr>\n";
   }
 
   if (user_has_priv(PRIV_SCHEDULING))
   {
+<<<<<<< Updated upstream
     if ('Y' == $game_row->IsOps)
+=======
+
+    if ('Y' == $event->IsOps)
+>>>>>>> Stashed changes
     {
       echo "  <tr>\n";
       echo "    <td colspan=\"2\">This event <b>is</b> Ops</td>\n";
       echo "  </tr>\n";
     }
 
-    if ('Y' == $game_row->IsConSuite)
+    if ('Y' == $event->IsConSuite)
     {
       echo "  <tr>\n";
       echo "    <td colspan=\"2\">This event <b>is</b> ConSuite</td>\n";
@@ -1714,11 +1718,11 @@ function show_game ()
     // Extract information for the runs of this game
 
     $sql = "SELECT RunId, Day, StartHour, Rooms FROM Runs";
-    $sql .= ' WHERE EventId=' . $game_row->EventId;
+    $sql .= ' WHERE EventId=' . $event->EventId;
     $sql .= ' ORDER BY Day, StartHour';
     $runs_result = mysql_query ($sql);
     if (! $runs_result)
-      return display_mysql_error ("Cannot query runs for Event $game_row->EventId");
+      return display_mysql_error ("Cannot query runs for Event $event->EventId");
     $run_count = mysql_num_rows ($runs_result);
     $run_col = -1;
 
@@ -1729,7 +1733,7 @@ function show_game ()
     /*
     if ($can_edit_game &&
 	(1 == $run_count) &&
-	(0 != $game_row->MaxPlayersNeutral))
+	(0 != $event->MaxPlayersNeutral))
     {
       printf ('<a href=Schedule.php?action=%d&EventId=%d>Freeze Gender Balance</a>',
 	      SCHEDULE_FREEZE_GENDER_BALANCE,
@@ -1742,7 +1746,7 @@ function show_game ()
 
     // If the user isn't logged in, suggest that he should be
 
-    if (! $logged_in && is_signup_event($game_row->GameType) && $max_signups > 0)
+    if (! $logged_in && is_signup_event($event->GameType) && $max_signups > 0)
     {
 	    echo "<table border=1>\n";
 	    echo "  <tr>\n";
@@ -1758,7 +1762,7 @@ function show_game ()
 	    $colspan = min ($run_count, 4);
 
     // if signing up is an option create the info.
-    if ($max_signups > 0 && is_signup_event($game_row->GameType) 
+    if ($max_signups > 0 && is_signup_event($event->GameType) 
     		&& $logged_in && $can_signup)
 	    $table_title = 'Click on the run day/time to signup';
 	else
@@ -1807,7 +1811,7 @@ function show_game ()
 
 	    $game_start = start_hour_to_12_hour ($run_row->StartHour);
 	    $game_end = start_hour_to_12_hour ($run_row->StartHour +
-					       $game_row->Hours);
+					       $event->Hours);
 	    $run_text = "$run_row->Day. $game_start - $game_end\n";
 		
 	    if ('' != $run_row->Rooms)
@@ -1818,7 +1822,7 @@ function show_game ()
 
         // if signing up is an option create the info related to availability
         // of both slot and user
-        if ($max_signups > 0 && is_signup_event($game_row->GameType) && $logged_in)
+        if ($max_signups > 0 && is_signup_event($event->GameType) && $logged_in)
         {
   		  $confirmed = array ();
 		  $waitlisted = array ();
@@ -1835,12 +1839,12 @@ function show_game ()
 
 	      $user_away = check_if_away ($run_row->Day,
 					$run_row->StartHour,
-					$game_row->Hours);
+					$event->Hours);
 	      $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 				    $confirmed['Male'], $confirmed['Female'],
-				    $game_row->MaxPlayersMale,
-				    $game_row->MaxPlayersFemale,
-				    $game_row->MaxPlayersNeutral,$confirmed['']);
+				    $event->MaxPlayersMale,
+				    $event->MaxPlayersFemale,
+				    $event->MaxPlayersNeutral,$confirmed['']);
 	      $count_text = sprintf ('Signed Up: %d<BR>Waitlist: %d',
 		 		   $confirmed['Total'],
 				   $waitlisted['Total']);
@@ -1931,10 +1935,10 @@ function show_game ()
 
 	  echo "</TABLE>\n";
 
-	  if ($can_edit_game && is_signup_event($game_row->GameType))
+	  if ($can_edit_game && is_signup_event($event->GameType))
 	    echo "    <BR>Click on the counts to see signup list\n";
 
-	  if ('Y' == $game_row->CanPlayConcurrently)
+	  if ('Y' == $event->CanPlayConcurrently)
 	    echo "<BR><B>Note:</B> Classes and Panels require a Whole Shebang pass or a Conference pass for the day of attendance.\n";
       
       echo "</CENTER>\n";
@@ -1943,12 +1947,12 @@ function show_game ()
 
   }
 
-  display_tickets_for_event($game_row->EventId);
+  display_tickets_for_event($event->EventId);
 	
-  if ($game_row->SpecialEvent)
+  if ($event->SpecialEvent)
   {
     echo "<br>";
-	echo $game_row->Description;
+	echo $event->Description;
     echo "<p>\n";
 	
     return;
@@ -1956,7 +1960,12 @@ function show_game ()
 
   echo "<P>\n";
   echo "<HR>\n";
+<<<<<<< Updated upstream
   echo $game_row->Description;    
+=======
+  echo $event->Description;    
+
+>>>>>>> Stashed changes
   echo "<p>\n<hr>\n";
 
   if (0 == $num_gms)
