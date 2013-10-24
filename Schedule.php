@@ -1636,27 +1636,15 @@ function show_game ()
       }
     echo "      </TABLE>\n    </TD>\n  </TR>\n";
   
-<<<<<<< Updated upstream
     if (""  != $game_row->Organization)
       display_one_col ('Organization', $game_row->Organization);
   }
-=======
-      if (""  != $event->Organization)
-      	 display_one_col ('Organization', $event->Organization);
-     }  // end if ($num_gms!=0)
 
->>>>>>> Stashed changes
 
   // Make sure the homepage URL has a scheme ('http://')
   if ('' != $event->Homepage)
   {
-<<<<<<< Updated upstream
     $parts = parse_url ($game_row->Homepage);
-=======
-
-
-    $parts = parse_url ($event->Homepage);
->>>>>>> Stashed changes
 
     if (array_key_exists ('scheme', $parts))
       $homepage = $event->Homepage;
@@ -1687,12 +1675,8 @@ function show_game ()
 
   if (user_has_priv(PRIV_SCHEDULING))
   {
-<<<<<<< Updated upstream
-    if ('Y' == $game_row->IsOps)
-=======
 
     if ('Y' == $event->IsOps)
->>>>>>> Stashed changes
     {
       echo "  <tr>\n";
       echo "    <td colspan=\"2\">This event <b>is</b> Ops</td>\n";
@@ -1960,12 +1944,9 @@ function show_game ()
 
   echo "<P>\n";
   echo "<HR>\n";
-<<<<<<< Updated upstream
-  echo $game_row->Description;    
-=======
+
   echo $event->Description;    
 
->>>>>>> Stashed changes
   echo "<p>\n<hr>\n";
 
   if (0 == $num_gms)
