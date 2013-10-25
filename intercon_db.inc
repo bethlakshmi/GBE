@@ -1453,7 +1453,8 @@ function build_sql_string ($column, $value='',
   if (1 == get_magic_quotes_gpc())
     $res .= $column . "=\"$value\"";
   else
-    $res .= $column . '="\" . mysql_real_escape_string ($value) . \""';
+    $escaped_string = mysql_real_escape_string ($value);
+    $res .= $column . "=\"$escaped_string\"";
 
   //  echo "3: $res<p>\n";
 
