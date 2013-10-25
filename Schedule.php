@@ -1173,6 +1173,9 @@ function game_full (&$msg, $gender, $male, $female,
     $msg = 'This opportunity is full';
     return TRUE;
   }
+  else 
+       return FALSE;
+
 
   // Calculate how many open slots we've got
 
@@ -1525,9 +1528,7 @@ function show_game ()
 
   // Note if there are 0 players.  We'll use this later
 
-  $max_signups = $event->MaxPlayersMale +
-                 $event->MaxPlayersFemale +
-                 $event->MaxPlayersNeutral;
+  $max_signups = $event->MaxPlayersNeutral;
 
   // Save the game title in the session information, since we'll need
   // it a bunch
