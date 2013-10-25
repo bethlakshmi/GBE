@@ -4323,7 +4323,18 @@ function calculate_available_slots ($cur_male, $cur_female,
 {
   // Start with all neutral slots available.  We'll subtract from that
   // if all the gender-specific slots are taken
+  
+  $avail_neutral = $max_neutral- $cur_male;
+  return $avail_neutral > 0;
 
+  // All of the following complexity is not needed, since we're not worrying 
+  // about gender balance. This fix assumes that all participants are considered
+  // male, and the only number we're tracking is avail_neutral - is this correct?
+  //  -jpk
+
+  // Note in passing that this code is buggy in any case - it favors male 
+  // for any open slots, so it would have to be rewritten in any case! :) -jpk
+/*
   $avail_neutral = $max_neutral;
   $avail_male = 0;
   $avail_female = 0;
@@ -4354,8 +4365,9 @@ function calculate_available_slots ($cur_male, $cur_female,
 
   // All done.  Assume that the number of remaining neutral slots is not
   // negative...
-
   return $avail_neutral > 0;
+*/
+
 }
 
 /*
