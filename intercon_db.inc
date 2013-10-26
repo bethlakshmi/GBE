@@ -120,31 +120,31 @@ define (CONVERT_AGE_TO_YEAR, 147);
 
 // Action values - Schedule.php
 
-define (PROCESS_ADD_GAME, 21);
-define (EDIT_GAME, 22);
-define (LIST_GAMES, 23);
-define (SCHEDULE_SHOW, 24);
-define (SCHEDULE_SHOW_GAME, 25);
-define (SCHEDULE_SIGNUP, 26);
-define (SCHEDULE_SHOW_SIGNUPS, 27);
-define (SCHEDULE_UPDATE_SIGNUP, 28);
-define (DISPLAY_GM_LIST, 29);
-define (EDIT_GM, 30);
-define (ADD_GM, 31);
-define (PROCESS_ADD_GM, 32);
-define (SCHEDULE_UPDATE_GM, 33);
-define (SCHEDULE_WITH_COUNTS, 34);
-define (SCHEDULE_AWAY_FORM, 35);
-define (SCHEDULE_PROCESS_AWAY_FORM, 36);
-define (SCHEDULE_SHOW_ALL_SIGNUPS, 37);
-define (SCHEDULE_FREEZE_GENDER_BALANCE, 38);
-define (SCHEDULE_CONFIRM_FREEZE_GENDER_BALANCE, 39);
-define (SCHEDULE_COMP_USER_FOR_EVENT, 160);
-define (SCHEDULE_IRON_GM_TEAM_LIST, 161);
-define (SCHEDULE_SHOW_IRON_GM_TEAM_FORM, 162);
-define (SCHEDULE_PROCESS_IRON_GM_TEAM_FORM, 163);
-define (SCHEDULE_SELECT_USER_FOR_IRON_GM, 164);
-define (SCHEDULE_ADD_IRON_GM, 165);
+define ('PROCESS_ADD_GAME', 21);
+define ('EDIT_GAME', 22);
+define ('LIST_GAMES', 23);
+define ('SCHEDULE_SHOW', 24);
+define ('SCHEDULE_SHOW_GAME', 25);
+define ('SCHEDULE_SIGNUP', 26);
+define ('SCHEDULE_SHOW_SIGNUPS', 27);
+define ('SCHEDULE_UPDATE_SIGNUP', 28);
+define ('DISPLAY_GM_LIST', 29);
+define ('EDIT_GM', 30);
+define ('ADD_GM', 31);
+define ('PROCESS_ADD_GM', 32);
+define ('SCHEDULE_UPDATE_GM', 33);
+define ('SCHEDULE_WITH_COUNTS', 34);
+define ('SCHEDULE_AWAY_FORM', 35);
+define ('SCHEDULE_PROCESS_AWAY_FORM', 36);
+define ('SCHEDULE_SHOW_ALL_SIGNUPS', 37);
+define ('SCHEDULE_FREEZE_GENDER_BALANCE', 38);
+define ('SCHEDULE_CONFIRM_FREEZE_GENDER_BALANCE', 39);
+define ('SCHEDULE_COMP_USER_FOR_EVENT', 160);
+define ('SCHEDULE_IRON_GM_TEAM_LIST', 161);
+define ('SCHEDULE_SHOW_IRON_GM_TEAM_FORM', 162);
+define ('SCHEDULE_PROCESS_IRON_GM_TEAM_FORM', 163);
+define ('SCHEDULE_SELECT_USER_FOR_IRON_GM', 164);
+define ('SCHEDULE_ADD_IRON_GM', 165);
 
 // Action values in SpecialEvents.php
 
@@ -1442,7 +1442,7 @@ function build_sql_string ($column, $value='',
     // removed when snazzy text editor added as this was breaking.
     //$value = str_replace ("\n\n", "\n<P>\n", $value);
 
-    //    echo "2.5: $column: $value<br>\n";
+     //   echo "2.5: $column: $value<br>\n";
   }
 
   if ($prefix_comma)
@@ -1453,9 +1453,10 @@ function build_sql_string ($column, $value='',
   if (1 == get_magic_quotes_gpc())
     $res .= $column . "=\"$value\"";
   else
+  {
     $escaped_string = mysql_real_escape_string ($value);
     $res .= $column . "=\"$escaped_string\"";
-
+   }
   //  echo "3: $res<p>\n";
 
   return $res;

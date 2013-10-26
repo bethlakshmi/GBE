@@ -1138,7 +1138,7 @@ function process_bid_form(&$ActIsPaidFor)
 
     $sql .= " WHERE BidId=$BidId";
 
-//    echo "Event Info: $sql<P>\n";
+//   echo "Event Info: $sql<P>\n";
 
     $result = mysql_query ($sql);
     if (! $result)
@@ -1739,7 +1739,7 @@ function change_bid_status ()
 
   // Fetch information to display about the bid
 
-  $sql = "SELECT Title, Status From Bids WHERE BidId=$BidId";
+  $sql = "SELECT Title, Status, Homepage, Organization, Premise, MultipleRuns, PhotoSource From Bids WHERE BidId=$BidId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Query failed for BidId $BidId");
@@ -1806,7 +1806,12 @@ function change_bid_status ()
   if ($row->Status == 'Accepted' || $row->Status == 'Under Review' )
   {
     $showId = 0;
-    $isGroup = false;
+    $isGroup = $row->MultipleRuns;
+    $GroupName = $row->Organization;
+    $Website = $row->Website;
+    $PhotoSource = $row->PhotoSource;
+    $BioText = $row->Premise;
+    
     if ( $row->Status == 'Accepted')
     {
       $Act = new Act();
@@ -1814,6 +1819,8 @@ function change_bid_status ()
   	  $showId = $Act->ShowId;
   	  form_hidden_value("ActId",$Act->ActId);
   	  $isGroup = $Act->isGroup;
+  	  if ($isGroup == 1)
+  	    $GroupName = $Act->$GroupName;
     }
     echo "Cast Act in show:  <br>";
     display_show_list($showId);
@@ -1823,6 +1830,13 @@ function change_bid_status ()
     $bid_pref_slots = array();
     get_preferred_shows($BidId, &$bid_pref_slots);
     display_show_pref($bid_pref_slots);
+
+    echo "<br><br>\n";
+    
+    display_header("Bio Information");
+    // what a pain
+    $_POST["GroupName"] =$GroupName;
+    form_text(48, "Group Name (if applicable)","GroupName",$GroupName);
 
   }
   

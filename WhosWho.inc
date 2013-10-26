@@ -20,7 +20,7 @@ if (! intercon_db_connect ())
  *  with the key of a bioId in the Bios table, and Display Name or GroupName as the value
  * Returns: none
  */
-function get_who_is_who_for_show ($showId, &$bio_users)
+function get_who_is_who_for_show ($showId)
 {
     $sql = "SELECT DISTINCT Users.DisplayName AS Name, Bios.BioText , Bios.Title , "
     . "Bios.Website, Bios.PhotoSource, Acts.isGroup\n"

@@ -27,9 +27,8 @@ if (array_key_exists ('action', $_REQUEST))
 else if (array_key_exists ('show',$_REQUEST))
 {
   $show = $_REQUEST['show'];
-  $bio_users = array ();
 
-  get_who_is_who_for_show ($show, $bio_users);
+  get_who_is_who_for_show ($show);
 }
  else
   display_error("No Who's Who category provided, please provide an action");

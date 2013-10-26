@@ -28,6 +28,7 @@ class Act
 	public $RehearsalId;
 	public $ActInfoId;
 	public $GroupBio;
+	public $GroupName;
 	public $isGroup;
 	
 	/* function get_Title
@@ -201,7 +202,8 @@ class Act
 		$this->ShowId = (int)$row->ShowId;
 		$this->RehearsalId = (int)$row->RehearsalId;	
 		$this->ActInfoId = (int)$row->ActInfoId;
-		$this->GroupBio = (string)$row->GroupBio;	
+		$this->GroupName = (string)$row->GroupName;	
+		$this->GroupBio = (int)$row->GroupBio;	
 		$this->isGroup = (bool)$row->isGroup;
 		
 	}
@@ -220,7 +222,10 @@ class Act
 		$this->ShowId = (int)$array['ShowId'];
 		$this->RehearsalId = (int)$array['RehearsalId'];
 		$this->ActInfoId = (int)$array['ActInfoId'];
-		$this->GroupBio = (string)$array['ItemId'];
+		if (array_key_exists('GroupName', $array))
+  		  $this->GroupName = (string)$array['GroupName'];
+		if (array_key_exists('BioId', $array))
+		  $this->GroupBio = (int)$array['BioId'];
 		if (array_key_exists('isGroup', $array))
 		  $this->isGroup = (bool)$array['isGroup'];
 		else 
@@ -291,6 +296,7 @@ class Act
 		$sql .= build_sql_string('ShowId', $this->ShowId);
 		$sql .= build_sql_string('RehearsalId', $this->RehearsalId);
 		$sql .= build_sql_string('ActInfoId', $this->ActInfoId);
+		$sql .= build_sql_string('GroupName', $this->GroupName);
 		$sql .= build_sql_string('GroupBio', $this->GroupBio);
 		$sql .= build_sql_string('isGroup', $this->isGroup);
 			
