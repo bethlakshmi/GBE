@@ -3798,9 +3798,7 @@ function edit_bio ()
   if (',,' != $_SESSION[SESSION_LOGIN_USER_PRIVS])
     form_text (64, 'Title', 'Title', 128, FALSE);
 
-  $text = "Biography.  Your bio can use HTML tags for formatting.  A quick\n";
-  $text .= "primer on a couple of useful HTML tags is available\n";
-  $text .= "<A HREF=HtmlPrimer.html TARGET=_blank>here</A>.<BR>\n";
+  $text = "Biography.  This text will be seen on our website in association with any acts or shows you are participating in.<BR>\n";
 
   form_textarea ($text, 'BioText', 15);
   form_text (64, 'Website', 'Website', 128, FALSE);

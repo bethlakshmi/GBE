@@ -181,7 +181,7 @@ class Event
 		// Update the database.
 		
 		if (mysql_num_rows($result) > 1)
-			return display_error("Error:  multiple act rows found with same ID");
+			return display_error("Error:  multiple event rows found with same ID");
 			
 		else if (mysql_num_rows($result) == 1)
 		{

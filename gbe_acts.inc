@@ -222,12 +222,12 @@ class Act
 		$this->ShowId = (int)$array['ShowId'];
 		$this->RehearsalId = (int)$array['RehearsalId'];
 		$this->ActInfoId = (int)$array['ActInfoId'];
-		if (array_key_exists('GroupName', $array))
-  		  $this->GroupName = (string)$array['GroupName'];
-		if (array_key_exists('BioId', $array))
-		  $this->GroupBio = (int)$array['BioId'];
 		if (array_key_exists('isGroup', $array))
+		{
 		  $this->isGroup = (bool)$array['isGroup'];
+  		  $this->GroupName = (string)$array['GroupName'];
+		  $this->GroupBio = (int)$array['GroupBio'];
+		}
 		else 
 		  $this->isGroup = false;
 		
@@ -264,7 +264,7 @@ class Act
 		
 		if (!is_bool($this->isGroup))
 			return display_error("Act isGroup state is not in a valid format.");	
-		if (strlen($this->GroupBio) > 500)
+		if (strlen($this->GroupName) > 50)
 			return display_error("Group Bio is too long.  It must be 500 characters or less.");	
 		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
 			return display_error("Cannot save Act to DB:  not logged in.");	
@@ -296,8 +296,11 @@ class Act
 		$sql .= build_sql_string('ShowId', $this->ShowId);
 		$sql .= build_sql_string('RehearsalId', $this->RehearsalId);
 		$sql .= build_sql_string('ActInfoId', $this->ActInfoId);
-		$sql .= build_sql_string('GroupName', $this->GroupName);
-		$sql .= build_sql_string('GroupBio', $this->GroupBio);
+		if ( $this->isGroup )
+		{
+  		  $sql .= build_sql_string('GroupName', $this->GroupName);
+		  $sql .= build_sql_string('GroupBio', $this->GroupBio);
+		}
 		$sql .= build_sql_string('isGroup', $this->isGroup);
 			
 		if (mysql_num_rows($result) == 1)
@@ -307,6 +310,10 @@ class Act
 		$result = mysql_query($sql);
 		if (!$result)
 			return display_mysql_error ("Insert or Update into Acts failed");
+
+		if ($this->ActId < 1)
+          $this->ActId = mysql_insert_id();
+        echo "Just saved or made ActId: ".$this->ActId."<br>\n";
 	}
 	
 	/* function remove_from_db

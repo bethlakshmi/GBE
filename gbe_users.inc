@@ -1,6 +1,220 @@
 <?php
+/* gbe_users.inc - defines classes and functions relevant to users and their bios.
+ * 
+ * Last Updated 10/14/2013 by BB
+ *
+ */
 
-//include ("gbe_acts.inc");
+
+/* Class Bio 
+ * 
+ * This class is a single bio for a single user or group.
+ * There is an underlying assumption in this system that a user may 
+ * do many things - teach, sit on panels, perform, be on staff, volunteer.
+ * However, a group is expected to be only performing and only performing once
+ */
+ 
+class Bio
+{
+
+   // These public properties represent the various columns in the table.
+    public $BioId;
+    public $UserId;
+    public $BioText;
+    public $Title;
+    public $ShowNickname;
+    public $LastUpdated;
+    public $Website;
+    public $PhotoSource;
+
+
+	/* function load_from_bioid
+	 * 
+	 * Used to load a single Bio from it's primary key 
+	 *
+	 * $ItemId:  the Bio Id to be loaded.
+	 * Returns: nothing.
+	 */
+	function load_from_bioid($BioId)
+	{
+		$sql = sprintf("select * from Bios where BioId = '%s'", 
+			mysql_real_escape_string($BioId));
+		 
+		$result = mysql_query($sql);
+		
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple bios found with same ID");	
+		if (1 != mysql_num_rows($result))
+			return display_error("Bio not found:  $BioId");
+		
+		$row = mysql_fetch_object($result);
+		$this->convert_from_sql_row($row);
+	}
+
+	/* function load_from_userid
+	 * 
+	 * Used to load a single Bio from it's user id 
+	 *
+	 * $ItemId:  the User Id to be loaded.
+	 * Returns: true if it worked, false if no user found.
+	 */
+	function load_from_userid($UserId)
+	{
+		$sql = sprintf("select * from Bios where UserId = '%s'", 
+			mysql_real_escape_string($UserId));
+		 
+		$result = mysql_query($sql);
+		
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple events found with same ID");	
+		if (1 != mysql_num_rows($result))
+			return false;
+		
+		$row = mysql_fetch_object($result);
+		$this->convert_from_sql_row($row);
+		
+		return true;
+	}
+
+	
+	/* function convert_from_sql_row
+	 * 
+	 * Used override the object contents with the resultset row from an SQL
+     * select query.	 
+	 *
+	 * $row: an object row from the Events table. 
+	 * Returns: nothing.
+	 */
+	function convert_from_sql_row($row)
+	{
+        $this->BioId = (int)$row->BioId;
+        $this->UserId = (int)$row->UserId;
+        $this->BioText = (string)$row->BioText;
+        $this->Title = (string)$row->Title;
+        $this->ShowNickname = (int)$row->ShowNickname;
+        $this->LastUpdated = (string)$row->LastUpdated;
+        $this->Website = (string)$row->Website;
+        $this->PhotoSource = (string)$row->PhotoSource;
+	}
+	
+	/* function convert_from_array
+	 * 
+	 * Used override the object contents with the given array, possibly from a POST object.
+	 *  NOTE:  Using StaffTitle instead of Title to avoid overload during bid approval.
+	 *
+	 * $array: an array with entries for each of the properties of the Event
+	 * Returns: true if successful.
+	 */
+	function convert_from_array($array)
+	{		
+        $this->BioId = (int)$array['BioId'];
+		if (array_key_exists('UserId', $array))
+          $this->UserId = (int)$array['UserId'];
+        $this->BioText = (string)$array['BioText'];
+		if (array_key_exists('StaffTitle', $array))
+          $this->Title = (string)$array['StaffTitle'];
+		if (array_key_exists('ShowNickname', $array))
+          $this->ShowNickname = (int)$array['ShowNickname'];
+		if (array_key_exists('Website', $array))
+          $this->Website = (string)$array['Website'];
+		if (array_key_exists('PhotoSource', $array))
+          $this->PhotoSource = (string)$array['PhotoSource'];		
+          
+    echo "Bio Title:  ".$this->Title;
+		return true;
+	}
+
+	/* function save_to_db
+	 * 
+	 * Used to save the current status of the ticket item to the database.	 
+	 *
+	 * Returns: nothing.
+	 */
+	function save_to_db()
+	{	
+		// Sanitize database input.  Note, the build_sql_string uses 
+		// mysql_real_escape_string() below.  
+		
+
+		if (strlen($this->Website) > 128)
+			return display_error("Website is too long.  It must be 128 characters or less.");	
+		if (strlen($this->PhotoSource) > 128)
+			return display_error("PhotoSource is too long.  It must be 128 characters or less.");	
+
+		if (!array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
+			return display_error("Cannot save Bio to DB:  not logged in.");	
+				
+				
+		$this->LastUpdated = date("Y-m-d H:i:s", time());	
+
+		
+		// See if this is an insert or update.
+		
+		$this->BioId = mysql_real_escape_string($this->BioId);
+		$sql = "select * from Bios where BioId = '$this->BioId'";
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+				
+		// Update the database.
+		
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple Bio rows found with same ID");
+			
+		else if (mysql_num_rows($result) == 1)
+		{
+			$sql = "update Bios set ";
+		}	
+		else
+		{
+			$sql = "insert into Bios set ";
+		}
+
+        $sql .= build_sql_string('BioId', $this->BioId, false);
+        $sql .= build_sql_string('UserId', $this->UserId);
+        $sql .= build_sql_string('BioText', $this->BioText);
+        if (strlen($this->Title) > 0)
+          $sql .= build_sql_string('Title', $this->Title);
+        $sql .= build_sql_string('ShowNickname', $this->ShowNickname);
+        $sql .= build_sql_string('LastUpdated', $this->LastUpdated);
+        $sql .= build_sql_string('Website', $this->Website);
+        $sql .= build_sql_string('PhotoSource', $this->PhotoSource);
+			
+		if (mysql_num_rows($result) == 1)
+			$sql .= sprintf(" where BioId = '%s'", $this->BioId);
+		//echo $sql;
+		
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ("Insert or Update into Bios failed");
+
+		if ($this->BioId < 1)
+          $this->BioId = mysql_insert_id();
+        echo "Just saved or made BioId: ".$this->BioId."<br>\n";
+	}
+	
+	/* function remove_from_db
+	 * 
+	 * Used to remove this item from the database. 
+	 *
+	 * Returns: nothing.
+	 */
+	function remove_from_db()
+	{
+
+		// delete event
+		$sql = sprintf("delete from Bios where BioId = '%s'", 
+			mysql_real_escape_string($this->BioId));
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		
+	}
+}
 
 /* function get_acts_for_user
  * 

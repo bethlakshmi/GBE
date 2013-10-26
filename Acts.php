@@ -4,6 +4,7 @@ include ("files.php");
 //include ("display_common.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
+include ("gbe_users.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -1739,7 +1740,7 @@ function change_bid_status ()
 
   // Fetch information to display about the bid
 
-  $sql = "SELECT Title, Status, Homepage, Organization, Premise, MultipleRuns, PhotoSource From Bids WHERE BidId=$BidId";
+  $sql = "SELECT Title, UserId, Status, Homepage, Organization, Premise, MultipleRuns, PhotoSource From Bids WHERE BidId=$BidId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Query failed for BidId $BidId");
@@ -1808,19 +1809,19 @@ function change_bid_status ()
     $showId = 0;
     $isGroup = $row->MultipleRuns;
     $GroupName = $row->Organization;
-    $Website = $row->Website;
+    $Website = $row->Homepage;
     $PhotoSource = $row->PhotoSource;
     $BioText = $row->Premise;
     
+    $Act = new Act();
     if ( $row->Status == 'Accepted')
     {
-      $Act = new Act();
   	  $Act->load_from_bidid($BidId);
   	  $showId = $Act->ShowId;
   	  form_hidden_value("ActId",$Act->ActId);
   	  $isGroup = $Act->isGroup;
   	  if ($isGroup == 1)
-  	    $GroupName = $Act->$GroupName;
+  	    $GroupName = $Act->GroupName;
     }
     echo "Cast Act in show:  <br>";
     display_show_list($showId);
@@ -1834,10 +1835,57 @@ function change_bid_status ()
     echo "<br><br>\n";
     
     display_header("Bio Information");
+    
+    // If this is likely to be a soloist, see if they have a bio already
+    // and get the info in the bio instead of 
+    $Bio = new Bio();
+
+    // see if there's a soloist bio
+    if (!$isGroup)
+    {
+  	  if ( $Bio->load_from_userid($row->UserId))
+  	  {
+  	    form_hidden_value("BioId",$Bio->BioId);
+  	    form_hidden_value("StaffTitle",$Bio->Title);
+  	    $PhotoSource = $Bio->PhotoSource;
+  	    $Website = $Bio->Website;
+  	    $BioText = $Bio->BioText;
+
+  	    echo "<br><br>";
+  	    echo "<font color=red>User has a bio</font> - this is the user's bio entry.";
+  	    echo "  Changing this will change the user's across the site.<br><br>";
+  	  }
+    }
+    // see if there's a group bio
+    elseif ( $row->Status == 'Accepted')
+    {
+
+  	  echo "<br><br>";
+  	  echo "<font color=red>Group has a bio</font> - This is the current bio information.<br><br>";
+      $Bio->load_from_bioid($Act->GroupBio);
+  	  $PhotoSource = $Bio->PhotoSource;
+  	  $Website = $Bio->Website;
+  	  $BioText = $Bio->BioText;
+  	  form_hidden_value("BioId",$Bio->BioId);
+    }
+    
     // what a pain
     $_POST["GroupName"] =$GroupName;
-    form_text(48, "Group Name (if applicable)","GroupName",$GroupName);
+    $_POST["Website"] =$Website;
+    $_POST["BioText"] =$BioText;
 
+    echo "<TABLE BORDER=0>\n";
+    form_text(48, "Group Name (if applicable)","GroupName",$GroupName);
+    form_text (64, 'Website', 'Website', 128, FALSE);
+
+    $text = "Biography.  This text will be seen on the website in association with any ";
+    $text .= "acts or shows this person/group participates in.<BR>\n";
+
+    form_textarea ($text, 'BioText', 15);
+    display_media( $PhotoSource);
+    echo "</TABLE>\n";
+    echo "No, you can't change the photo here... this is just for confirmation.<br>";
+	echo "The performer can change the photo on their bio page.";
   }
   
   echo "<P>\n";
@@ -1894,7 +1942,7 @@ function process_status_change ()
   $row = mysql_fetch_object ($result);
 
   if ($row->Status == $Status)
-    display_error ("Status unchanged for $row->Title");
+    display_error ("Status unchanged for $row->Title - Status is:  $Status");
 
   // Update the bid status
 
@@ -1965,12 +2013,23 @@ function process_status_change ()
     comp_user ($UserId, $EventId);
 */
 
+  // Update the Bio
+  $Bio = new Bio();
+  if (isset($_POST['isGroup']))
+      $_POST['UserId'] = NULL;
+  $Bio->convert_from_array($_POST);
+  $Bio->save_to_db();
+
+  if (isset($_POST['isGroup']))
+    $_POST['GroupBio'] = $Bio->BioId;
+  
   // Set up the Act links for scheduling the act and performer
   $Act = new Act();
   $Act->convert_from_array($_POST);
   $Act->save_to_db();
-  $Act->load_from_bidid($BidId);
   $Act->add_performer($UserId);
+
+
 
   return TRUE;
 }
@@ -2288,9 +2347,15 @@ function drop_bid ($BidId)
 
 
 
-  // Set up the Act links for scheduling the act and performer
+  // Remove the act, performer, and if it's a group, remove the group bio
   $Act = new Act();
   $Act->load_from_bidid($BidId);
+  if ($Act->isGroup)
+  {
+    $Bio = new Bio();
+    $Bio->load_from_bioid($Act->GroupBio);
+    $Bio->remove_from_db();
+  }
   $Act->remove_from_db();
 
 
