@@ -488,6 +488,17 @@ function show_away_schedule_form ()
   }
 }
 
+
+	/**
+	* Display an event. Corresponds to action code CODE, number #
+	* $hour :
+	* $away_all_day :
+	* $away_hours :
+	* $row :
+	* $dimensions :
+	* $signed_up_runs : 
+	* $signup_counts :
+	*/
 function display_event ($hour, $away_all_day, $away_hours,
 			$row, $dimensions, $signed_up_runs,
 			$signup_counts)
@@ -497,8 +508,8 @@ function display_event ($hour, $away_all_day, $away_hours,
   $males = $signup_counts["Male"];
   $females = $signup_counts["Female"];
 
-  $game_max = $row->MaxPlayersMale + $row->MaxPlayersFemale + $row->MaxPlayersNeutral;
-  $game_full = ($males + $females) >= $game_max;
+  $game_max = $row->MaxPlayersNeutral;
+  $game_full = $males >= $game_max;
 
   if (array_key_exists ($row->RunId, $signed_up_runs))
   {
@@ -509,28 +520,11 @@ function display_event ($hour, $away_all_day, $away_hours,
   }
   elseif ($game_full)
     $bgcolor = get_bgcolor_hex ('Full');
-  else
-  {
-    $away_for_game = ('CHECKED' == $away_all_day);
-    if (! $away_for_game)
-    {
-
-      for ($h = $row->StartHour; $h < $row->StartHour + $row->Hours; $h++)
-      {
-	if ('CHECKED' == $away_hours[$h])
-	{
-	  $away_for_game = true;
-	  break;
-	}
-      }
-    }
-
-    if ($away_for_game)
-      $bgcolor = get_bgcolor_hex ('Away');
-      
-    elseif ('Y' == $row->CanPlayConcurrently)
-      $bgcolor = get_bgcolor_hex ('CanPlayConcurrently');
-  }
+  elseif (away_for_game($away_all_day, $row))
+    $bgcolor = get_bgcolor_hex ('Away');
+  elseif ('Y' == $row->CanPlayConcurrently)
+    $bgcolor = get_bgcolor_hex ('CanPlayConcurrently');
+ 
 
   // Add the game title (and run suffix) with a link to the game page
 
@@ -547,55 +541,34 @@ function display_event ($hour, $away_all_day, $away_hours,
   if ('' != $row->Rooms)
     $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
 
-  /*
-  if ($game_full)
-    $text .= '<P><I>Full</I>';
-  else
-  {
-    $avail_male = $row->MaxPlayersMale;
-    $avail_female = $row->MaxPlayersFemale;
-    $avail_neutral = $row->MaxPlayersNeutral;
-
-    echo "<!-- $row->Title EventId: $row->EventId, RunId: $row->RunId -->\n";
-    echo "<!-- StartHour: $row->StartHour, Hours: $row->Hours -->\n";
-    echo "<!-- Max Male: $avail_male, Max Female: $avail_female, Max Neutral: $avail_neutral -->\n";
-    echo "<!-- Signed up - Men: $males, Women: $females -->\n";
-
-    if ($males >= $avail_male)
-    {
-      $males -= $avail_male;
-      $avail_male = 0;
-      $avail_neutral -= $males;
-    }
-    else
-      $avail_male -= $males;
-
-
-    if ($females >= $avail_female)
-    {
-      $females -= $avail_female;
-      $avail_female = 0;
-      $avail_neutral -= $females;
-    }
-    else
-      $avail_female -= $females;
-
-    $text .= "<p>Open Slots<br>M:$avail_male" .
-             " F:$avail_female" .
-	     " N:$avail_neutral";
-
-    if (user_has_priv (PRIV_SCHEDULING)) {
-//      $text .= sprintf ('<br><font color=red>Track: %d, Span: %d</font>',
-//		       $row->Track,
-//		       $row->Span);
-      $text .= "<br>RunId: $row->RunId";
-    }
-  }
-  */
   
   echo "<div style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
   echo "</div>\n";
+}
+
+
+/** 
+* away_for_game: return true if player is away during the game session
+* $away_all_day : 
+* $row : An event row
+*/
+
+function away_for_game($away_all_day, $row ) 
+{
+  if ('CHECKED' == $away_all_day) {
+     return true;
+  }
+  for ($h = $row->StartHour; $h < $row->StartHour + $row->Hours; $h++)
+  {
+    if ('CHECKED' == $away_hours[$h])
+    {
+      $away_for_game = true;
+      break;
+    }
+  }
+
+  return $away_for_game;
 }
 
 function display_event_with_counts($hour, $row, $dimensions,
@@ -4377,7 +4350,13 @@ function calculate_available_slots ($cur_male, $cur_female,
  * more complex and do more error checking (and see if anyone off of
  * the waitlist can join) before we can allow GMs to gender swap
  * players.
+ *
+ * NOTE: Since we're not dealing with gender, this can probably go. 
+ * I can't find any calls to it. Can we please delete it?
  */
+
+
+
 
 function swap_gender_locked ($SignupId, $RunId, $EventId, $SwappedGender)
 {
@@ -4480,6 +4459,10 @@ function swap_gender_locked ($SignupId, $RunId, $EventId, $SwappedGender)
 					$avail_female,
 					$avail_neutral);
 }
+
+
+
+
 
 /*
  * update_signup_locked
