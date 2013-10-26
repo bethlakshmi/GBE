@@ -244,9 +244,9 @@ function show_status ()
 
   form_section ('Site Control');
   form_signups_allowed ('Signups Allowed:', 'SignupsAllowed');
-  form_bids_allowed ('Accepting Game Bids:', 'AcceptingBids');
+  form_bids_allowed ('Accepting Bids:', 'AcceptingBids');
   form_bids_allowed ('Accepting Pre-Con Event Bids:', 'PreconBidsAllowed');
-  form_show_schedule ('Show Schedule of Games:', 'ShowSchedule');
+  form_show_schedule ('Show Schedule:', 'ShowSchedule');
   form_textarea ('News', 'News', 20);
 
   form_textarea ('ConCom Meeting Notices', 'ConComMeetings', 20);

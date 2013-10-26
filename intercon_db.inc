@@ -154,21 +154,21 @@ define (SPECIAL_EVENT_LIST, 42);
 
 // Action values in Bids.php & Acts.php & Panels.php
 
-define (BID_GAME, 50);
-define (BID_PROCESS_FORM, 51);
-define (BID_REVIEW_BIDS, 52);
-define (BID_CHANGE_STATUS, 53);
-define (BID_PROCESS_STATUS_CHANGE, 54);
-define (BID_SHOW_BID, 55);
-//define (BID_REGISTER_SUBMITTER, 56);
-define (BID_FEEDBACK_BY_GAME, 57);
-define (BID_PROCESS_FEEDBACK_BY_GAME, 58);
-define (BID_FEEDBACK_SUMMARY, 59);
+define ('BID_GAME', 50);
+define ('BID_PROCESS_FORM', 51);
+define ('BID_REVIEW_BIDS', 52);
+define ('BID_CHANGE_STATUS', 53);
+define ('BID_PROCESS_STATUS_CHANGE', 54);
+define ('BID_SHOW_BID', 55);
+//define ('BID_REGISTER_SUBMITTER', 56);
+define ('BID_FEEDBACK_BY_GAME', 57);
+define ('BID_PROCESS_FEEDBACK_BY_GAME', 58);
+define ('BID_FEEDBACK_SUMMARY', 59);
 
-define (BID_FEEDBACK_BY_ENTRY, 200);
-define (BID_FEEDBACK_PROCESS_ENTRY, 201);
-define (BID_FEEDBACK_BY_CONCOM, 202);
-define (BID_FEEDBACK_PROCESS_BY_CONCOM, 203);
+define ('BID_FEEDBACK_BY_ENTRY', 200);
+define ('BID_FEEDBACK_PROCESS_ENTRY', 201);
+define ('BID_FEEDBACK_BY_CONCOM', 202);
+define ('BID_FEEDBACK_PROCESS_BY_CONCOM', 203);
 
 
 // Action values in ListGames.php

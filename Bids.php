@@ -1241,9 +1241,9 @@ function process_bid_form ()
   }
 
   $msg .= ' and is waiting for your review at ';
-  $msg .= sprintf ('http://interactiveliterature.org/%s/Bids.php' .
+  $msg .= sprintf ('http://www.%s/Bids.php' .
 		   '?action=%d&BidId=%d',
-		   CON_ID,
+		   CON_DOMAIN,
 		   BID_SHOW_BID,
 		   $BidId);
   $msg .= ' . You must be logged in to see this bid.';

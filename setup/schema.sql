@@ -26,8 +26,9 @@ CREATE TABLE`Acts` (
 `ShowId` INT NOT NULL COMMENT 'Link to assigned show',
 `RehearsalId` INT NOT NULL COMMENT 'Link to Rehearsal RunId',
 `ActInfoId` INT NOT NULL COMMENT 'Link to Act Info',
-`GroupBio` VARCHAR( 500 ) NOT NULL COMMENT 'Bio for Group',
+`GroupBio` INT( 10 ) NOT NULL DEFAULT '0' COMMENT 'Bio for Group',
 `isGroup` INT NOT NULL COMMENT 'Boolean - for whether or not this a group act',
+`GroupName` VARCHAR( 50 ) NULL DEFAULT NULL
 PRIMARY KEY ( `ActId` )
 ) ENGINE = InnoDB;
 

@@ -1,5 +1,5 @@
 <?php
-define (FILE_NOT_FOUND, "No File");
+define ("FILE_NOT_FOUND", "No File");
 global $EXTENSIONS;
 global $FILE_SIZES;
 $EXTENSIONS = array();
@@ -170,6 +170,22 @@ function display_photo ($photo, $align="right")
     echo "<a href=\"{$path}\">";
     echo "<img src=\"{$path}\" alt=\"Photo\" width=200 align=$align>";
     echo "</a>";
+  }
+  else 
+    echo "&nbsp;";
+}
+
+/**
+ * thumbnail photo display
+ */
+
+function display_thumbnail ($photo, $align="center")
+{
+ 
+  if ( $photo != NULL && strlen($photo) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $photo);
+    echo "<img src=\"{$path}\" alt=\"Photo\" height=100 align=$align>";
   }
   else 
     echo "&nbsp;";

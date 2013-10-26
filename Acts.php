@@ -30,17 +30,10 @@ if (array_key_exists ('action', $_REQUEST))
   $action=$_REQUEST['action'];
 
 if (empty ($action))
-  if (count($BID_TYPES) > 1)
-    $action = BID_CHOOSE_GAME_TYPE;
-  else
     $action = BID_GAME;
 
 switch ($action)
 {
-  case BID_CHOOSE_GAME_TYPE:
-    display_choose_form (TRUE);
-    break;
-
   case BID_GAME:
     display_bid_form (TRUE);
     break;
@@ -343,7 +336,7 @@ function show_bid ()
   foreach ($PARTICIPATION as $item)
     show_text ($item, $BidChoice[$item]);
     
-  bid_involve($UserId, $bid_row[BidId]);
+  bid_involve($UserId, $bid_row['BidId']);
   
   show_section ('Advertising Information');
 
@@ -1273,7 +1266,7 @@ function process_bid_form(&$ActIsPaidFor)
   if (1 == DEVELOPMENT_VERSION)
     $send_to = 'DEVELOPMENT_MAIL_ADDR';
   else
-    $send_to = EMAIL_BID_CHAIR;
+    $send_to = EMAIL_SHOW_CHAIR;
 
   // See who's doing this
 
@@ -1380,19 +1373,18 @@ function process_bid_form(&$ActIsPaidFor)
   {
     $subject = '[' . CON_NAME . " - Bid] New: $Title";
 
-    $msg = "The bid has been submitted by $name";
+    $msg = "The act bid has been submitted by $name";
   }
   else
   {
     $subject = '[' . CON_NAME . " - Bid] Update: $Title";
 
-    $msg = "The bid has been updated by $name";
+    $msg = "The act bid has been updated by $name";
   }
 
   $msg .= ' and is waiting for your review at ';
-  $msg .= sprintf ('http://interactiveliterature.org/%s/Acts.php' .
-		   '?action=%d&BidId=%d',
-		   CON_ID,
+  $msg .= sprintf ('http://www.%s/Acts.php' .
+		   '?action=%d&BidId=%d', CON_DOMAIN,
 		   BID_SHOW_BID,
 		   $BidId);
   $msg .= ' . You must be logged in to see this bid.';
