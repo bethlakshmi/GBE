@@ -119,7 +119,7 @@ function bid_involve($UserId, $BidId)
 	  }      
 	  
       show_text ('Panel Volunteering', '');
-      $sql = 'SELECT Bids.Title, PanelBids.Interest FROM Bids, PanelBids ';
+      $sql = 'SELECT Bids.Title, PanelBids.Panelist, PanelBids.Moderator FROM Bids, PanelBids ';
       $sql .= 'WHERE PanelBids.UserId=' . $UserId.' AND Bids.BidId = PanelBids.BidId';
       $result = mysql_query ($sql);
       if (! $result)
@@ -127,7 +127,13 @@ function bid_involve($UserId, $BidId)
 
       while ($user_bid = mysql_fetch_object ($result))
 	  {
- 	      show_text (' - ', $user_bid->Title.' - '.$user_bid->Interest);
+	  	  $interest = "vague interest - not panelist or moderator";
+	      if ($user_bid->Panelist == 1)
+	        $interest = "Panelist";
+	      if ($user_bid->Moderator == 1)
+	      	$interest = "Moderator";
+
+ 	      show_text (' - ', $user_bid->Title.' - '.$interest);
 	  }      
 
       show_text ('Other Volunteering', '');

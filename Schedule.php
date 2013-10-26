@@ -3,14 +3,14 @@ define (SIGNUP_FAIL, 0);
 define (SIGNUP_OK, 1);
 define (SIGNUP_CONFIRM, 2);
 
-include ("intercon_db.inc");
 include ("intercon_schedule.inc");
 include ("pcsg.inc");
-include ("files.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
 include ("gbe_event.inc");
+include ("WhosWho.inc");
+
 // Connect to the database
 
 if (! intercon_db_connect ())
@@ -1452,6 +1452,8 @@ function display_comp_info($EventId)
 
 function show_game ()
 {
+  $highlight='';
+
   // Extract the EventId and build the query
 
   $EventId = intval (trim ($_REQUEST['EventId']));
@@ -1564,7 +1566,7 @@ function show_game ()
         display_one_col ('Head of '.$event->GameType, $email);
     }
 
-    // Fetch the list of GMs
+    // Fetch the list of associated event runners
 
     $sql = 'SELECT DISTINCT Users.DisplayName, GMs.Role,';
     $sql .= ' Users.EMail, GMs.DisplayEMail, Users.CompEventId';
@@ -1572,6 +1574,7 @@ function show_game ()
     $sql .= " WHERE GMs.EventId=$EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
     $sql .= "   AND Users.UserId=GMs.UserId";
+    $sql .= "   AND (GMs.Role = 'teacher' OR GMs.Role = 'panelist' OR GMs.Role = 'moderator' )";
     $sql .= ' ORDER BY GMs.Role DESC, Users.DisplayName';
 
     //  echo "$sql<P>";
@@ -1913,16 +1916,20 @@ function show_game ()
 	echo $event->Description;
     echo "<p>\n";
 	
-    return;
   }
+  else
+  {
+    echo "<P>\n";
+    echo "<HR>\n";
 
-  echo "<P>\n";
-  echo "<HR>\n";
+    echo $event->Description;    
 
-  echo $event->Description;    
+    echo "<p>\n<hr>\n";
+  }
+  
 
-  echo "<p>\n<hr>\n";
-
+if ($event->GameType != "Show")
+{
   if (0 == $num_gms)
     return;
 
@@ -1934,6 +1941,7 @@ function show_game ()
   $sql .= " WHERE GMs.EventId=$EventId";
   $sql .= "   AND GMs.DisplayAsGM='Y'";
   $sql .= "   AND Users.UserId=GMs.UserId";
+  $sql .= "   AND (GMs.Role = 'teacher' OR GMs.Role = 'panelist' OR GMs.Role = 'moderator' )";
   $sql .= ' ORDER BY Users.DisplayName';
 
   //  echo "$sql<P>";
@@ -1959,21 +1967,18 @@ echo "<table border=0 width=\"800\">";
 
     $bio_row = mysql_fetch_object ($bio_result);
     if ($bio_row)
-    {
-      if ('' != $bio_row->PhotoSource)
- 		display_photo($bio_row->PhotoSource);
+      show_user_homepage_bio_info ($bio_row->Website, $bio_row->BioText, $bio_row->PhotoSource);
+    else
+      echo "<BR><i>No Bio available.</i><br><br>\n";
 
-      if ('' != $bio_row->Website)
-        echo "<BR><a href=\"http://$bio_row->Website\">$bio_row->Website</a><br>\n";
-        
-       if ('' == $bio_row->BioText)
-        echo "<BR><i>No Bio available.</i>\n";
-      else
-        echo "<BR>$bio_row->BioText<P>\n";
-    } 
   echo "</TD></TR>";
   }
 echo "</table>";
+}
+else
+{
+  get_who_is_who_for_show($EventId);
+}
 }
 
 /*

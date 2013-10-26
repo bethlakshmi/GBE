@@ -406,7 +406,8 @@ function build_about_subnavbar() {
     $aboutSection->push(NavBarItem::newAction("What Does It Cost?", "Cost.php"));
   $aboutSection->push(NavBarItem::newAction("Contacts", "Contacts.php"));
   $aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
-  $aboutSection->push(NavBarItem::newAction("Who's Who", "index.php", WHO_IS_WHO));
+  $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)." Staff", "WhosWho.php","Staff"));
+  $aboutSection->push(NavBarItem::newAction("Conference Presenters", "WhosWho.php","Conference"));
   if (NAV_SHOW_FLYER)
     $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).' Flyer', 'InterconFlyer.pdf'));
   
