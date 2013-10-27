@@ -42,7 +42,7 @@ function show_cost()
 	printf("Thank you for your interest in the %s!  ", CON_NAME);
 	printf("Below are the ticket options available for purchase.  ");
 	printf("There are several ways you can be a part of the convention, so ");
-	printf("please read the discriptions carefully.<br><br>\n");
+	printf("please read the descriptions carefully.<br><br>\n");
 	
 	echo "<table border=\"0\">\n";	
 	foreach ($TicketItems as $item)
@@ -62,6 +62,9 @@ function show_cost()
  */
 function show_cost_for_single_item($item)
 {
+    if (file_exists(TEXT_DIR.'/betweencosts.html'))
+	  include(TEXT_DIR.'/betweencosts.html');	     
+
 	echo "<tr valign=\"top\">\n";
 	printf("  <th align=\"left\">%s </th>\n", $item->Title);
 	//printf("  <td align=\"right\">$%0.2f </td>\n", $item->Cost);
