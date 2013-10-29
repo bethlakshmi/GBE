@@ -1223,20 +1223,8 @@ function players_will_fit ($male, $female,
   if ($male + $female > $max_male + $max_female + $max_neutral)
     return false;
 
-  // Calculate how many open slots we've got
-
-  calculate_available_slots ($male, $female,
-			     $max_male, $max_female, $max_neutral,
-			     $avail_male, $avail_female, $avail_neutral);
-/*
-  echo "Available Male slots: $avail_male<br>\n";
-  echo "Available Female slots: $avail_female<br>\n";
-  echo "Available Neutral slots: $avail_neutral<br>\n";
- */
-
-  // If the neutral value hasn't gone negative, then the users will fit
-
-  return ($avail_neutral >= 0);
+  else
+    return true;
 }
 
 /*
