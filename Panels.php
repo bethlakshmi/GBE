@@ -399,6 +399,10 @@ function process_bid_panel_form ()
 
   //echo "subject: $subject<br>\n";
   //echo "message: $msg<br>\n";
+  if (1 == DEVELOPMENT_VERSION)
+    $send_to = 'DEVELOPMENT_MAIL_ADDR';
+  else 
+    $send_to = EMAIL_BID_CHAIR;
 
   if (! intercon_mail ($send_to,
 		       $subject,
