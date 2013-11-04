@@ -10,6 +10,7 @@
 // set this to 1 to debug schedule generation
 // requires Firebug or Firebug Lite
 define("PCSG_DEBUG", 0);
+define(PCSG_EVENT_BLOCK, 30); // also defined as EVENT_BLOCK in intercon_db.inc
 
 
 if (PCSG_DEBUG) {
@@ -25,24 +26,24 @@ if(typeof(console) === 'undefined') {
 }
 
 class ScheduleBlock {
-  public $startHour;
-  public $endHour;
-  public $interval;
-  public $eventRuns;
-  public $runDimensions;
-  public $maxColumns;
+    public $startHour;
+    public $endHour;
+    public $interval;
+    public $eventRuns;
+    public $runDimensions;
+    public $maxColumns;
   
   function __construct($startHour=null, $endHour=null) {
-	$this->startHour = $startHour;
-	$this->endHour = $endHour;
-	$this->interval = 1;
+    $this->startHour = $startHour;
+    $this->endHour = $endHour;
+    $this->interval = 1;
     $this->eventRuns = array();
     $this->runDimensions = null;
     $this->maxColumns = null;
   }
   
   function getHours() {
-	return $this->endHour - $this->startHour;
+    return $this->endHour - $this->startHour;
   }
   
   function addEventRun($eventRun) {
@@ -58,8 +59,7 @@ class ScheduleBlock {
   
   function computeRunDimensions() {
     $columnReservations = new ColumnReservationSet();
-    $runDimensions = array();
-  
+    $runDimensions = array();  
     $upcomingRuns = array();
     foreach ($this->eventRuns as $run) {
       $upcomingRuns[$run->id] = $run;
@@ -74,17 +74,8 @@ class ScheduleBlock {
       pcsg_debug("It is now $now:00");
       
       // which runs are starting now?
-      $currentRuns = array();
-      foreach ($this->eventRuns as $run) {
-        if (!(array_key_exists($run->id, $runDimensions))) {
-          if ($now >= $run->getStartHour() && $now < $run->getEndHour() ) {
-            array_push($currentRuns, $run);
-            unset($upcomingRuns[$run->id]);
-            pcsg_debug("Run " . $run->id . " is starting now");
-          }
-        }
-      }
-      
+      $currentRuns = $this->getCurrentRuns($upcomingRuns, $now, $runDimensions);
+
       // have any of our column reservations expired?
       $columnReservations->expire($now);
       
@@ -94,17 +85,8 @@ class ScheduleBlock {
       }
       
       // reserve columns for current runs
-      foreach ($currentRuns as $currentRun) {
-        if ($columnReservations->runColumnReserved($currentRun->id)) {
-          pcsg_debug("Not reserving a column for run ".$currentRun->id." because we already reserved one");
-        } else {
-          $colnum = $columnReservations->nextFreeColumn();
-        
-          pcsg_debug("Reserving column $colnum for run " . $currentRun->id . " until " . $currentRun->getEndHour());
-          $columnReservations->reserve($colnum, $currentRun);
-        }
-      }
-      
+      $this->reserveColumns($currentRuns, $columnReservations);
+
       if (!$columnReservations->isEmpty()) {
         $planUntil = $columnReservations->getLastEndHour();
         $addedUpcomingReservations = false;
@@ -114,8 +96,7 @@ class ScheduleBlock {
             continue;
           }
           
-          $colnum = $columnReservations->findFreeColumnForEventRun($upcomingRun);
-                   
+          $colnum = $columnReservations->findFreeColumnForEventRun($upcomingRun);                   
           pcsg_debug("Reserving column $colnum for upcoming run " . $upcomingRun->id . " until " . $upcomingRun->getEndHour());        
           $columnReservations->reserve($colnum, $upcomingRun);
           $addedUpcomingReservations = true;
@@ -190,8 +171,7 @@ class ScheduleBlock {
       }
       
       $now += $this->interval;
-    }
-    
+    }    
     $this->runDimensions = $runDimensions;
   }
   
@@ -201,14 +181,42 @@ class ScheduleBlock {
     }
     return $this->runDimensions;
   }
-}
+
+
+  function getCurrentRuns($upcomingRuns, $now,  $runDimensions) {
+    $currentRuns = array();
+    foreach ($this->eventRuns as $run) {
+      if (!(array_key_exists($run->id, $runDimensions))) {
+        if ($now >= $run->getStartHour() && $now < $run->getEndHour() ) {
+          array_push($currentRuns, $run);
+          unset($upcomingRuns[$run->id]);
+          pcsg_debug("Run " . $run->id . " is starting now");
+        }
+      }
+    }
+    return $currentRuns;
+  }
+
+  function reserveColumns ($currentRuns, $columnReservations){
+    foreach ($currentRuns as $currentRun) {
+      if ($columnReservations->runColumnReserved($currentRun->id)) {
+        pcsg_debug("Not reserving a column for run ".$currentRun->id." because we already reserved one");
+      } else {
+        $colnum = $columnReservations->nextFreeColumn();    
+        pcsg_debug("Reserving column $colnum for run " . $currentRun->id . " until " . $currentRun->getEndHour());
+        $columnReservations->reserve($colnum, $currentRun);
+      }
+    }
+  }
+}   // end class ScheduleBlock
 
 function pcsg_get_default_blocks() {
   return array(
-	new ScheduleBlock(17, 24, "Fri"),
-	new ScheduleBlock(10, 24, "Sat"),
-	new ScheduleBlock(9, 13, "Sun")
+    new ScheduleBlock(17, 24, "Fri"),
+    new ScheduleBlock(10, 24, "Sat"),
+    new ScheduleBlock(9, 13, "Sun")
   );
+
 }
 
 class EventRun {
@@ -314,11 +322,11 @@ class ColumnReservationSet {
   
   function expire($hour) {
     foreach (array_keys($this->reservations) as $colnum) {
-	  if ($this->reservations[$colnum]->getEndHour() <= $hour) {
-		unset($this->reservations[$colnum]);
+      if ($this->reservations[$colnum]->getEndHour() <= $hour) {
+        unset($this->reservations[$colnum]);
         pcsg_debug("Column reservation for column $colnum has expired");
-	  }
-	}
+      }
+    }
   }
   
   function isEmpty() {
