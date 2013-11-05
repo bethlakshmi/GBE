@@ -87,44 +87,14 @@ class ScheduleBlock {
       // reserve columns for current runs
       $this->reserveColumns($currentRuns, $columnReservations);
 
-      if (!$columnReservations->isEmpty()) {
-        $planUntil = $columnReservations->getLastEndHour();
-        $addedUpcomingReservations = false;
-        
-        foreach ($upcomingRuns as $upcomingRun) {
-          if ($upcomingRun->getStartHour() >= $planUntil) {
-            continue;
-          }
-          
-          $colnum = $columnReservations->findFreeColumnForEventRun($upcomingRun);                   
-          pcsg_debug("Reserving column $colnum for upcoming run " . $upcomingRun->id . " until " . $upcomingRun->getEndHour());        
-          $columnReservations->reserve($colnum, $upcomingRun);
-          $addedUpcomingReservations = true;
-          unset($upcomingRuns[$upcomingRun->id]);
-          
-          if ($planUntil < $upcomingRun->getEndHour()) {
-            $planUntil = $upcomingRun->getEndHour();
-          }
-        }
-        
-        if ($addedUpcomingReservations) {
-          // attempt to sort the columns to avoid blank spaces
-          $columnReservations->sortColumns();
-        }
+      // set last column value
+      $lastColumn = $this->setLastColumn($columnReservations, $upcomingRuns, $lastColumn);
       
-        $lastColumnNow = $columnReservations->getLastColumn();
-      } else {
-        $lastColumnNow = 0;
-      }
-      if ($lastColumnNow > $lastColumn) {
-        $lastColumn = $lastColumnNow;
-      }
-      pcsg_debug("Last column now is ".$lastColumnNow.", which makes the last column count ".$lastColumn);
       
       if (count($currentRuns) > 0 && $lastColumn >= $this->maxColumns) {
         $this->maxColumns = $lastColumn + 1;
       }
-      
+
       // current run order might have changed because of column sorting, re-sort the list
       $sortedCurrentRuns = array();
       foreach ($currentRuns as $currentRun) {
@@ -208,6 +178,45 @@ class ScheduleBlock {
       }
     }
   }
+
+  function setLastColumn($columnReservations, $upcomingRuns, $lastColumn)
+  {
+      if (!$columnReservations->isEmpty()) {
+        $planUntil = $columnReservations->getLastEndHour();
+        $addedUpcomingReservations = false;
+        
+        foreach ($upcomingRuns as $upcomingRun) {
+          if ($upcomingRun->getStartHour() >= $planUntil) {
+            continue;
+          }
+          
+          $colnum = $columnReservations->findFreeColumnForEventRun($upcomingRun);                   
+          pcsg_debug("Reserving column $colnum for upcoming run " . $upcomingRun->id . " until " . $upcomingRun->getEndHour());        
+          $columnReservations->reserve($colnum, $upcomingRun);
+          $addedUpcomingReservations = true;
+          unset($upcomingRuns[$upcomingRun->id]);
+          
+          if ($planUntil < $upcomingRun->getEndHour()) {
+            $planUntil = $upcomingRun->getEndHour();
+          }
+        }        
+        if ($addedUpcomingReservations) {
+          // attempt to sort the columns to avoid blank spaces
+          $columnReservations->sortColumns();
+        } 
+      
+        $lastColumnNow = $columnReservations->getLastColumn();
+      } else {
+        $lastColumnNow = 0;
+      }
+      if ($lastColumnNow > $lastColumn) {
+        $lastColumn = $lastColumnNow;
+      }
+      pcsg_debug("Last column now is ".$lastColumnNow.", which makes the last column count ".$lastColumn);
+   
+      return $lastColumn;
+  }
+
 }   // end class ScheduleBlock
 
 function pcsg_get_default_blocks() {
