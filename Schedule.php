@@ -490,7 +490,7 @@ function show_away_schedule_form ()
 
 
 	/**
-	* Display an event. Corresponds to action code CODE, number #
+	* Display an event.
 	* $hour :
 	* $away_all_day :
 	* $away_hours :
@@ -1148,65 +1148,6 @@ function game_full (&$msg, $gender, $male, $female,
   }
   else 
        return FALSE;
-
-
-  // Calculate how many open slots we've got
-
-  $neutral = $max_neutral-$neutralcount;
-
-  //  echo "Max Male: $male, Female: $female, Neutral: $neutral<BR>\n";
-
-  if ($max_male > $male)
-    $avail_male = $max_male - $male;
-  else
-  {
-    $avail_male = 0;
-    $neutral -= $male - $max_male;
-  }
-
-  //  echo "Neutral slots: $neutral<BR>\n";
-
-  if ($max_female > $female)
-    $avail_female = $max_female - $female;
-  else
-  {
-    $avail_female = 0;
-    $neutral -= $female - $max_female;
-  }
-  /*
-  echo "Gender: $gender<BR>\n";
-  echo "Male slots: $avail_male<BR>\n";
-  echo "Female slots: $avail_female<BR>\n";
-  echo "Neutral slots: $neutral<BR>\n";
-  */
-
-  // If there are ANY gender neutral slots open, the user can signup
-
-  $msg = '';
-  if ($neutral > 0)
-    return FALSE;
-
-  // If all of the gender neutral slots are full, then the user can only
-  // sign up if slots of his or her gender are available
-
-  if ('Male' == $gender)
-  {
-    $avail = $avail_male;
-    $avail_gender = 'female';
-  }
-  else
-  {
-    $avail = $avail_female;
-    $avail_gender = 'male';
-  }
-
-  if ($avail < 1)
-  {
-    $msg = "Only $avail_gender roles are available";
-    return TRUE;
-  }
-  else
-    return FALSE;
 }
 
 /*
@@ -5264,5 +5205,24 @@ function confirm_freeze_gender_balance ()
     return true;
 }
 
+
+/**
+ * parse_event_time
+ * @time_blocks: Time as a number of blocks since 00:00 AM 
+ * return: Start time as DateTime object. Date portion defaults to 1 January 2000
+ * usage: for start time, submit blocks (stored in Run->$StartHour). For end time, use
+ *        Run->$StartHour + Event->$Hours
+ */
+function parse_start_time ($time_blocks, $date = "NULL") 
+{
+	if ($date == "NULL") {
+	   $date = new DateTime("1/1/2000");
+	}
+	$minutes = $start_time * EVENT_BLOCK;  // get time in minutes
+	$hours = $minutes / 60;  	       
+	$minutes = $minutes % 60;
+	$date->setTime($hours, $minutes);
+	return $date;
+}
 
 ?>
