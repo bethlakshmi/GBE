@@ -1130,9 +1130,8 @@ function display_players ($head, $min, $max, $preferred)
 /*
  * game_full
  *
- * Checks whether the event is full.  This is made MUCH more complicated
- * by the fact that we're keeping track of how many slots are available
- * by gender.
+ * Checks whether the event is full. 
+ * This call can be simplified since we're no longer tracking slots by gender.
  */
 
 function game_full (&$msg, $gender, $male, $female,
