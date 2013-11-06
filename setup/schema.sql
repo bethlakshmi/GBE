@@ -28,7 +28,7 @@ CREATE TABLE`Acts` (
 `ActInfoId` INT NOT NULL COMMENT 'Link to Act Info',
 `GroupBio` INT( 10 ) NOT NULL DEFAULT '0' COMMENT 'Bio for Group',
 `isGroup` INT NOT NULL COMMENT 'Boolean - for whether or not this a group act',
-`GroupName` VARCHAR( 50 ) NULL DEFAULT NULL
+`GroupName` VARCHAR( 50 ) NULL DEFAULT NULL,
 PRIMARY KEY ( `ActId` )
 ) ENGINE = InnoDB;
 
