@@ -3018,70 +3018,64 @@ function list_games_alphabetically ($GameType="")
 
     while ($row = mysql_fetch_object ($result))
     {
-       list_this_game($row);
+       list_this_game($row, $GameType);
     }
   }
   mysql_free_result ($result);
 }
 
-function list_this_game($row)
-   {
+function list_this_game($row, $GameType)
+{
       // If this is a special event, and there's no text, skip it
-
-      if ((0 != $row->SpecialEvent) &&
-	  ('' == $row->ShortBlurb))
-	continue;
+  if ((0 != $row->SpecialEvent) && 
+              ('' == $row->ShortBlurb))
+    return;
 
       // If there's no long description, don't offer a link
-	 $title = $row->Title;
-     if ($row->GameType == "Panel")
-	   $title = "PANEL:  ".$row->Title;
-	   
-      echo "<p>\n";
-      if ($row->DescLen > 0 && SELECTEVENTS_ENABLED)
-	printf ("<a href=\"Schedule.php?action=%d&EventId=%d\">%s</a> \n",
-		SCHEDULE_SHOW_GAME,
-		$row->EventId,
-		$title);
-      else
-	echo "<b>$row->Title</b> \n";
+  $title = $row->Title;
+  if ($row->GameType == "Panel")
+    $title = "PANEL:  ".$row->Title;
+  echo "<p>\n";
+  if ($row->DescLen > 0 && SELECTEVENTS_ENABLED)
+    printf ("<a href=\"Schedule.php?action=%d&EventId=%d\">%s</a> \n",
+            SCHEDULE_SHOW_GAME,
+	    $row->EventId,
+	    $title);
+  else
+    echo "<b>$row->Title</b> \n";
 
 //      if ('Other' != $row->GameType)
 //	echo "($row->GameType)";
 
 
 	// get the teachers or panelists 
-	if ($GameType == "Conference" )
-	{	  
-	  $sql = 'SELECT DISTINCT Users.DisplayName';
-	  $sql .= ' FROM GMs, Users';
-	  $sql .= " WHERE GMs.EventId=$row->EventId";
-	  $sql .= "   AND GMs.DisplayAsGM='Y'";
-	  $sql .= "   AND Users.UserId=GMs.UserId";
-	  $sql .= ' ORDER BY Users.DisplayName';
+  if ($GameType == "Conference" )
+  {	  
+    $sql = 'SELECT DISTINCT Users.DisplayName';
+    $sql .= ' FROM GMs, Users';
+    $sql .= " WHERE GMs.EventId=$row->EventId";
+    $sql .= "   AND GMs.DisplayAsGM='Y'";
+    $sql .= "   AND Users.UserId=GMs.UserId";
+    $sql .= ' ORDER BY Users.DisplayName';
 
-      $gm_result = mysql_query ($sql);
-      if (! $gm_result)
-    	 display_mysql_error ('Failed to fetch list of GMs');
+    $gm_result = mysql_query ($sql);
+    if (! $gm_result)
+      display_mysql_error ('Failed to fetch list of GMs');
 
- 	  $gm_row = mysql_fetch_object ($gm_result);
- 	  echo "<br><i>$gm_row->DisplayName</i>";
+    $gm_row = mysql_fetch_object ($gm_result);
+    echo "<br><i>$gm_row->DisplayName</i>";
 
-      while ($gm_row = mysql_fetch_object ($gm_result))
-      {
-	      echo ", <i>$gm_row->DisplayName</i>";
-      }
-
-	}
-      if ('' != $row->ShortBlurb)
-	echo "<br>\n$row->ShortBlurb\n";
-
-      if ('' != $row->Fee)
-	echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
-
-      echo "</p>\n";
-
+    while ($gm_row = mysql_fetch_object ($gm_result))
+    {
+      echo ", <i>$gm_row->DisplayName</i>";
     }
+  }
+  if ('' != $row->ShortBlurb)
+    echo "<br>\n$row->ShortBlurb\n";
+  if ('' != $row->Fee)
+    echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
+  echo "</p>\n";
+  }
 
 
 /*
