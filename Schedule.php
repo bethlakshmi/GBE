@@ -3018,6 +3018,14 @@ function list_games_alphabetically ($GameType="")
 
     while ($row = mysql_fetch_object ($result))
     {
+       list_this_game($row);
+    }
+  }
+  mysql_free_result ($result);
+}
+
+function list_this_game($row)
+   {
       // If this is a special event, and there's no text, skip it
 
       if ((0 != $row->SpecialEvent) &&
@@ -3074,10 +3082,7 @@ function list_games_alphabetically ($GameType="")
       echo "</p>\n";
 
     }
-  }
 
-  mysql_free_result ($result);
-}
 
 /*
  * show_signups_state
