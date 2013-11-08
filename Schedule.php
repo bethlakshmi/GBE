@@ -445,7 +445,13 @@ function show_away_schedule_form ()
 		     $signed_up_runs,
 			 $logged_in, false);
 
-  // Display the color key
+  // Display the schedule footer
+  display_schedule_footer($logged_in);
+  
+}
+
+
+function display_schedule_footer($logged_in) {
 
   $spaces = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
@@ -487,7 +493,6 @@ function show_away_schedule_form ()
     echo "you cannot signup for any schedule item.";
   }
 }
-
 
 	/**
 	* Display an event.
