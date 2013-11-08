@@ -3049,8 +3049,21 @@ function list_this_game($row, $GameType)
 
 
 	// get the teachers or panelists 
+
+        // Is "Conference" a valid GameType? 
   if ($GameType == "Conference" )
-  {	  
+  {
+    show_gms($row);
+  }
+  if ('' != $row->ShortBlurb)
+    echo "<br>\n$row->ShortBlurb\n";
+  if ('' != $row->Fee)
+    echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
+  echo "</p>\n";
+  }
+
+
+function show_gms($row){
     $sql = 'SELECT DISTINCT Users.DisplayName';
     $sql .= ' FROM GMs, Users';
     $sql .= " WHERE GMs.EventId=$row->EventId";
@@ -3069,14 +3082,7 @@ function list_this_game($row, $GameType)
     {
       echo ", <i>$gm_row->DisplayName</i>";
     }
-  }
-  if ('' != $row->ShortBlurb)
-    echo "<br>\n$row->ShortBlurb\n";
-  if ('' != $row->Fee)
-    echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
-  echo "</p>\n";
-  }
-
+}
 
 /*
  * show_signups_state
