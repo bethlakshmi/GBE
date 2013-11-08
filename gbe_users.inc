@@ -30,7 +30,7 @@ class Bio
 
 	/* function load_from_bioid
 	 * 
-	 * Used to load a single Bio from it's primary key 
+	 * Used to load a single Bio from its primary key 
 	 *
 	 * $ItemId:  the Bio Id to be loaded.
 	 * Returns: nothing.
@@ -55,7 +55,7 @@ class Bio
 
 	/* function load_from_userid
 	 * 
-	 * Used to load a single Bio from it's user id 
+	 * Used to load a single Bio from its user id 
 	 *
 	 * $ItemId:  the User Id to be loaded.
 	 * Returns: true if it worked, false if no user found.
@@ -84,7 +84,7 @@ class Bio
 	/* function convert_from_sql_row
 	 * 
 	 * Used override the object contents with the resultset row from an SQL
-     * select query.	 
+	 * select query.	 
 	 *
 	 * $row: an object row from the Events table. 
 	 * Returns: nothing.
@@ -174,15 +174,15 @@ class Bio
 			$sql = "insert into Bios set ";
 		}
 
-        $sql .= build_sql_string('BioId', $this->BioId, false);
-        $sql .= build_sql_string('UserId', $this->UserId);
-        $sql .= build_sql_string('BioText', $this->BioText);
-        if (strlen($this->Title) > 0)
-          $sql .= build_sql_string('Title', $this->Title);
-        $sql .= build_sql_string('ShowNickname', $this->ShowNickname);
-        $sql .= build_sql_string('LastUpdated', $this->LastUpdated);
-        $sql .= build_sql_string('Website', $this->Website);
-        $sql .= build_sql_string('PhotoSource', $this->PhotoSource);
+		$sql .= build_sql_string('BioId', $this->BioId, false);
+		$sql .= build_sql_string('UserId', $this->UserId);
+		$sql .= build_sql_string('BioText', $this->BioText);
+		if (strlen($this->Title) > 0)
+		  $sql .= build_sql_string('Title', $this->Title);
+		$sql .= build_sql_string('ShowNickname', $this->ShowNickname);
+		$sql .= build_sql_string('LastUpdated', $this->LastUpdated);
+		$sql .= build_sql_string('Website', $this->Website);
+		$sql .= build_sql_string('PhotoSource', $this->PhotoSource);
 			
 		if (mysql_num_rows($result) == 1)
 			$sql .= sprintf(" where BioId = '%s'", $this->BioId);
@@ -193,8 +193,8 @@ class Bio
 			return display_mysql_error ("Insert or Update into Bios failed");
 
 		if ($this->BioId < 1)
-          $this->BioId = mysql_insert_id();
-        echo "Just saved or made BioId: ".$this->BioId."<br>\n";
+			$this->BioId = mysql_insert_id();
+		echo "Just saved or made BioId: ".$this->BioId."<br>\n";
 	}
 	
 	/* function remove_from_db
@@ -228,22 +228,22 @@ class Bio
 function get_acts_for_user($UserId, &$act_list)
 {
 
-  //Get the Act Ids from GM table, join with act info on Acts table
-  $sql = 'SELECT GMs.EventId, Acts.ActId, Acts.BidId, Acts.ShowId, Acts.RehearsalId,';
-  $sql .=' Acts.ActInfoId, Acts.GroupBio, Acts.isGroup FROM GMs, Acts WHERE UserId=' . $UserId;
-  $sql .= ' and Role = "performer" and GMs.EventId = Acts.ActId';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query for UserId $UserId failed");
+	//Get the Act Ids from GM table, join with act info on Acts table
+	$sql = 'SELECT GMs.EventId, Acts.ActId, Acts.BidId, Acts.ShowId, Acts.RehearsalId,';
+	$sql .=' Acts.ActInfoId, Acts.GroupBio, Acts.isGroup FROM GMs, Acts WHERE UserId=' . $UserId;
+	$sql .= ' and Role = "performer" and GMs.EventId = Acts.ActId';
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ("Query for UserId $UserId failed");
 
-  $n=0;
-  while ($row = mysql_fetch_object($result)) {
-    $act = new Act();
-    $act->convert_from_sql_row($row);
-    $act_list[$n] = $act;
-    $n++;
+	$n=0;
+	while ($row = mysql_fetch_object($result)) {
+		$act = new Act();
+		$act->convert_from_sql_row($row);
+		$act_list[$n] = $act;
+		$n++;
 
-  }
+	}
 }
 
 /* function get_conf_items_for_user
@@ -258,18 +258,18 @@ function get_acts_for_user($UserId, &$act_list)
  */
 function get_conf_items_for_user($UserId, &$event_list)
 {
-  //Get the Event Ids from GM table
-  $sql = 'SELECT EventId FROM GMs WHERE UserId=' . $UserId;
-  $sql .= ' and (Role = "moderator" or Role = "teacher")';
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query for UserId $UserId failed");
+	//Get the Event Ids from GM table
+	$sql = 'SELECT EventId FROM GMs WHERE UserId=' . $UserId;
+	$sql .= ' and (Role = "moderator" or Role = "teacher")';
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ("Query for UserId $UserId failed");
 
-  $n=0;
-  while ($row = mysql_fetch_assoc($result)) {
-    $event_list[$n] = $row['EventId'];
-    $n++;
-  }
+	$n=0;
+	while ($row = mysql_fetch_assoc($result)) {
+		$event_list[$n] = $row['EventId'];
+		$n++;
+	}
 }
 
 /*
@@ -280,26 +280,26 @@ function get_conf_items_for_user($UserId, &$event_list)
 
 function user_is_gm_for_game ($UserId, $EventId)
 {
-  // If the user isn't logged in, then they're not a GM, are they?
+	// If the user isn't logged in, then they're not a GM, are they?
 
-  if (0 == $UserId)
-    return false;
+	if (0 == $UserId)
+		return false;
 
-  // Query the database to see if the user is GM
+	// Query the database to see if the user is GM
 
-  $sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
-  $sql .= '  LIMIT 1';
+	$sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
+	$sql .= '  LIMIT 1';
 
-  //  echo "Query: $sql<p>\n";
+	//	echo "Query: $sql<p>\n";
 
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for GMs failed');
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ('Query for GMs failed');
 
-  $num = mysql_num_rows ($result);
-  mysql_free_result ($result);
+	$num = mysql_num_rows ($result);
+	mysql_free_result ($result);
 
-  return $num != 0;
+	return $num != 0;
 }
 
 /*
@@ -310,26 +310,26 @@ function user_is_gm_for_game ($UserId, $EventId)
 
 function user_is_moderator ($UserId, $EventId)
 {
-  // If the user isn't logged in, then they're not a GM, are they?
+	// If the user isn't logged in, then they're not a GM, are they?
 
-  if (0 == $UserId)
-    return false;
+	if (0 == $UserId)
+		return false;
 
-  // Query the database to see if the user is GM
+	// Query the database to see if the user is GM
 
-  $sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
-  $sql .= ' and Role="moderator" LIMIT 1';
+	$sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
+	$sql .= ' and Role="moderator" LIMIT 1';
 
-  //  echo "Query: $sql<p>\n";
+	//	echo "Query: $sql<p>\n";
 
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for moderator failed');
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ('Query for moderator failed');
 
-  $num = mysql_num_rows ($result);
-  mysql_free_result ($result);
+	$num = mysql_num_rows ($result);
+	mysql_free_result ($result);
 
-  return $num != 0;
+	return $num != 0;
 }
 
 /*
@@ -340,26 +340,26 @@ function user_is_moderator ($UserId, $EventId)
 
 function user_is_teacher ($UserId, $EventId)
 {
-  // If the user isn't logged in, then they're not a GM, are they?
+	// If the user isn't logged in, then they're not a GM, are they?
 
-  if (0 == $UserId)
-    return false;
+	if (0 == $UserId)
+		return false;
 
-  // Query the database to see if the user is GM
+	// Query the database to see if the user is GM
 
-  $sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
-  $sql .= ' and Role="teacher" LIMIT 1';
+	$sql = "SELECT GMId FROM GMs WHERE UserId=$UserId AND EventId=$EventId";
+	$sql .= ' and Role="teacher" LIMIT 1';
 
-  //  echo "Query: $sql<p>\n";
+	//	echo "Query: $sql<p>\n";
 
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for teacher failed');
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ('Query for teacher failed');
 
-  $num = mysql_num_rows ($result);
-  mysql_free_result ($result);
+	$num = mysql_num_rows ($result);
+	mysql_free_result ($result);
 
-  return $num != 0;
+	return $num != 0;
 }
 
 
