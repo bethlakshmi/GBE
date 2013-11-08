@@ -2986,7 +2986,7 @@ function list_games_alphabetically ($GameType="")
 	include(TEXT_DIR.'/'.$GameType.'intro.html');	
   
   // Always shill for games!
-  if (accepting_bids() && ($GameType == "Conference" || $GameType == "Show"))
+  if (accepting_bids() && ($GameType == "MasterClass" || $GameType == "Show"))
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
 	include(TEXT_DIR.'/acceptingbids.html');	
@@ -2995,8 +2995,8 @@ function list_games_alphabetically ($GameType="")
   $whereclause ="";
   if ($GameType != "")
     $whereclause = " WHERE GameType='".$GameType."'";
-  if ( $GameType == "Conference" )
-    $whereclause = " WHERE GameType='Panel' OR GameType='Class'";
+  else
+    $whereclause = "";   // list all events if no type specified
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
@@ -3050,11 +3050,14 @@ function list_this_game($row, $GameType)
 
 	// get the teachers or panelists 
 
-        // Is "Conference" a valid GameType? 
-  if ($GameType == "Conference" )
-  {
+     
+     // Show event leaders for all event types - 
+     // CODE REVIEW: Do we want to restrict to certain types?  
+    
+//  if ($GameType == "Conference" )
+//  {
     show_gms($row);
-  }
+//  }
   if ('' != $row->ShortBlurb)
     echo "<br>\n$row->ShortBlurb\n";
   if ('' != $row->Fee)
@@ -4223,8 +4226,7 @@ function update_signup_accept_player_from_waitlist ($SignupId)
 /*
  * calculate_available_slots
  *
- * Calculate what slots are available.  We try to fill the gender-specific
- * slots first, since the neutral slots can be filled by either gender.
+ * Calculate how many slots are available
  */
 
 function calculate_available_slots ($cur_male, $cur_female,
@@ -4237,47 +4239,6 @@ function calculate_available_slots ($cur_male, $cur_female,
   
   $avail_neutral = $max_neutral- $cur_male;
   return $avail_neutral > 0;
-
-  // All of the following complexity is not needed, since we're not worrying 
-  // about gender balance. This fix assumes that all participants are considered
-  // male, and the only number we're tracking is avail_neutral - is this correct?
-  //  -jpk
-
-  // Note in passing that this code is buggy in any case - it favors male 
-  // for any open slots, so it would have to be rewritten in any case! :) -jpk
-/*
-  $avail_neutral = $max_neutral;
-  $avail_male = 0;
-  $avail_female = 0;
-
-  // Calculate the number of male-specific slots that are available.  If
-  // are more men than there are male-specific slots, take the excess from
-  // the neutral slots
-
-  if ($max_male >= $cur_male)
-    $avail_male = $max_male - $cur_male;
-  else
-  {
-    $avail_male = 0;
-    $avail_neutral -= $cur_male - $max_male;
-  }
-
-  // Calculate the number of female-specific slots that are available.  If
-  // are more women than there are female-specific slots, take the excess from
-  // the neutral slots
-
-  if ($max_female >= $cur_female)
-    $avail_female = $max_female - $cur_female;
-  else
-  {
-    $avail_female = 0;
-    $avail_neutral -= $cur_female - $max_female;
-  }
-
-  // All done.  Assume that the number of remaining neutral slots is not
-  // negative...
-  return $avail_neutral > 0;
-*/
 
 }
 
