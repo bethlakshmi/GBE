@@ -33,6 +33,51 @@ function write_24_hour ($hour)
   write_centering_table($txt);
 }
 
+
+/* 
+ * time_blocks_to_datetime : returns a DateTime object representing a time of day
+ * $time_in_blocks: number of EVENT_BLOCKS since 0:00 AM/midnight
+ * $date: an optional DateTime object. If not provided, an arbitrary default
+ *        date is used.
+ */
+function time_blocks_to_datetime ($time_in_blocks, $date="NULL")
+{
+  if ($date == "NULL") {
+     $date = new DateTime("1/1/2000");
+  }
+  $time_in_minutes = $time_in_blocks * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $date -> setTime($hour, $minutes);
+//  $t = $date->format("Hi:i A");
+//   echo "blocks: $time_in_blocks   time_in_mintes: $time_in_minutes  minutes: $minutes  hour: $hour  time: $t <br>";
+  return $date;
+}
+
+/* 
+ * blocktime_to_string : returns a string representing this time as a string
+ * $time_in_blocks: the number of EVENT_BLOCKS since midnight (00:00 AM)
+ * $format: an optional format string. See PHP datetime man page for options.
+ *     default format renders time of 27 as "1:30 PM" 
+ */
+function  blocktime_to_string($time_in_blocks, $format="H:i A")
+{
+  $time = time_blocks_to_datetime($time_in_blocks);
+  return $time -> format($format);
+}
+ 
+
+/*
+ * write_time_block : write a database time to the page as a formatted string
+ * $time_in_blocks: time, represented as number of EVENT_BLOCKS since midnight 
+ * $format: an optional format string. See PHP datetime man page for options.
+ */
+
+function write_time_block($time_in_blocks, $format = "H:i A")
+{
+  write_centering_table(blocktime_to_string($time_in_blocks, $format)); 
+}
+
 /*
  * write_cell
  *
