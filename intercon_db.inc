@@ -332,12 +332,18 @@ define (MAX_TRACKS, 15);
 // then the schema needs to be updated.
 define (THURS_MIN, 12);    // 12 noon
 define (THURS_MAX, 24);    // 7AM
-define (FRI_MIN, 8);    // 12 noon
-define (FRI_MAX, 24);    // 7AM
-define (SAT_MIN, 8);     // 8AM
-define (SAT_MAX, 24);    // 7AM
-define (SUN_MIN, 8);     // 8AM
-define (SUN_MAX, 24);    // 4PM
+define (FRI_MIN, 23);    // 12 noon
+define (FRI_MAX, 48);    // Midnight
+define (SAT_MIN, 16);     // 8AM
+define (SAT_MAX, 48);    // Midnight
+define (SUN_MIN, 17);     // 8AM
+define (SUN_MAX, 48);    // Midnight
+
+
+// Events are scheduled in blocks of EVENT_BLOCK minutes
+
+define (EVENT_BLOCK, 30); 
+
 
 define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
 define (SESSION_LOGIN_USER_PRESENTER, 'LoginUserPresent_' . CON_ID);
