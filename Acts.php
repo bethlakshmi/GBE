@@ -758,7 +758,7 @@ function display_bid_form ($first_try)
     echo "  <tr>\n";
     echo "     <td colspan=\"2\">\n";
     echo "      &nbsp;<br clear=all>\n";
-    echo "      Link to Video<br>\n";
+    echo "      Link to Video <br>\n";
     if ( strpos($_POST["VideoSource"],FILE_UPLOAD_LOC) === FALSE )
       printf ('      <textarea name="VideoURL" cols="80" rows="1" wrap="physical">' .
 	  "%s</textarea>\n", $_POST["VideoSource"]);
@@ -769,9 +769,9 @@ function display_bid_form ($first_try)
     echo "  </tr>\n";
 
 
-    form_upload("...OR_upload A VIDEO", "video_upload");
+    //form_upload("...OR_upload A VIDEO (video must be under 50 MB) ", "video_upload");
     
-    form_upload("Please_upload a photograph of yourself","photo_upload",TRUE);
+    form_upload("Please_upload a photograph of yourself (photo must be under 10 MB)","photo_upload",TRUE);
 
     if (isset($_POST["VideoSource"]) && isset($_POST["PhotoSource"]))
       display_media($_POST["PhotoSource"], $_POST["VideoSource"], "Current");
@@ -966,8 +966,8 @@ function process_bid_form(&$ActIsPaidFor)
   
   $ActIsPaidFor = false;
   
-  if (out_of_sequence ())
-    return display_sequence_error (false);
+//  if (out_of_sequence ())
+//    return display_sequence_error (false);
 
   //dump_array ('$_POST', $_POST);
 

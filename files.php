@@ -8,7 +8,7 @@ $EXTENSIONS["video"] = array("video/x-m4v", "video/quicktime");
 
 $FILE_SIZES = array();
 $FILE_SIZES["picture"]= 1048576;
-$FILE_SIZES["video"]= 52228800;
+$FILE_SIZES["video"]= 60000000;
 
 
 /*
