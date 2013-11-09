@@ -386,15 +386,8 @@ function show_away_schedule_form ()
 
     // Find out what runs the user is signed up for
 
-    $sql = 'SELECT Signup.RunId, Signup.State,';
-    $sql .= ' Runs.Day, Runs.StartHour, Events.Hours';
-    $sql .= ' FROM Signup, Runs, Events ';
-    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-    $sql .= '  AND Runs.RunId=Signup.RunId';
-    $sql .= '  AND Events.EventId=Runs.EventId';
-    $sql .= '  AND Signup.State<>"Withdrawn"';
+    $result = get_signed_up_runs();
 
-    $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ('Query for signup list failed');
 
@@ -434,6 +427,7 @@ function show_away_schedule_form ()
   echo "<INPUT TYPE=HIDDEN NAME=AwayId VALUE=$AwayId>\n";
 
   // Display the schedule for each day
+  // HEADS UP! THIS IS WHERE THE SCHEDULE IS GENERATED!!!
 
   schedule_day ('Fri', $away_fri, $fri_hours,
 		     $signed_up_runs,
@@ -445,9 +439,28 @@ function show_away_schedule_form ()
 		     $signed_up_runs,
 			 $logged_in, false);
 
+  //
+
   // Display the schedule footer
   display_schedule_footer($logged_in);
   
+}
+
+
+/*
+ * Ask the database what runs the user is signed up for
+ */
+
+function get_signed_up_runs()
+{
+    $sql = 'SELECT Signup.RunId, Signup.State,';
+    $sql .= ' Runs.Day, Runs.StartHour, Events.Hours';
+    $sql .= ' FROM Signup, Runs, Events ';
+    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= '  AND Runs.RunId=Signup.RunId';
+    $sql .= '  AND Events.EventId=Runs.EventId';
+    $sql .= '  AND Signup.State<>"Withdrawn"';
+    return mysql_query ($sql);
 }
 
 
@@ -547,7 +560,7 @@ function display_event ($hour, $away_all_day, $away_hours,
     $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
 
   
-  echo "<div style=\"".$dimensions->getCSS()."\">";
+  echo "<div class=\"class12\" style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
   echo "</div>\n";
 }
@@ -639,7 +652,7 @@ function display_event_with_counts($hour, $row, $dimensions,
 		    $not_counted_for_run,
 		    $waitlisted_for_run);
 
-  echo "<div style=\"".$dimensions->getCSS()."\">";
+  echo "<div class=\"class13\" style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
   echo "</div>\n";
 }
@@ -660,7 +673,7 @@ function display_special_event($row, $dimensions, $bgcolor) {
     $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
   
 
-  echo "<div style=\"".$dimensions->getCSS()."\">";
+  echo "<div class=\"class14\" style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
   echo "</div>\n";
 }
@@ -672,8 +685,8 @@ function display_schedule_runs_in_div($block, $eventRuns, $css,
   
   $runDimensions = $block->getRunDimensions();
   
-  echo "<div style=\"$css\">";
-  echo "<div style=\"position: relative; height: 100%; width: 100%;\">";
+  echo "<div class=\"class15\" style=\"$css\">";
+  echo "<div class=\"class16\" style=\"position: relative; height: 100%; width: 100%;\">";
 
   foreach ($runDimensions as $dimensions) {
 	$runId = $dimensions->run->id;
@@ -735,12 +748,33 @@ function get_signup_counts($run_ids) {
   return $signup_counts;
 }
 
+
+/**
+ * Print the schedule for a given day, as a table
+ */
 function schedule_day ($day, $away_all_day, $away_hours,
 			    $signed_up_runs,
 				$show_away_column, $show_counts)
 {
   $show_debug_info = user_has_priv (PRIV_SCHEDULING);
   
+
+  if ($day == "Fri") {
+     $today_start = FRI_MIN;
+     $today_end = FRI_MAX;
+  }
+
+  if ($day == "Sat") {
+     $today_start = SAT_MIN;
+     $today_end = SAT_MAX;
+  }
+  if ($day == "Sun") {
+     $today_start = SUN_MIN;
+     $today_end = SUN_MAX;
+  }
+
+  echo "<H1>$day</H1><br>";
+
   // Get the day's events
 
   $sql = 'SELECT Runs.RunId, Runs.Track, Runs.TitleSuffix, Runs.StartHour,';
@@ -776,8 +810,8 @@ function schedule_day ($day, $away_all_day, $away_hours,
   $volunteerRuns = array();
   $eventRuns = array();
   
-  $mainBlock = new ScheduleBlock();
-  $volunteerBlock = new ScheduleBlock();
+  $mainBlock = new ScheduleBlock($today_start);
+  $volunteerBlock = new ScheduleBlock($today_end);
 
   while ($row = mysql_fetch_object ($result))
   {
@@ -785,8 +819,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	
 	if ($row->IsOps == "Y" || $row->IsConSuite == "Y") {
 	  $volunteerRuns[$row->RunId] = $row;
-	  $volunteerBlock->addEventRun($pcsgRun);
-	  
+	  $volunteerBlock->addEventRun($pcsgRun);	  
 	} else {
 	  $eventRuns[$row->RunId] = $row;
 	  $mainBlock->addEventRun($pcsgRun);
@@ -897,38 +930,38 @@ function schedule_day ($day, $away_all_day, $away_hours,
   $volunteer_width = ($volunteerBlock->maxColumns / $maxColumns) * 100 . "%";
   
   // main wrapper for the whole schedule
-  echo "<div style=\"position: relative; border: 1px black solid; min-width: $full_width;\">\n";
+  echo "<div class=\"class1\" style=\"position: relative; border: 1px black solid; min-width: $full_width;\">\n";
   
   // left column: times
-  echo "<div style=\"position: relative; width: $time_width; float: left;\">\n";
-  echo "<div style=\"width: 100%; height: 30px;\">\n";
+  echo "<div class=\"time_col\" style=\"position: relative; width: $time_width; float: left;\">\n";
+  echo "<div class=\"time_head\" style=\"width: 100%; height: 30px;\">\n";
   write_centering_table("<b>Time</b>\n");
   echo "</div>\n";
   
-  echo "<div style=\"position: relative; width: 100%; height: $full_height;\">\n";
+  echo "<div class=\"time_cell\" style=\"position: relative; width: 100%; height: $full_height;\">\n";
   for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
-	echo "<div style=\"position: absolute; ";
+	echo "<div class=\"class2\" style=\"position: absolute; ";
 	echo "width: 100%; left: 0%; ";
 	echo "top: " . ((($hour - $blockStart) / $mainBlock->getHours()) * 100.0) . "%; ";
 	echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
 	echo "\">\n";
-	
-	write_24_hour($hour);
-	
+ 	
+//	write_24_hour($hour);
+	write_time_block($hour);	
 	echo "</div>";
   }
   echo "</div></div>";
   
   // right column: away checkboxes or totals
   if ($show_away_column || $show_counts) {
-	echo "<div style=\"position: relative; width: ";
+	echo "<div class=\"class3\" style=\"position: relative; width: ";
 	if ($show_away_column) {
 	  echo $away_width;
 	} else {
 	  echo $totals_width;
 	}
 	echo "; float: right;\">";
-    echo "<div style=\"height: 30px; width: 100%;\">";
+    echo "<div class=\"class4\" style=\"height: 30px; width: 100%;\">";
 	if ($show_away_column) {
       write_centering_table("<b><a href=\"#Away\">Away</a></b>");
 	} else {
@@ -936,9 +969,9 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	}
     echo "</div>";
 
-	echo "<div style=\"position: relative; height: $full_height; width: 100%;\">";
+	echo "<div class=\"class5\" style=\"position: relative; height: $full_height; width: 100%;\">";
 	for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
-	  echo "<div style=\"position: absolute; font-weight: bold; ";
+	  echo "<div class= \"class6\" style=\"position: absolute; font-weight: bold; ";
 	  echo "width: 100%; left: 0%; ";
 	  echo "top: " . ((($hour - $blockStart) / $mainBlock->getHours()) * 100.0) . "%; ";
 	  echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
@@ -961,7 +994,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
   }
   
   // main column: events and volunteer track
-  echo "<div style=\"position: relative; margin-left: $time_width; ";
+  echo "<div class=\"class7\" style=\"position: relative; margin-left: $time_width; ";
   // ie6 and 7 hacks to give this div hasLayout=true
   echo "_height: 0; min-height: 0;";
   if ($show_away_column) {
@@ -970,7 +1003,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	echo " margin-right: $totals_width;";
   }
   echo "\">";  
-  echo "<div style=\"height: 30px; width: $events_width;\">";
+  echo "<div class=\"class8\" style=\"height: 30px; width: $events_width;\">";
   write_centering_table("<b>Events</b>");
   echo "</div>";
 
@@ -985,10 +1018,10 @@ function schedule_day ($day, $away_all_day, $away_hours,
   echo "</div>";
   
   display_schedule_runs_in_div($volunteerBlock, $volunteerRuns,
-							   "position: absolute; right: 0px; top: 30px; width: $volunteer_width; height: $full_height;",
-							   $hour, $away_all_day, $away_hours,
-							   $signed_up_runs, $signup_counts,
-							   $show_counts);
+	  "position: absolute; right: 0px; top: 30px; width: $volunteer_width; height: $full_height;",
+	  $hour, $away_all_day, $away_hours,
+	  $signed_up_runs, $signup_counts,
+	  $show_counts);
 
   echo "</div>";
 
@@ -996,7 +1029,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 
   if ($show_away_column)
   {
-    echo "<div style=\"text-align: center;\">\n";
+    echo "<div class=\"button_wrapper\" style=\"text-align: center;\">\n";
     echo "<INPUT TYPE=SUBMIT VALUE=\"Update Away Settings\"/>\n";
     echo "</div>\n";
   }
@@ -3567,7 +3600,7 @@ function show_signups ()
       return display_mysql_error ('Query failed for CSV', $sql);
 
 
-    echo "<DIV NOWRAP>\n";
+    echo "<DIV class=\"class10\" NOWRAP>\n";
     while ($row = mysql_fetch_object ($result))
     {
       if (empty ($gms[$row->UserId]))
@@ -3889,7 +3922,7 @@ function show_all_signups ()
       return display_mysql_error ('Query failed for CSV players', $sql);
 
 
-    echo "<DIV NOWRAP>\n";
+    echo "<DIV class=\"class11\" NOWRAP>\n";
     while ($row = mysql_fetch_object ($result))
     {
       if (empty ($gms[$row->UserId]))
