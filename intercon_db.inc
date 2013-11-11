@@ -332,7 +332,7 @@ define (MAX_TRACKS, 15);
 // then the schema needs to be updated.
 define (THURS_MIN, 12);    // 12 noon
 define (THURS_MAX, 24);    // 7AM
-define (FRI_MIN, 23);    // 12 noon
+define (FRI_MIN, 24);    // 12 noon
 define (FRI_MAX, 48);    // Midnight
 define (SAT_MIN, 16);     // 8AM
 define (SAT_MAX, 48);    // Midnight
@@ -1123,12 +1123,13 @@ function form_start_hour ($display, $key)
   echo "    <TD ALIGN=RIGHT>$display:</TD>\n";
   echo "    <TD>\n";
   echo "      <SELECT NAME=$key SIZE=1>\n";
-  for ($t = 8; $t < 8 + 23; $t++)
+  for ($t = 16; $t < 48; $t++)
   {
     // Convert the hour into a string with AM/PM notation, and calling
     // out noon and midnight
 
     $v = start_hour_to_am_pm ($t);
+
 
     $sel = '';
     if (array_key_exists ($key, $_POST))
@@ -1654,7 +1655,8 @@ function validate_day_time_by_val ($time, $day)
   $max_hour_text = start_hour_to_am_pm ($max_hour);
 
   return display_error ("Invalid start time (time = $time) specified for $day." .
-			"Valid times are $min_hour_text to $max_hour_text.");
+//			"Valid times are $min_hour_text to $max_hour_text.");
+			"Valid times are $min_hour to $max_hour.");
 }
 /*
  * validate_players
@@ -1695,9 +1697,21 @@ function validate_players ($gender)
 
 function start_hour_to_am_pm ($t)
 {
+  // Start times in EVENT_BLOCKs 
+
+  // duplicating code from intercon_schedule, because includes are causing errors
+  // To do: refactor to eliminate duplication
+
+  $time_in_minutes = $t * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $dt = new DateTime();
+  $dt -> setTime($hour, $minutes);
+
+  return $dt->format("H:i A");
+/*
   // Start times go from 8 to 31, which correspond to 8AM to 7AM 'that night'
   // Noon and Midnight are handled specially
-
   $h = $t % 24;
 
   if (12 == $h)
@@ -1710,6 +1724,8 @@ function start_hour_to_am_pm ($t)
     return $h . ' AM';
   else
     return $h - 12 . ' PM';
+*/
+
 }
 
 /*
