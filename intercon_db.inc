@@ -1708,7 +1708,7 @@ function start_hour_to_am_pm ($t)
   $dt = new DateTime();
   $dt -> setTime($hour, $minutes);
 
-  return $dt->format("H:i A");
+  return $dt->format("h:i A");
 /*
   // Start times go from 8 to 31, which correspond to 8AM to 7AM 'that night'
   // Noon and Midnight are handled specially
