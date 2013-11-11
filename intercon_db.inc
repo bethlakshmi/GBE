@@ -1653,10 +1653,11 @@ function validate_day_time_by_val ($time, $day)
 
   $min_hour_text = start_hour_to_am_pm ($min_hour);
   $max_hour_text = start_hour_to_am_pm ($max_hour);
+  $err_time = start_hour_to_am_pm ($time);
+ 
+  return display_error ("Invalid start time (time = $err_time) specified for $day." .
+			"Valid times are $min_hour_text to $max_hour_text.");
 
-  return display_error ("Invalid start time (time = $time) specified for $day." .
-//			"Valid times are $min_hour_text to $max_hour_text.");
-			"Valid times are $min_hour to $max_hour.");
 }
 /*
  * validate_players
