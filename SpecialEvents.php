@@ -118,7 +118,8 @@ function display_special_event_form ()
   form_text (64, 'Event Text', 'Title');
   form_day ('Day');
   form_start_hour ('Start Hour', 'StartHour');
-  form_text (2, 'Hours');
+  form_text (2, 'Blocks', "Hours");
+  echo "<h3>Events are scheduled in half-hour \"blocks\", so 2 blocks = 1 hour, 3 blocks = 90 minutes, etc.</h3><br>";
   
   echo "  <tr>\n";
   echo "    <td>\n";
@@ -130,7 +131,7 @@ function display_special_event_form ()
   echo "  <tr>\n";
   echo "    <td colspan=2>\n";
   echo "      Leave the descriptions blank if you don't want them included\n";
-  echo "      in the list of games or to have a \"game page\".\n";
+  echo "      in the list of events or to have a \"event page\".\n";
   echo "    </td>\n";
   echo "  </tr>\n";
   form_textarea ('Short Description', 'ShortBlurb', 4, TRUE, TRUE);
