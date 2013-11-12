@@ -59,6 +59,7 @@ switch ($action)
 
 html_end ();
 
+
 /*
  * display_special_event_form
  *
@@ -270,7 +271,7 @@ function process_special_event_form ()
 /*
  * list_special events
  *
- * List the special events in the database ord ered by time
+ * List the special events in the database ordered by time
  */
 
 function list_special_events ()
@@ -300,13 +301,13 @@ function list_special_events ()
   echo "    <th>Special Event</th>\n";
   echo "    <th>Day</th>\n";
   echo "    <th>Start Time</th>\n";
-  echo "    <th>Hours</th>\n";
+  echo "    <th>Blocks</th>\n";
   echo "    <th>Room(s)</th>\n";
   echo "  </tr>\n";
 
   while ($row = mysql_fetch_object ($result))
   {
-    $start_time = start_hour_to_12_hour ($row->StartHour);
+    $start_time = start_hour_to_am_pm ($row->StartHour);
 
     echo "  <tr valign=\"top\">\n";
     printf ("    <td><a href=\"SpecialEvents.php?action=%d&RunId=%d\">%s</a>\n",
@@ -321,5 +322,7 @@ function list_special_events ()
   }
   echo "</table>\n";
 }
+
+
 
 ?>
