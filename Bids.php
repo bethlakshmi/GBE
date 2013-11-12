@@ -651,10 +651,10 @@ function display_bid_form ($first_try)
     form_text (64, 'Email for inquries/updates', 'GameEMail', 128, TRUE);
 
     $eventlengthtext = $gametype;
-    $eventlengthtext .= ' Length (hours):';
+    $eventlengthtext .= ' Length (half-hour blocks):';
     if ($gametype == 'Class')
     {
-	    $HOURS = array('1','2');
+	    $HOURS = array('1','2','3','4');
         $choice = $_POST['Hours'];
         echo "  <tr>\n";
         echo "    <td align=\"right\">$eventlengthtext </td>\n";
@@ -671,7 +671,7 @@ function display_bid_form ($first_try)
         echo "    <td align=\"right\">$eventlengthtext </td>\n";
         echo '    <td align="left">';
         echo "<i>Panels are 1 hour long</i>";
-	form_hidden_value ('Hours', 1);        
+	form_hidden_value ('Hours', 2);        
         echo "    </td>\n";
         echo "  </tr>\n";
     }
