@@ -673,7 +673,7 @@ function display_special_event($row, $dimensions, $bgcolor) {
     $text .= '<br>' . pretty_rooms($row->Rooms) . "\n";
   
 
-  echo "<div class=\"class14\" style=\"".$dimensions->getCSS()."\">";
+  echo "<div class=\"schedule_event\" style=\"".$dimensions->getCSS()."\">";
   write_centering_table($text, $bgcolor);
   echo "</div>\n";
 }
@@ -685,8 +685,8 @@ function display_schedule_runs_in_div($block, $eventRuns, $css,
   
   $runDimensions = $block->getRunDimensions();
   
-  echo "<div class=\"class15\" style=\"$css\">";
-  echo "<div class=\"class16\" style=\"position: relative; height: 100%; width: 100%;\">";
+  echo "<div class=\"sched_block_wrapper1\" style=\"$css\">";
+  echo "<div class=\"sched_block_wrapper_1\" style=\"position: relative; height: 100%; width: 100%;\">";
 
   foreach ($runDimensions as $dimensions) {
 	$runId = $dimensions->run->id;
@@ -930,17 +930,17 @@ function schedule_day ($day, $away_all_day, $away_hours,
   $volunteer_width = ($volunteerBlock->maxColumns / $maxColumns) * 100 . "%";
   
   // main wrapper for the whole schedule
-  echo "<div class=\"class1\" style=\"position: relative; border: 1px black solid; min-width: $full_width;\">\n";
+  echo "<div class=\"sched_main_wrapper\" style=\"position: relative; border: 1px black solid; min-width: $full_width;\">\n";
   
   // left column: times
   echo "<div class=\"time_col\" style=\"position: relative; width: $time_width; float: left;\">\n";
-  echo "<div class=\"time_head\" style=\"width: 100%; height: 30px;\">\n";
+  echo "<div class=\"time_head\" style=\"width: 100%; height: 30px; text-align:center\">\n";
   write_centering_table("<b>Time</b>\n");
   echo "</div>\n";
   
-  echo "<div class=\"time_cell\" style=\"position: relative; width: 100%; height: $full_height;\">\n";
+  echo "<div class=\"sched_time_cell_outer\" style=\"position: relative; width: 100%; height: $full_height;\">\n";
   for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
-	echo "<div class=\"class2\" style=\"position: absolute; ";
+	echo "<div class=\"sched_time_cell_inner\" style=\"position: absolute; ";
 	echo "width: 100%; left: 0%; ";
 	echo "top: " . ((($hour - $blockStart) / $mainBlock->getHours()) * 100.0) . "%; ";
 	echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
@@ -954,7 +954,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
   
   // right column: away checkboxes or totals
   if ($show_away_column || $show_counts) {
-	echo "<div class=\"class3\" style=\"position: relative; width: ";
+	echo "<div class=\"sched_checkboxes\" style=\"position: relative; width: ";
 	if ($show_away_column) {
 	  echo $away_width;
 	} else {
@@ -1003,7 +1003,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	echo " margin-right: $totals_width;";
   }
   echo "\">";  
-  echo "<div class=\"class8\" style=\"height: 30px; width: $events_width;\">";
+  echo "<div class=\"sched_block_title\" style=\"height: 30px; width: $events_width;\">";
   write_centering_table("<b>Events</b>");
   echo "</div>";
 
@@ -3600,7 +3600,7 @@ function show_signups ()
       return display_mysql_error ('Query failed for CSV', $sql);
 
 
-    echo "<DIV class=\"class10\" NOWRAP>\n";
+    echo "<DIV class=\"sched_day0\" NOWRAP>\n";
     while ($row = mysql_fetch_object ($result))
     {
       if (empty ($gms[$row->UserId]))
