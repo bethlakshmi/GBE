@@ -409,12 +409,6 @@ function show_away_schedule_form ()
           case 'Sun': $sun_hours[$h] = 'Hidden'; break;
 	}
       }
-      switch ($row->Day)
-      {
-        case 'Fri': $away_fri = 'Hidden'; break;
-        case 'Sat': $away_sat = 'Hidden'; break;
-        case 'Sun': $away_sun = 'Hidden'; break;
-      }
     }
   }
 
@@ -491,35 +485,17 @@ function display_schedule_footer($logged_in) {
   echo "</TABLE>\n";
 
   echo "</FORM>\n";
-
-  if ($logged_in)
-  {
-    echo "<A NAME=Away><H2>Time Away from the ".CON_NAME."</H2></A>\n";
-    echo "Please let us know when you'll be away from the convention.  This\n";
-    echo "will help us plan the schedule.<P>\n";
-    echo "You can specify that you'll be away for the entire day by simply\n";
-    echo "marking the checkbox after the day and date.  Or you can specify\n";
-    echo "individual hours by marking the checkboxes next to the time.<p>\n";
-    echo "Note that on a day you are teaching, presenting, performing, or volunteering, you cannot\n";
-    echo "specify you'll be away for that period or that entire day.<p>\n";
-    echo "Similarly, if you've specified that you'll be away from the Expo,\n";
-    echo "you cannot signup for any schedule item.";
-  }
 }
 
 	/**
 	* Display an event.
 	* $hour :
-	* $away_all_day :
-	* $away_hours :
 	* $row :
 	* $dimensions :
 	* $signed_up_runs : 
 	* $signup_counts :
 	*/
-function display_event ($hour, $away_all_day, $away_hours,
-			$row, $dimensions, $signed_up_runs,
-			$signup_counts)
+function display_event ($hour,	$row, $dimensions, $signed_up_runs, $signup_counts)
 {
   $bgcolor = "#FFFFFF";
   $game_full = false;
@@ -538,8 +514,6 @@ function display_event ($hour, $away_all_day, $away_hours,
   }
   elseif ($game_full)
     $bgcolor = get_bgcolor_hex ('Full');
-  elseif (away_for_game($away_all_day, $row))
-    $bgcolor = get_bgcolor_hex ('Away');
   elseif ('Y' == $row->CanPlayConcurrently)
     $bgcolor = get_bgcolor_hex ('CanPlayConcurrently');
  
@@ -565,29 +539,6 @@ function display_event ($hour, $away_all_day, $away_hours,
   echo "</div>\n";
 }
 
-
-/** 
-* away_for_game: return true if player is away during the game session
-* $away_all_day : 
-* $row : An event row
-*/
-
-function away_for_game($away_all_day, $row ) 
-{
-  if ('CHECKED' == $away_all_day) {
-     return true;
-  }
-  for ($h = $row->StartHour; $h < $row->StartHour + $row->Hours; $h++)
-  {
-    if ('CHECKED' == $away_hours[$h])
-    {
-      $away_for_game = true;
-      break;
-    }
-  }
-
-  return $away_for_game;
-}
 
 function display_event_with_counts($hour, $row, $dimensions,
 				   $signup_counts)
@@ -699,7 +650,7 @@ function display_schedule_runs_in_div($block, $eventRuns, $css,
 		display_event_with_counts ($hour, $row, $dimensions,
 				 $signup_counts[$row->RunId]);
 	  } else {
-		display_event ($hour, $away_all_day, $away_hours, $row, $dimensions,
+		display_event ($hour, $row, $dimensions,
 					 $signed_up_runs, $signup_counts[$row->RunId]);		
 	  }
 	}
@@ -804,8 +755,6 @@ function schedule_day ($day, $away_all_day, $away_hours,
   // automatically
 
   echo "<h2>" . day_to_date ($day) . "</h2>\n";
-  if (('Hidden' != $away_all_day) && $show_away_column)
-    echo "<input type=checkbox $away_all_day name=$day value=1> Away all day\n";
 	
   $volunteerRuns = array();
   $eventRuns = array();
@@ -911,9 +860,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
   // calculate the minimum schedule width in pixels
   $full_width = $maxColumns * 90;
   $full_width += $time_width;
-  if ($show_away_column) {
-    $full_width += $away_width;
-  }
+
   if ($show_counts) {
 	$full_width += $totals_width;
   }
@@ -953,53 +900,41 @@ function schedule_day ($day, $away_all_day, $away_hours,
   echo "</div></div>";
   
   // right column: away checkboxes or totals
-  if ($show_away_column || $show_counts) {
-	echo "<div class=\"sched_checkboxes\" style=\"position: relative; width: ";
-	if ($show_away_column) {
-	  echo $away_width;
-	} else {
-	  echo $totals_width;
-	}
-	echo "; float: right;\">";
-    echo "<div class=\"class4\" style=\"height: 30px; width: 100%;\">";
-	if ($show_away_column) {
-      write_centering_table("<b><a href=\"#Away\">Away</a></b>");
-	} else {
-	  write_centering_table("<b>Totals</b>");
-	}
-    echo "</div>";
+  if ( $show_counts) {
+     echo "<div class=\"sched_checkboxes\" style=\"position: relative; width: ";
+     $totals_width;
+     echo "; float: right;\">";
+     echo "<div class=\"class4\" style=\"height: 30px; width: 100%;\">";
+     write_centering_table("<b>Totals</b>");
+     echo "</div>";
 
-	echo "<div class=\"class5\" style=\"position: relative; height: $full_height; width: 100%;\">";
-	for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
+     echo "<div class=\"class5\" style=\"position: relative; height: $full_height; width: 100%;\">";
+     for ($hour = $blockStart; $hour < $blockEnd; $hour++) {
 	  echo "<div class= \"class6\" style=\"position: absolute; font-weight: bold; ";
 	  echo "width: 100%; left: 0%; ";
 	  echo "top: " . ((($hour - $blockStart) / $mainBlock->getHours()) * 100.0) . "%; ";
 	  echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
 	  echo "\">";
 	  
-	  if ($show_away_column) {
-		write_away_checkbox ($away_hours[$hour], $day, $hour, $away_all_day);
-	  } else if ($show_counts) {
-        $k = sprintf ('%s%02d', $day, $hour);
-		write_totals ($avail_min[$hour], $avail_pref[$hour], $avail_max[$hour],
-		    $total_confirmed[$hour],
-		    $total_not_counted[$hour],
-		    $total_waitlisted[$hour],
-		    $away[$k] + $away[$day]);
-	  }
-	  
+	 if ($show_counts) {
+            $k = sprintf ('%s%02d', $day, $hour);
+	    write_totals ($avail_min[$hour], $avail_pref[$hour], $avail_max[$hour],
+	    $total_confirmed[$hour],
+	    $total_not_counted[$hour],
+	    $total_waitlisted[$hour],
+	    $away[$k] + $away[$day]);
+	 } 
 	  echo "</div>";
-	}
-	echo "</div></div>";
+    }
+    echo "</div></div>";
   }
   
   // main column: events and volunteer track
   echo "<div class=\"class7\" style=\"position: relative; margin-left: $time_width; ";
   // ie6 and 7 hacks to give this div hasLayout=true
   echo "_height: 0; min-height: 0;";
-  if ($show_away_column) {
-	echo " margin-right: $away_width;";
-  } else if ($show_counts) {
+
+  if ($show_counts) {
 	echo " margin-right: $totals_width;";
   }
   echo "\">";  
@@ -1027,12 +962,6 @@ function schedule_day ($day, $away_all_day, $away_hours,
 
   echo "</div>";
 
-  if ($show_away_column)
-  {
-    echo "<div class=\"button_wrapper\" style=\"text-align: center;\">\n";
-    echo "<INPUT TYPE=SUBMIT VALUE=\"Update Away Settings\"/>\n";
-    echo "</div>\n";
-  }
 }
 
 function write_away_checkbox ($cur_state, $day, $hour, $away_all_day)
