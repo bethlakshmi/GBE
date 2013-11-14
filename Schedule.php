@@ -423,15 +423,9 @@ function show_away_schedule_form ()
   // Display the schedule for each day
   // HEADS UP! THIS IS WHERE THE SCHEDULE IS GENERATED!!!
 
-  schedule_day ('Fri', $away_fri, $fri_hours,
-		     $signed_up_runs,
-			 $logged_in, false);
-  schedule_day ('Sat', $away_sat, $sat_hours,
-		     $signed_up_runs,
-			 $logged_in, false);
-  schedule_day ('Sun', $away_sun, $sun_hours,
-		     $signed_up_runs,
-			 $logged_in, false);
+  schedule_day ('Fri', $signed_up_runs,  false);
+  schedule_day ('Sat', $signed_up_runs, false);
+  schedule_day ('Sun', $signed_up_runs,  false);
 
   //
 
@@ -476,11 +470,6 @@ function display_schedule_footer($logged_in) {
   echo "    <TD>Opportunity is full</TD>\n";
   echo "    <TD" . get_bgcolor ('CanPlayConcurrently') . ">$spaces</TD>\n";
   echo "    <TD>Does not require a schedule commitment</TD>\n";
-  if ($logged_in)
-  {
-    echo "    <TD" . get_bgcolor ('Away') . ">$spaces</TD>\n";
-    echo "    <TD>Away</TD>\n";
-  }
   echo "  </TR>\n";
   echo "</TABLE>\n";
 
@@ -540,10 +529,8 @@ function display_event ($hour,	$row, $dimensions, $signed_up_runs, $signup_count
 }
 
 
-function display_event_with_counts($hour, $row, $dimensions,
-				   $signup_counts)
+function display_event_with_counts($hour, $row, $dimensions, $signup_counts)
 {
-
   $male_confirmed = $signup_counts["Male"];
   $female_confirmed = $signup_counts["Female"];
   $total_confirmed = $male_confirmed + $female_confirmed;
@@ -629,10 +616,9 @@ function display_special_event($row, $dimensions, $bgcolor) {
   echo "</div>\n";
 }
 
-function display_schedule_runs_in_div($block, $eventRuns, $css,
-									  $hour, $away_all_day, $away_hours,
-									  $signed_up_runs, $signup_counts,
-									  $show_counts) {
+function display_schedule_runs_in_div($block, $eventRuns, $css, $hour, 
+	 				      $signed_up_runs, $signup_counts,
+		  			      $show_counts) {
   
   $runDimensions = $block->getRunDimensions();
   
@@ -650,14 +636,19 @@ function display_schedule_runs_in_div($block, $eventRuns, $css,
 		display_event_with_counts ($hour, $row, $dimensions,
 				 $signup_counts[$row->RunId]);
 	  } else {
-		display_event ($hour, $row, $dimensions,
-					 $signed_up_runs, $signup_counts[$row->RunId]);		
+		display_event ($hour, $row, $dimensions,  $signed_up_runs, $signup_counts[$row->RunId]);		
 	  }
 	}
   }
   
   echo "</div></div>";
 }
+
+
+/* 
+ * get_signup_counts
+ * Function specification here. 
+ */
 
 function get_signup_counts($run_ids) {
   $signup_counts = array();
@@ -703,12 +694,9 @@ function get_signup_counts($run_ids) {
 /**
  * Print the schedule for a given day, as a table
  */
-function schedule_day ($day, $away_all_day, $away_hours,
-			    $signed_up_runs,
-				$show_away_column, $show_counts)
+function schedule_day ($day, $signed_up_runs, $show_counts)
 {
   $show_debug_info = user_has_priv (PRIV_SCHEDULING);
-  
 
   if ($day == "Fri") {
      $today_start = FRI_MIN;
@@ -839,22 +827,9 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	away_init ($away, 'Fri', FRI_MIN, FRI_MAX, 0);
 	away_init ($away, 'Sat', SAT_MIN, SAT_MAX, 0);
 	away_init ($away, 'Sun', SUN_MIN, SUN_MAX, 0);
-  
-	$sql = 'SELECT * FROM Away';
-	$result = mysql_query ($sql);
-	if (! $result)
-	  return display_mysql_error ('Query for away records failed', $sql);
-  
-	while ($row = mysql_fetch_array ($result))
-	{
-	  away_add ($away, $row, 'Fri', FRI_MIN, FRI_MAX);
-	  away_add ($away, $row, 'Sat', SAT_MIN, SAT_MAX);
-	  away_add ($away, $row, 'Sun', SUN_MIN, SUN_MAX);
-	}
   }
   
   $time_width = 70;
-  $away_width = 70;
   $totals_width = 125;
   
   // calculate the minimum schedule width in pixels
@@ -866,7 +841,6 @@ function schedule_day ($day, $away_all_day, $away_hours,
   }
   $full_width .= "px";
   $time_width .= "px";
-  $away_width .= "px";
   $totals_width .= "px";
   
   // this controls how tall the table is - increasing/decreasing multiplier
@@ -893,13 +867,12 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	echo "height: " . (100.0 / $mainBlock->getHours()) . "%;";
 	echo "\">\n";
  	
-//	write_24_hour($hour);
 	write_time_block($hour);	
 	echo "</div>";
   }
   echo "</div></div>";
   
-  // right column: away checkboxes or totals
+  // right column:  totals
   if ( $show_counts) {
      echo "<div class=\"sched_checkboxes\" style=\"position: relative; width: ";
      $totals_width;
@@ -921,8 +894,7 @@ function schedule_day ($day, $away_all_day, $away_hours,
 	    write_totals ($avail_min[$hour], $avail_pref[$hour], $avail_max[$hour],
 	    $total_confirmed[$hour],
 	    $total_not_counted[$hour],
-	    $total_waitlisted[$hour],
-	    $away[$k] + $away[$day]);
+	    $total_waitlisted[$hour]);
 	 } 
 	  echo "</div>";
     }
@@ -943,10 +915,9 @@ function schedule_day ($day, $away_all_day, $away_hours,
   echo "</div>";
 
   display_schedule_runs_in_div($mainBlock, $eventRuns,
-							   "width: $events_width; height: $full_height;",
-							   $hour, $away_all_day, $away_hours,
-							   $signed_up_runs, $signup_counts,
-							   $show_counts);
+					   "width: $events_width; height: $full_height;",
+					   $hour, $signed_up_runs, $signup_counts,
+					   $show_counts);
   
   echo "<div style=\"position: absolute; height: 30px; right: 0px; top: 0px; width: $volunteer_width;\">";
   write_centering_table("<b>Volunteer</b>");
@@ -954,14 +925,9 @@ function schedule_day ($day, $away_all_day, $away_hours,
   
   display_schedule_runs_in_div($volunteerBlock, $volunteerRuns,
 	  "position: absolute; right: 0px; top: 30px; width: $volunteer_width; height: $full_height;",
-	  $hour, $away_all_day, $away_hours,
-	  $signed_up_runs, $signup_counts,
-	  $show_counts);
-
+	  $hour, $signed_up_runs, $signup_counts,  $show_counts);
   echo "</div>";
-
   echo "</div>";
-
 }
 
 function write_away_checkbox ($cur_state, $day, $hour, $away_all_day)
@@ -1028,9 +994,9 @@ function display_schedule_with_counts ()
   echo "/<FONT COLOR=red>&lt;waitlisted&gt</FONT>/&lt;away&gt; players for this game or hour<P>\n";
   echo "The Totals column includes an extra entry for the number of players who\n";
   echo "have indicated that they will be away that hour<p>\n";
-  schedule_day ('Fri', array(), array(), array(), false, true);
-  schedule_day ('Sat', array(), array(), array(), false, true);
-  schedule_day ('Sun', array(), array(), array(), false, true);
+  schedule_day ('Fri', array(), true);
+  schedule_day ('Sat', array(), true);
+  schedule_day ('Sun', array(), true);
 
   $spaces = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 
@@ -1050,16 +1016,16 @@ function display_schedule_with_counts ()
 }
 
 function write_totals ($min, $pref, $max,
-		       $confirmed, $not_counted, $waitlisted, $away)
+		       $confirmed, $not_counted, $waitlisted)
 {
   $txt = sprintf ('<NOBR>%d/%d/%d</NOBR><BR>' .
 		  '<NOBR><FONT color=green>%d</FONT>/' .
 		  '<FONT color=blue>%d</FONT>/' .
-		  '<FONT COLOR=red>%d</FONT>/' .
-		  '%d<BR>Players: %d</NOBR>',
+		  '<FONT COLOR=red>%d</FONT>' .
+		  '<BR>Players: %d</NOBR>',
 		  $min, $pref, $max,
-		  $confirmed, $not_counted, $waitlisted, $away,
-		  $confirmed + $not_counted + $waitlisted + $away);
+		  $confirmed, $not_counted, $waitlisted,
+		  $confirmed + $not_counted + $waitlisted);
 
   write_centering_table($txt);
 }
