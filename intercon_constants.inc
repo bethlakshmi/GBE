@@ -326,6 +326,9 @@ $GM_TYPES['Panel'] = 'Panelist(s)';
 $GM_TYPES['Show'] =  'Cast & Crew';
 $GM_TYPES['Special'] = 'OnSite Coordinator(s)';
 $GM_TYPES['Ops'] = 'Coordinator(s)';
+$GM_TYPES['Call'] = 'Show Staff';
+$GM_TYPES['Act Rehearsal Slot'] = 'Show Staff';
+$GM_TYPES['Tech Rehearsal'] = 'Show Staff';
 
 global $PANELIST_TYPE;
 $PANELIST_TYPE = array("nothing", "panelist", "moderator");
