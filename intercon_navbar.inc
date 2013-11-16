@@ -245,11 +245,11 @@ function build_larps_subnavbar() {
   $larpSection->push(NavBarItem::newAction("Shopping", "Schedule.php", LIST_GAMES,NULL,'Vendors'));
   $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
-    $larpSection->push(NavBarItem::newAction('Player Signups', 'UserSignupScan.php'));
+    $larpSection->push(NavBarItem::newAction('Signups', 'UserSignupScan.php'));
     $larpSection->push(NavBarItem::newAction('Last 100 Signups', 'SignupSpy.php'));    
     $larpSection->push(NavBarItem::newAction('All Signups', 'SignupSpy.php', SHOW_ALL_SIGNUPS));
     $larpSection->push(NavBarItem::newAction('Signups with Choice #s', 'Choice1.php'));
-    $larpSection->push(NavBarItem::newAction('Games by Choice', 'Choice3.php'));
+    $larpSection->push(NavBarItem::newAction('Events by Choice', 'Choice3.php'));
   }
   return $larpSection;
 }
