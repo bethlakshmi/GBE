@@ -2088,13 +2088,13 @@ function show_bid_feedback_summary()
   //  dump_array ('$committee_users', $committee_users);
 
   $sql = 'SELECT Bids.Title, Bids.Status, BidStatus.BidStatusId,';
-  $sql .= ' BidStatus.Consensus, BidStatus.Issues,';
+  $sql .= ' BidStatus.Consensus, BidStatus.Issues, Users.EMail, Users.DisplayName,';
   $sql .= ' DATE_FORMAT(BidStatus.LastUpdated, "<nobr>%d-%b</nobr> %H:%i") AS LastUpdated';
-  $sql .= '  FROM BidStatus, Bids';
-  $sql .= '  WHERE Bids.BidId=BidStatus.BidId';
+  $sql .= '  FROM BidStatus, Bids, Users';
+  $sql .= '  WHERE Bids.BidId=BidStatus.BidId and Users.UserId=Bids.UserId and Bids.Status != "Draft" ';
   $sql .= $submitFilter;
 
-  $sql .= '  ORDER BY BidStatus.Consensus, Bids.Title';
+  $sql .= '  ORDER BY BidStatus.Consensus, Users.DisplayName';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -2110,6 +2110,7 @@ function show_bid_feedback_summary()
 
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";
+  echo "    <th align=\"left\">Submitter</th>\n";
   echo "    <th align=\"left\">Act</th>\n";
   echo "    <th>Status / Updated</th>\n";
   foreach ($committee as $key => $value)
@@ -2232,6 +2233,7 @@ function show_bid_feedback_summary()
 			  $row->BidStatusId);
 
     echo "  <tr valign=\"top\" bgcolor=\"$bgcolor\">\n";
+    echo "    <TD ALIGN=LEFT><A HREF=mailto:$row->EMail>$row->DisplayName</A></TD>\n";
     echo "    <td>$title</td>\n";
     echo "    <td><b>$Consensus It</b><br>$row->LastUpdated</td>\n";
 
