@@ -1,5 +1,6 @@
 <?php
 include ("gbe_signup.inc");
+include ("gbe_event.inc");
 
 /* gbe_Run.inc - defines the baselines for Run management.
  * 
@@ -29,7 +30,10 @@ class Run
     public $Viewable;
     public $UpdatedById;
     public $LastUpdated;
-	
+    
+    // link to an Event class object representing the general information
+    //  about this run.  Only loaded when setEvent is set to one in convert_from_sql_row.
+	public $Event;
 
 	/* function load_from_Runid
 	 * 
@@ -63,9 +67,11 @@ class Run
      * select query.	 
 	 *
 	 * $row: an object row from the Runs table. 
+	 * $setEvent:  whether to setup an associated Event as well, row must have the 
+	 *   relevant information.
 	 * Returns: nothing.
 	 */
-	function convert_from_sql_row($row)
+	function convert_from_sql_row($row,$setEvent=0)
 	{
         $this->RunId = (int)$row->RunId;
         $this->EventId = (int)$row->EventId;
@@ -79,7 +85,13 @@ class Run
         $this->Rooms = (string)$row->Rooms;
         $this->Viewable = (string)$row->Viewable;
         $this->UpdatedById = (int)$row->UpdatedById;
-        $this->LastUpdated = (string)$row->LastUpdated;				
+        $this->LastUpdated = (string)$row->LastUpdated;			
+        
+        if ($setEvent) {
+          $Event = new Event();
+          $Event->convert_from_sql_row($row);
+          $this->Event = $Event;
+        }
 	}
 	
 	/* function convert_from_array
@@ -193,10 +205,10 @@ class Run
 			return display_mysql_error ('Cannot execute query', $sql);
 
  		// delete signups
- 		remove_run_signups($this->RunId)
+ 		remove_run_signups($this->RunId);
 		
 	}
-}
+} // class run
 
 /* function remove_event_runs
  * 
@@ -227,4 +239,114 @@ function remove_event_runs($EventId)
   $result = mysql_query($sql);
   if (!$result)
     return display_mysql_error ('Cannot execute query', $sql); 		
+}
+
+/* function get_conference_bookings
+ * 
+ * Function retrieves all runs and associated events for classes and panels.
+ *
+ * Returns: 
+ *   $Bookings - reference to an array of bookings where the key of the array 
+ *     the key of the array is <StartHour>-<Rooms> for the run in the format stored
+ *     in the DB. 
+ *   $Rooms - reference to the list of rooms applicable for this conference.  Key and 
+ *     value are fine.
+ */
+function get_conference_bookings(&$Bookings, &$Rooms)
+{
+  $Bookings = array();
+  $Rooms = array();
+
+  $sql = "select * from Runs, Events where (Events.GameType = \"Class\" or ";
+  $sql .= "Events.GameType = \"Panel\") and Events.EventId = Runs.EventId ";
+  $sql .= "order by Rooms, Day, StartHour";
+  
+  $result = mysql_query($sql);
+  
+  if (!$result)
+    return display_mysql_error ('Cannot execute query', $sql);
+		
+  while ($row = mysql_fetch_object($result))
+  {
+    $run = new Run();
+    $run->convert_from_sql_row($row, 1);
+	$Bookings[$run->StartHour."-".$run->Rooms]=$run;
+	$Rooms[$run->Rooms]=$run->Rooms;
+  }
+
+}
+
+
+/* function get_volunteer_bookings
+ * 
+ * Function retrieves all runs and associated events for events with volunteer 
+ *     opportunities - they are all labeled Ops, but have different GameType values.
+ *     It includes only events with no Viewable setting as these are the public signup events.
+ *
+ * Returns: 
+ *   $Bookings - reference to an array of bookings where the key of the array 
+ *     the key of the array is <StartHour>-<Title> for the run in the format stored
+ *     in the DB.  
+ *   $Tracks - reference to the list of tracks for this conference.  Key and 
+ *     value are fine.
+ */
+function get_volunteer_bookings(&$Bookings, &$Tracks)
+{
+  $Bookings = array();
+  $Tracks = array();
+
+  $sql = "select * from Runs, Events where Events.IsOps = \"Y\" and ";
+  $sql .= "Runs.Viewable is NULL and Events.EventId = Runs.EventId ";
+  $sql .= "order by Title, Day, StartHour";
+  
+  $result = mysql_query($sql);
+  
+  if (!$result)
+    return display_mysql_error ('Cannot execute query', $sql);
+		
+  while ($row = mysql_fetch_object($result))
+  {
+    $run = new Run();
+    $run->convert_from_sql_row($row, 1);
+	$Bookings[$run->StartHour."-".$run->Event->Title]=$run;
+	$Tracks[$run->Event->Title]=$run->Event->Title;
+  }
+
+}
+
+/* function get_general_bookings
+ * 
+ * Function retrieves all runs and associated events for general conference events.
+ *   These are labeled as SpecialEvent = 1, and include Shows, Drop-In Classes, 
+ *   Master Classes, and other special events.
+ *
+ * Returns: 
+ *   $Bookings - reference to an array of bookings where the key of the array 
+ *     the key of the array is <StartHour>-<Rooms> for the run in the format stored
+ *     in the DB. 
+ *   $Rooms - reference to the list of rooms applicable for this conference.  Key and 
+ *     value are fine.
+ */
+function get_general_bookings(&$Bookings, &$Rooms)
+{
+  $Bookings = array();
+  $Rooms = array();
+
+  $sql = "select * from Runs, Events where Events.SpecialEvent = \"1\" ";
+  $sql .= "and Events.EventId = Runs.EventId ";
+  $sql .= "order by Rooms, Day, StartHour";
+  
+  $result = mysql_query($sql);
+  
+  if (!$result)
+    return display_mysql_error ('Cannot execute query', $sql);
+		
+  while ($row = mysql_fetch_object($result))
+  {
+    $run = new Run();
+    $run->convert_from_sql_row($row, 1);
+	$Bookings[$run->StartHour."-".$run->Rooms]=$run;
+	$Rooms[$run->Rooms]=$run->Rooms;
+  }
+
 }

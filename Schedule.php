@@ -2960,10 +2960,13 @@ function list_games_alphabetically ($GameType="")
   }
   
   $whereclause ="";
-  if ($GameType != "")
-    $whereclause = " WHERE GameType='".$GameType."'";
-  else
-    $whereclause = "";   // list all events if no type specified
+  if ($GameType == "Conference")
+    $whereclause .= " WHERE GameType='Class' or GameType='Panel'";
+  else if ($GameType == "Ops")
+    $whereclause .= " WHERE GameType='Ops' or GameType='Tech Rehearsal'";  
+  else if ($GameType != "")
+    $whereclause .= " WHERE GameType='".$GameType."'";
+  
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
@@ -3030,7 +3033,7 @@ function list_this_game($row, $GameType)
   if ('' != $row->Fee)
     echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
   echo "</p>\n";
-  }
+}
 
 
 function show_gms($row){
