@@ -322,6 +322,8 @@ $SPECIAL_EVENT_TYPES = array('Special','Show','MasterClass','Drop-In');
 global $GM_TYPES;
 $GM_TYPES = array();
 $GM_TYPES['Class'] = 'Teacher(s)';
+$GM_TYPES['Drop-In'] = 'Teacher(s)';
+$GM_TYPES['MasterClass'] = 'Teacher(s)';
 $GM_TYPES['Panel'] = 'Panelist(s)';
 $GM_TYPES['Show'] =  'Cast & Crew';
 $GM_TYPES['Special'] = 'OnSite Coordinator(s)';
