@@ -4271,49 +4271,4 @@ function withdraw_user_from_all_games ()
   return TRUE;
 }
 
-/*
- * convert_age_to_year
- *
- * Convert all user's ages to birth year.  This should only be used once!
- * In fact, the function should be commented out after it's been used!
- */
-
-/*
- * Already done
-function convert_age_to_year()
-{
-  // Only do this if the user has Staff priv
-
-  if (! user_has_priv (PRIV_STAFF))
-    return;
-
-  // Convert the Age column to BirthYear
-
-  $this_year = intval (date ('Y'));
-
-  $sql = 'SELECT FirstName, LastName, UserId, Age FROM Users';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get users and ages!', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-  {
-    if (0 == $row->Age)
-      $BirthYear = 0;
-    else
-      $BirthYear = $this_year - $row->Age;
-
-    echo "$row->LastName, $row->FirstName: $row->Age => $BirthYear<br>\n";
-
-    $sql = sprintf ('UPDATE Users SET BirthYear=%d WHERE UserId=%s',
-		    $BirthYear,
-		    $row->UserId);
-    $update_result = mysql_query ($sql);
-    if (! $update_result)
-      return display_mysql_error ('Attempt to update user failed', $sql);
-  }
-}
-*/
-
 ?>
