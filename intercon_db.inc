@@ -527,10 +527,11 @@ function is_user($user_id)
 
 function to_secs ($start_time)
 {
-  $t = $start_time * EVENT_BLOCK  
+  $t = $start_time * EVENT_BLOCK;
   return (mktime (intval ($t / 60),  // Hours
-                  intval ($t %,60    // Minutes
+                  intval ($t % 60),    // Minutes
       	          0));               // Seconds
+  
 }
 
 /*
