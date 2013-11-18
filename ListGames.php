@@ -1,9 +1,10 @@
 <?php
-define (LIST_BY_GAME, 1);
-define (LIST_BY_RUNID, 2);
-define (LIST_BY_TIME, 3);
+define ('LIST_BY_GAME', 1);
+define ('LIST_BY_RUNID', 2);
+define ('LIST_BY_TIME', 3);
 
 include ("intercon_db.inc");
+include ("signup_controller.inc");
 
 global $LIST_GAME_TEXT;
 $LIST_GAME_TEXT = "\n";
@@ -623,7 +624,7 @@ function process_add_run ()
 
   // Start by fetching the title
 
-  $sql = "SELECT Title, GameType FROM Events WHERE EventId=$EventId";
+  $sql = "SELECT Title, GameType, Hours FROM Events WHERE EventId=$EventId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_error ("Cannot query title for EventId $EventId: " . mysql_error ());
@@ -636,6 +637,7 @@ function process_add_run ()
 
   $row = mysql_fetch_object ($result);
   $Title = $row->Title;
+  $Hours = $row->Hours;
 
   // If DeleteRun is one of the Post parameters, this must be an update request
   // and the user has asked us to delete a run.
@@ -674,7 +676,40 @@ function process_add_run ()
 
     return true;
   }
+  // if we're not deleting a run, check for conflicts
+  else
+  {
+    // Start by fetching the GMs
+    $waitlist_conflicts = array();
+    $day = $_POST['Day'];
+    $start_hour = $_POST['StartHour'];
+    $end_hour = $start_hour + $Hours;
+    $sql = "SELECT Users.UserId, Users.DisplayName FROM GMs, Users ";
+    $sql .= "WHERE GMs.EventId=$EventId and Users.UserId=GMs.UserId";
+    
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_error ("Cannot query Presenters for EventId $EventId: " . mysql_error ());
 
+    while( $row = mysql_fetch_object ($result))
+    {
+      $status = check_for_conflicts($row->UserId, $start_hour, $end_hour, $day, 
+					&$waitlist_conflicts);
+	  if ($status == SIGNUP_FAIL)
+	    display_error("Scheduling problem was found for ".$row->DisplayName);
+	  if (sizeof($waitlist_conflicts) > 1)
+	  {
+        echo $row->DisplayName." is currently waitlisted for the following games ";
+        echo "which conflict with this run:\n";
+        echo "<UL>\n";
+        foreach ($waitlist_conflicts as $k=>$v)
+          echo "<LI>$v\n";
+        echo "</UL>\n";
+      }
+
+    } // iterate GMs
+  }
+  
   global $OPS_TYPES;
   if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
        || $row->GameType == $OPS_TYPES[3] )

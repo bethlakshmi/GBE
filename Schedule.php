@@ -1,7 +1,4 @@
 <?php
-define (SIGNUP_FAIL, 0);
-define (SIGNUP_OK, 1);
-define (SIGNUP_CONFIRM, 2);
 
 include ("intercon_schedule.inc");
 include ("pcsg.inc");
@@ -10,6 +7,7 @@ include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
 include ("gbe_event.inc");
 include ("WhosWho.inc");
+include ("signup_controller.inc");
 
 // Connect to the database
 
@@ -1868,128 +1866,8 @@ function display_tickets_for_event($EventId)
 	}
 }
 
-/*
- * confirm_signup
- *
- * Ask the user to confirm that he wants to signup for a game when he's
- * got conflicted waitlists
- */
-
-function confirm_signup ($conflict_array, $Title, $EventId, $RunId)
-{
-  echo "You are currently waitlisted for the following games which conflict\n";
-  echo "with <I>$Title</I>:\n";
-
-  echo "<UL>\n";
-  foreach ($conflict_array as $k=>$v)
-    echo "<LI>$v\n";
-  echo "</UL>\n";
-
-  echo "You cannot be waitlisted for any game which conflicts with a game\n";
-  echo "you are signed up for.<P>\n";
-
-  echo "Click the button to confirm that you want to withdraw from the\n";
-  echo "waitlist for these games, or choose a different game to signup for.\n";
-
-  echo "<FORM METHOD=POST ACTION=Schedule.php>\n";
-  form_add_sequence ();
-  printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", SCHEDULE_SIGNUP);
-  echo "<INPUT TYPE=HIDDEN NAME=RunId VALUE=$RunId>\n";
-  echo "<INPUT TYPE=HIDDEN NAME=EventId VALUE=$EventId>\n";
-  echo "<INPUT TYPE=HIDDEN NAME=Confirmed VALUE=1>\n";
-  echo "<CENTER>\n";
-  echo "<INPUT TYPE=SUBMIT VALUE=\"Withdraw from conflicts and signup for game\">\n";
-  echo "</CENTER>\n";
-  echo "</FORM>\n";
-
-  return SIGNUP_CONFIRM;
-}
 
 
-/*
- * signup_user_for_game
- *
- * Signup the logged in user for the specified run or a game
- */
-
-function signup_user_for_game ($RunId, $EventId, $Title,
-			       $user_is_gm,
-			       $max_male, $max_female, $max_neutral,
-			       $waitlist_conflicts, $withdraw_from_conflicts,
-			       &$signup_result)
-{
-  // Get the signup counts for the run
-
-  $confirmed = array ();
-  $waitlisted = array ();
-
-  if (! get_counts_for_run ($RunId, $confirmed, $waitlisted))
-    return SIGNUP_FAIL;
-
-  if ($user_is_gm)
-  {
-    $counts_towards_total = 'N';
-    $game_full = false;
-  }
-  else
-  {
-    $counts_towards_total = 'Y';
-    $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
-			    $confirmed['Male'], $confirmed['Female'],
-			    $max_male, $max_female, $max_neutral, $confirmed['']);
-  }
-
-  if ($game_full)
-    $state = 'Waitlisted';
-  else
-  {
-    $state = 'Confirmed';
-  }
-  
-  // If the array of conflicting games the user is waitlisted on is not
-  // empty, display a form asking the user to confirm the he wants us to
-  // drop him from the waitlisted games
-
-  //    echo 'Waitlist_conflicts: ' . count($waitlist_conflicts) . "<P>\n";
-
-  if ((0 != count ($waitlist_conflicts)) && (! $withdraw_from_conflicts))
-    return confirm_signup ($waitlist_conflicts, $Title, $EventId, $RunId);
-
-  //  echo "State: $state<P>\n";
-
-  $sql = 'INSERT INTO Signup SET UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-  $sql .= build_sql_string ('RunId', $RunId);
-  $sql .= build_sql_string ('State', $state);
-  $sql .= build_sql_string ('Gender', $_SESSION[SESSION_LOGIN_USER_GENDER]);
-  $sql .= build_sql_string ('Counted', $counts_towards_total);
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
-
-  //  echo $sql . "<p>\n";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-  {
-    display_mysql_error ('Failed to signup for game');
-    return SIGNUP_FAIL;
-  }
-
-  // If we've gotten this far, and there are conflicting games that the user
-  // is waitlisted on, then he's confirmed that we're supposed to withdraw
-  // him from them.  So do it.
-
-  if (0 != count ($waitlist_conflicts))
-  {
-    foreach ($waitlist_conflicts as $k => $v)
-      withdraw_from_game ($k);
-  }
-
-  if ($game_full)
-    $signup_result = 'been wait listed for';
-  else
-    $signup_result = 'signed up for';
-
-  return SIGNUP_OK;
-}
 
 
 /*
@@ -4488,6 +4366,55 @@ function process_add_gm ()
   $UserId = intval (trim ($_REQUEST ['UserId']));
   $Role = trim ($_REQUEST ['Role']);
 
+  // Get the list of runs and check for conflicts
+
+  $sql = 'SELECT Events.Title, Events.Hours, Events.CanPlayConcurrently,';
+  $sql .= ' Runs.StartHour, Runs.Day';
+  $sql .= ' FROM Runs, Events';
+  $sql .= ' WHERE Events.EventId=' . $EventId;
+  $sql .= '  AND Events.EventId=Runs.EventId';
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Cannot query database for run information');
+    return SIGNUP_FAIL;
+  }
+  $waitlist_conflicts = array ();
+
+  // Extract the event information
+  while ($row = mysql_fetch_object ($result))
+  { 
+  //echo "Checking conflict for ".$row->Title;
+    $game_title = $row->Title;
+    $game_hours = $row->Hours;
+    $game_day = $row->Day;
+    $game_start_hour = $row->StartHour;
+    $game_end_hour = $row->StartHour + $row->Hours;
+
+    $can_play_game_concurrently = $row->CanPlayConcurrently;
+    if ($can_play_game_concurrently == "N")
+    {
+      $status = check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
+                        $waitlist_conflicts);
+                        
+      if ($status == SIGNUP_FAIL)
+        display_error("The run with a conflict for ".$game_title." is at ".
+            start_hour_to_12_hour ($game_start_hour)." for ".$game_hours." blocks.");
+    }
+	if (sizeof($waitlist_conflicts) > 1)
+	{
+      echo "The presenter is currently waitlisted for the following games which conflict\n";
+      echo "with <I>$Title</I>:\n";
+
+      echo "<UL>\n";
+      foreach ($waitlist_conflicts as $k=>$v)
+        echo "<LI>$v\n";
+      echo "</UL>\n";
+    }
+
+  }
+  
   // Make him a GM
 
   $sql = "INSERT INTO GMs SET EventId=$EventId,";

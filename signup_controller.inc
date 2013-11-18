@@ -1,0 +1,470 @@
+<?php
+
+define ('SIGNUP_FAIL', 0);
+define ('SIGNUP_OK', 1);
+define ('SIGNUP_CONFIRM', 2);
+
+
+
+/*
+ * process_signup_request
+ *
+ * The user has requested to signup for this game.  Make sure there are no
+ * conflicts, and that the game isn't full, then add a record to the Signup
+ * table.
+ */
+
+function process_signup_request ()
+{
+  // Make sure the user is logged in
+
+  if (! is_logged_in ())
+  {
+    display_error ('You must be <a href="index.php">logged in</a> to signup for any event');
+    return SIGNUP_FAIL;
+  }
+
+  $UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+  
+  // Check for a sequence error
+
+  if (out_of_sequence ())
+    return display_sequence_error (SIGNUP_FAIL);
+
+  // Extract the EventId and RunId and make sure the user isn't already
+  // signed up for this game
+
+  $EventId = trim ($_REQUEST['EventId']);
+  $RunId = trim ($_REQUEST['RunId']);
+  $withdraw_from_conflicts = isset ($_REQUEST['Confirmed']);
+
+  // Get the information about this run
+
+  $sql = 'SELECT Events.Title, Events.Hours, Events.IsOps, Events.IsConSuite,';
+  $sql .= ' Events.MaxPlayersNeutral, Events.CanPlayConcurrently,';
+  $sql .= ' Runs.StartHour, Runs.Day';
+  $sql .= ' FROM Runs, Events';
+  $sql .= ' WHERE Runs.RunId=' . $RunId;
+  $sql .= '  AND Events.EventId=Runs.EventId';
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Cannot query database for run information');
+    return SIGNUP_FAIL;
+  }
+
+  // This should have matched exactly one row
+
+  if (0 == mysql_num_rows ($result))
+  {
+    display_error ("Failed to find event information for RunId $RunId");
+    return SIGNUP_FAIL;
+  }
+
+  // Extract the game information
+
+  $row = mysql_fetch_object ($result);
+
+  $game_title = $row->Title;
+  $game_hours = $row->Hours;
+  $game_day = $row->Day;
+  $can_play_game_concurrently = $row->CanPlayConcurrently;
+  $is_ops = $row->IsOps == 'Y';
+  $is_consuite = $row->IsConSuite == 'Y';
+  $max_neutral = $row->MaxPlayersNeutral;
+
+  // I could differentiate this by sex, but not now
+
+  //  $game_max = $row->MaxPlayersMale +
+  //              $row->MaxPlayersFemale +
+  //              $row->MaxPlayersNeutral;
+
+  $game_start_hour = $row->StartHour;
+  $game_end_hour = $row->StartHour + $row->Hours;
+  $game_start_time = start_hour_to_12_hour ($game_start_hour);
+  $game_end_time = start_hour_to_12_hour ($game_end_hour);
+
+  // Is the user a GM for this game?
+
+  $sql = 'SELECT GMs.GMId';
+  $sql .= ' FROM GMs';
+  $sql .= " WHERE GMs.EventId=$EventId";
+  $sql .= '   AND GMs.UserId=' . $UserId;
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Cannot query database for GM status', $sql);
+    return SIGNUP_FAIL;
+  }
+
+  $user_is_gm = mysql_num_rows ($result) > 0;
+
+  // Make sure that the user isn't trying to violate the signup limits
+
+  if (! $user_is_gm)
+  {
+    $signups_allowed = con_signups_allowed ();
+    switch ($signups_allowed)
+    {
+      case 0:
+	    display_error ('Signups are not allowed at this time');
+	    return SIGNUP_FAIL;
+
+      case UNLIMITED_SIGNUPS:  // No limits
+	    break;
+
+      default:
+
+    }
+  }
+
+  $waitlist_conflicts = array ();
+
+  if ('N' == $can_play_game_concurrently)
+  {
+    $status = check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
+                        $waitlist_conflicts);
+    if ($status != SIGNUP_OK)
+      return $status;
+  }
+
+  // We lock the Signup table to make sure that if there are two users trying
+  // to get the last slot in a game, then only one will succeed.  A READ lock
+  // allows clients that only read the table to continue, but will block
+  // clients that attempt to write to the table
+
+  $result = mysql_query ('LOCK TABLE Signup WRITE, Users READ, Runs Read, Events Read, GMs Read');
+  if (! $result)
+  {
+    display_mysql_error ('Failed to lock the Signup table');
+    return SIGNUP_FAIL;
+  }
+
+  // Make sure there's room in the game, and add a signup record if there is
+
+  $signup_ok = signup_user_for_game ($RunId, $EventId, $game_title,
+				     $user_is_gm,
+				     $max_male, $max_female, $max_neutral,
+				     $waitlist_conflicts,
+				     $withdraw_from_conflicts,
+				     $signup_result);
+
+  // Unlock the Signup table so that other queries can access it
+
+  $result = mysql_query ('UNLOCK TABLES');
+  if (! $result)
+  {
+    display_mysql_error ('Failed to unlock the Signup table');
+    return SIGNUP_FAIL;
+  }
+
+  if (SIGNUP_OK != $signup_ok)
+    return $signup_ok;
+
+  echo "You have $signup_result <I>$game_title</I> on $game_day, ";
+  echo start_hour_to_12_hour ($game_start_hour) . ' - ';
+  echo start_hour_to_12_hour ($game_end_hour);
+  echo "<P>\n";
+
+  // Notify any GMs who have requested notification of signups
+
+  if ('signed up for' == $signup_result)
+    $type = 'Signup';
+  else
+  {
+    $type = 'Waitlist';
+
+    echo "If you are at the head of the waitlist and a player withdraws\n";
+    echo "from the game, you will automatically be signed up for this\n";
+    echo "game<P>\n";
+  }
+
+  notify_gms ($EventId, $game_title, $game_day, $game_start_hour,
+	      $signup_result, $type);
+
+  return SIGNUP_OK;
+}
+
+/* check_for_conflicts
+ *
+ *  Performs the check of a given user's availability within a proposed 
+ *    timeframe.  
+ *  $UserId = the user to compare conflicts for
+ *  $game_start_hour = the start time of the booking
+ *  $game_end_hour = the end time of the booking
+ *  $game_day = the day of the game
+ *  $waitlist_conflicts - an array of any conflict with events the user is waitlisted in.
+ *     pass in as an array.
+ *  Returns:
+ *    SIGNUP_FAIL = 0
+ *    SIGNUP_OK = 1
+ */
+ 
+function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
+					&$waitlist_conflicts)
+{
+  // Get the list of event runs the user is already registered for which may
+  // conflict with this one
+  $sql = 'SELECT Events.Title, Events.Hours,';
+  $sql .= '      Runs.StartHour, Runs.EventId,';
+  $sql .= '      Signup.SignupId, Signup.State';
+  $sql .= ' FROM Signup, Runs, Events';
+  $sql .= ' WHERE Signup.UserId=' . $UserId;
+  $sql .= '  AND Runs.RunId=Signup.RunId';
+  $sql .= '  AND Events.EventId=Runs.EventId';
+  $sql .= "  AND Events.CanPlayConcurrently='N'";
+  $sql .= '  AND Signup.State!="Withdrawn"';
+  $sql .= "  AND Runs.Day='$game_day'";
+  $sql .= "  AND Runs.StartHour<$game_end_hour";
+
+ //    echo "$sql<p>\n";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Cannot query database for conflicting events', $sql);
+    return SIGNUP_FAIL;
+  }
+
+  // Scan through the returned list looking for a conflict
+
+/*
+    echo "$game_title<br>\n";
+    echo "   Start hour: $game_start_hour ($game_start_time)<br>\n";
+    echo "   End hour: $game_end_hour ($game_end_time)<p>\n";
+
+    echo 'Rows: ' . mysql_num_rows ($result) . "<p>\n";
+*/
+
+  while ($row = mysql_fetch_object ($result))
+  {
+    $row_start_hour = $row->StartHour;
+    $row_end_hour = $row_start_hour + $row->Hours;
+
+    // If the game the user is already registered for runs into this one,
+    // or if the game the user is already registered for starts during this
+    // on, there's a conflict and the user cannot register for this game
+/*
+      echo "Checking <i>$row->Title</I><br>\n";
+      echo "State: $row->State<br>\n";
+      echo " row_start_hour: $row_start_hour<br>\n";
+      echo " row_end_hour: $row_end_hour<p>\n";
+*/
+
+    if (($row_end_hour > $game_start_hour) &&
+    ($row_start_hour < $game_end_hour))
+    {
+      // If this is a confirmed game, tell the user that he has to withdraw
+      // from the game before he can signup for this one
+
+      if ('Waitlisted' == $row->State)
+      {
+        $row_start_time = start_hour_to_12_hour ($row_start_hour);
+        $row_end_time = start_hour_to_12_hour ($row_end_hour);
+        $waitlist_conflicts[$row->SignupId] = $row->Title .
+ 	                                 " ($row_start_time - $row_end_time)";
+      }
+      else
+      {
+	    $error = sprintf ("There is an existing commitment for " .
+			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
+			    '<I>%s</I></A> at %s which conflicts with this time slot',
+			    SCHEDULE_SHOW_GAME, 
+			    $row->EventId,
+			    $row->Title, start_hour_to_12_hour ($row_start_hour));
+	    display_error ($error);
+	    return SIGNUP_FAIL;
+	  }
+    }
+  }
+
+  // Get the list of event runs the user is running as a teacher, panelist, coordinator
+  // and so forth.  The only exception is true Ops events, where the "coordinator"
+  // shouldn't have to be booked the whole time (for example, head of reg will not be 
+  // working reg desk every single hour.
+
+  $sql = 'SELECT Events.Title, Events.Hours,';
+  $sql .= '      Runs.StartHour, Runs.EventId,';
+  $sql .= '      GMs.GMId';
+  $sql .= ' FROM GMs, Runs, Events';
+  $sql .= ' WHERE GMs.UserId=' . $UserId;
+  $sql .= '  AND Events.EventId=GMs.EventId';
+  $sql .= '  AND Events.EventId=Runs.EventId';
+  $sql .= "  AND Events.CanPlayConcurrently='N'";
+  $sql .= "  AND Runs.Day='$game_day'";
+  $sql .= "  AND Runs.StartHour<$game_end_hour";
+
+  //    echo "$sql<p>\n";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Cannot query database for conflicting events',
+			   $sql);
+    return SIGNUP_FAIL;
+  }
+
+  // Scan through the returned list looking for a conflict
+
+/*
+  echo "$game_title<br>\n";
+  echo "   Start hour: $game_start_hour ($game_start_time)<br>\n";
+  echo "   End hour: $game_end_hour ($game_end_time)<p>\n";
+
+  echo 'Rows: ' . mysql_num_rows ($result) . "<p>\n";
+*/
+
+  while ($row = mysql_fetch_object ($result))
+  {
+    $row_start_hour = $row->StartHour;
+    $row_end_hour = $row_start_hour + $row->Hours;
+
+    // If the game the user is already registered for runs into this one,
+    // or if the game the user is already registered for starts during this
+    // on, there's a conflict and the user cannot register for this game
+/*
+    echo "Checking <i>$row->Title</I><br>\n";
+    echo " row_start_hour: $row_start_hour<br>\n";
+    echo " row_end_hour: $row_end_hour<p>\n";
+*/
+
+    if (($row_end_hour > $game_start_hour) && ($row_start_hour < $game_end_hour))
+    {
+      $error = sprintf ("There is a conflict with leading the following event " .
+			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
+			    '<I>%s</I></A> at %s which conflicts with this time slot',
+			    SCHEDULE_SHOW_GAME,  
+			    $row->EventId,
+			    $row->Title,
+			    $game_start_hour);
+      display_error ($error);
+      return SIGNUP_FAIL;
+    }
+  }
+  
+  return SIGNUP_OK;
+}
+
+/*
+ * signup_user_for_game
+ *
+ * Signup the logged in user for the specified run or a game
+ */
+
+function signup_user_for_game ($RunId, $EventId, $Title,
+			       $user_is_gm,
+			       $max_male, $max_female, $max_neutral,
+			       $waitlist_conflicts, $withdraw_from_conflicts,
+			       &$signup_result)
+{
+  // Get the signup counts for the run
+
+  $confirmed = array ();
+  $waitlisted = array ();
+
+  if (! get_counts_for_run ($RunId, $confirmed, $waitlisted))
+    return SIGNUP_FAIL;
+
+  if ($user_is_gm)
+  {
+    $counts_towards_total = 'N';
+    $game_full = false;
+  }
+  else
+  {
+    $counts_towards_total = 'Y';
+    $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
+			    $confirmed['Male'], $confirmed['Female'],
+			    $max_male, $max_female, $max_neutral, $confirmed['']);
+  }
+
+  if ($game_full)
+    $state = 'Waitlisted';
+  else
+  {
+    $state = 'Confirmed';
+  }
+  
+  // If the array of conflicting games the user is waitlisted on is not
+  // empty, display a form asking the user to confirm the he wants us to
+  // drop him from the waitlisted games
+
+  //    echo 'Waitlist_conflicts: ' . count($waitlist_conflicts) . "<P>\n";
+
+  if ((0 != count ($waitlist_conflicts)) && (! $withdraw_from_conflicts))
+    return confirm_signup ($waitlist_conflicts, $Title, $EventId, $RunId);
+
+  //  echo "State: $state<P>\n";
+
+  $sql = 'INSERT INTO Signup SET UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= build_sql_string ('RunId', $RunId);
+  $sql .= build_sql_string ('State', $state);
+  $sql .= build_sql_string ('Gender', $_SESSION[SESSION_LOGIN_USER_GENDER]);
+  $sql .= build_sql_string ('Counted', $counts_towards_total);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+
+  //  echo $sql . "<p>\n";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+  {
+    display_mysql_error ('Failed to signup for game');
+    return SIGNUP_FAIL;
+  }
+
+  // If we've gotten this far, and there are conflicting games that the user
+  // is waitlisted on, then he's confirmed that we're supposed to withdraw
+  // him from them.  So do it.
+
+  if (0 != count ($waitlist_conflicts))
+  {
+    foreach ($waitlist_conflicts as $k => $v)
+      withdraw_from_game ($k);
+  }
+
+  if ($game_full)
+    $signup_result = 'been wait listed for';
+  else
+    $signup_result = 'signed up for';
+
+  return SIGNUP_OK;
+}
+
+/*
+ * confirm_signup
+ *
+ * Ask the user to confirm that he wants to signup for a game when he's
+ * got conflicted waitlists
+ */
+
+function confirm_signup ($conflict_array, $Title, $EventId, $RunId)
+{
+  echo "You are currently waitlisted for the following games which conflict\n";
+  echo "with <I>$Title</I>:\n";
+
+  echo "<UL>\n";
+  foreach ($conflict_array as $k=>$v)
+    echo "<LI>$v\n";
+  echo "</UL>\n";
+
+  echo "You cannot be waitlisted for any game which conflicts with a game\n";
+  echo "you are signed up for.<P>\n";
+
+  echo "Click the button to confirm that you want to withdraw from the\n";
+  echo "waitlist for these games, or choose a different game to signup for.\n";
+
+  echo "<FORM METHOD=POST ACTION=Schedule.php>\n";
+  form_add_sequence ();
+  printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n", SCHEDULE_SIGNUP);
+  echo "<INPUT TYPE=HIDDEN NAME=RunId VALUE=$RunId>\n";
+  echo "<INPUT TYPE=HIDDEN NAME=EventId VALUE=$EventId>\n";
+  echo "<INPUT TYPE=HIDDEN NAME=Confirmed VALUE=1>\n";
+  echo "<CENTER>\n";
+  echo "<INPUT TYPE=SUBMIT VALUE=\"Withdraw from conflicts and signup for game\">\n";
+  echo "</CENTER>\n";
+  echo "</FORM>\n";
+
+  return SIGNUP_CONFIRM;
+}
