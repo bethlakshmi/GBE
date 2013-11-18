@@ -59,7 +59,7 @@ define (PRIV_MAIL_GMS, 'MailToGMs');
 define (PRIV_MAIL_ATTENDEES, 'MailToAttendees');
 define (PRIV_MAIL_ALL, 'MailToAll');
 define (PRIV_MAIL_VENDORS, 'MailToVendors');
-define (PRIV_MAIL_UNPAID, 'MailToUnpaid');
+0define (PRIV_MAIL_UNPAID, 'MailToUnpaid');
 define (PRIV_MAIL_ALUMNI, 'MailToAlumni');
 
 
@@ -1710,51 +1710,41 @@ function start_hour_to_am_pm ($t)
   $dt -> setTime($hour, $minutes);
 
   return $dt->format("h:i A");
-/*
-  // Start times go from 8 to 31, which correspond to 8AM to 7AM 'that night'
-  // Noon and Midnight are handled specially
-  $h = $t % 24;
-
-  if (12 == $h)
-    return 'Noon';
-
-  if (0 == $h)
-    return 'Midnight';
-
-  if ($h < 12)
-    return $h . ' AM';
-  else
-    return $h - 12 . ' PM';
-*/
 
 }
 
 /*
  * start_hour_to_24_hour
- *
- * Start hours go from 8 to 31, which correspond to 08:00 to 07:00 'that night'
+ * Returns formatted time for $t as 24-hour time w/o AM/PM indicator
  */
 
 function start_hour_to_24_hour ($t)
 {
-  return sprintf ('%02d:00', $t % 24);
+  $time_in_minutes = $t * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $dt = new DateTime();
+  $dt -> setTime($hour, $minutes);
+
+  return $dt->format("H:i");
+
+	
 }
 /*
  * start_hour_to_12_hour
- *
+ * Returns formatted time for $t, as 12 hour time w/o AM/PM indicator
  * Start hours go from 8 to 31, which correspond to 08:00 to 07:00 'that night'
  */
 
 function start_hour_to_12_hour ($t)
 {
-  $m = "AM";
-  if ($t>11 && $t <24)
-     $m = "PM";
-  
-  $time = $t % 12;
-  if ($time == 0) 
-    $time = 12;
-  return sprintf ('%2d:00 %s', $time, $m);
+  $time_in_minutes = $t * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $dt = new DateTime();
+  $dt -> setTime($hour, $minutes);
+
+  return $dt->format("h:i");
 }
 
 function validate_int ($key, $min, $max, $display=0)
@@ -2849,8 +2839,8 @@ function confirm_withdraw_from_game ()
   if (! $row)
     return display_error ('Failed to find signup record');
 
-  $start_time = start_hour_to_24_hour ($row->StartHour);
-  $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+  $start_time = start_hour_to_am_pm ($row->StartHour);
+  $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
   echo "<H1>Confirm Withdrawal</H1>\n";
   echo "<FORM METHOD=POST ACTION=index.php>\n";
@@ -2944,7 +2934,7 @@ function display_available_games ()
       printf ("&#149;&nbsp;&nbsp;%s - %s&nbsp;%s<br>\n",
 	      $row->Title,
 	      $row->Day,
-	      start_hour_to_24_hour ($row->StartHour));
+	      start_hour_to_am_pm ($row->StartHour));
     }
   }
   echo "<br>\n";

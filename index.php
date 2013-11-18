@@ -532,8 +532,8 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 
   while ($row = mysql_fetch_object ($result))
   {
-    $start_time = start_hour_to_12_hour ($row->StartHour);
-    $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
+    $start_time = start_hour_to_am_pm ($row->StartHour);
+    $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
     $Title = $row->Title;
     if ("" != $row->TitleSuffix)
@@ -2986,8 +2986,8 @@ function show_gm_games ($UserId, $name)
     echo "<TABLE>\n";
     while ($row = mysql_fetch_object ($result))
     {
-      $start_time = start_hour_to_24_hour ($row->StartHour);
-      $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+      $start_time = start_hour_to_am_pm ($row->StartHour);
+      $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
       echo "  <TR VALIGN=TOP>\n";
       echo "    <TD>$row->Day</TD>\n";
@@ -4162,8 +4162,8 @@ function confirm_withdraw_user_from_all_games ()
     echo "    <td>$row->State</td>\n";
     printf ("    <td>&nbsp;%s&nbsp;%s&nbsp;-&nbsp;%s&nbsp;</td>\n",
 	    $row->Day,
-	    start_hour_to_12_hour ($row->StartHour),
-	    start_hour_to_12_hour ($row->StartHour + $row->Hours));
+	    start_hour_to_am_pm ($row->StartHour),
+	    start_hour_to_am_pm ($row->StartHour + $row->Hours));
     echo "    <td>$row->Title</td>\n";
     echo "  </tr>\n";
   }
