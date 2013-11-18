@@ -4125,10 +4125,6 @@ function confirm_withdraw_user_from_all_games ()
     return display_error ('Failed to find user record');
 
   $name = trim ("$row->DisplayName");
-  if ('Male' == $row->Gender)
-    $pronoun = 'he';
-  else
-    $pronoun = 'she';
 
   // Show the games that the user is signed up or waitlisted for
 
@@ -4174,7 +4170,7 @@ function confirm_withdraw_user_from_all_games ()
     echo 'all the events';
   else
     echo 'the event';
-  echo " that $pronoun is signed up for?</p>\n";
+  echo " that s/he is signed up for?</p>\n";
 
   echo "<form method=post action=index.php>\n";
   form_add_sequence ();
