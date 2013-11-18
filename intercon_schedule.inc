@@ -49,7 +49,7 @@ function time_blocks_to_datetime ($time_in_blocks, $date="NULL")
   $hour = floor($time_in_minutes / 60);
   $minutes = $time_in_minutes % 60;
   $date -> setTime($hour, $minutes);
-//  $t = $date->format("Hi:i A");
+//  $t = $date->format("h:i A");
 //   echo "blocks: $time_in_blocks   time_in_mintes: $time_in_minutes  minutes: $minutes  hour: $hour  time: $t <br>";
   return $date;
 }
@@ -60,7 +60,7 @@ function time_blocks_to_datetime ($time_in_blocks, $date="NULL")
  * $format: an optional format string. See PHP datetime man page for options.
  *     default format renders time of 27 as "1:30 PM" 
  */
-function  blocktime_to_string($time_in_blocks, $format="H:i A")
+function  blocktime_to_string($time_in_blocks, $format="h:i A")
 {
   $time = time_blocks_to_datetime($time_in_blocks);
   return $time -> format($format);
@@ -73,7 +73,7 @@ function  blocktime_to_string($time_in_blocks, $format="H:i A")
  * $format: an optional format string. See PHP datetime man page for options.
  */
 
-function write_time_block($time_in_blocks, $format = "H:i A")
+function write_time_block($time_in_blocks, $format = "h:i A")
 {
   write_centering_table(blocktime_to_string($time_in_blocks, $format)); 
 }
@@ -100,6 +100,7 @@ function write_centering_table($content, $bgcolor="#FFFFFF") {
   echo "<td style=\"text-align: center; vertical-align: middle; overflow: hidden;\">";
   echo "<div style=\"margin-left: -1px; margin-top: -1px;\">$content</div>";
   echo "</td></tr></table>";
+
 }
 
 ?>
