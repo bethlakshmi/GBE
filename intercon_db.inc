@@ -59,7 +59,7 @@ define (PRIV_MAIL_GMS, 'MailToGMs');
 define (PRIV_MAIL_ATTENDEES, 'MailToAttendees');
 define (PRIV_MAIL_ALL, 'MailToAll');
 define (PRIV_MAIL_VENDORS, 'MailToVendors');
-0define (PRIV_MAIL_UNPAID, 'MailToUnpaid');
+define (PRIV_MAIL_UNPAID, 'MailToUnpaid');
 define (PRIV_MAIL_ALUMNI, 'MailToAlumni');
 
 
