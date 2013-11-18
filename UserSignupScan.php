@@ -109,7 +109,7 @@ function display_all_signups ()
 
   // Now gather the list of users who've signed up for games
 
-  $sql = 'SELECT Users.UserId, Users.FirstName, Users.LastName';
+  $sql = 'SELECT Users.UserId, Users.DisplayName';
   $sql .= ', Users.Nickname, Users.CanSignup, Users.EMail';
   $sql .= ', Events.Title, Events.Hours, Events.CanPlayConcurrently';
   $sql .= ', Events.EventId';
@@ -132,7 +132,7 @@ function display_all_signups ()
 
   while ($row = mysql_fetch_object ($result))
   {
-    $name = "$row->LastName, $row->FirstName";
+    $name = "$row->DisplayName";
     if (($row->Nickname != '') && ($row->Nickname != $row->FirstName))
       $name .= " ($row->Nickname)";
 
@@ -158,7 +158,7 @@ function display_all_signups ()
 	  echo ("<a name=$ch>");
 
 	printf ("<b><font size=\"+1\">%s</font></b><br>\n" .
-		"<font color=\"red\">Not signed up for any games</font>\n\n<P>\n",
+		"<font color=\"red\">Not signed up for anything</font>\n\n<P>\n",
 		$cur_name);
 
 	if ($cur_letter != $ch)
@@ -188,16 +188,7 @@ function display_all_signups ()
       $name = sprintf ('<a href=mailto:%s>%s</A>',
 		       $row->EMail,
 		       $name);
-      if ('Unpaid' == $row->CanSignup)
-	$name = sprintf ('<font color=\"red">%s - Sanity check failure!  ' .
-			 'This user is Unpaid!!!!!</font>',
-			 $name);
-      elseif ('Alumni' == $row->CanSignup)
-	$name = sprintf ('<font color=\"red\">%s - Sanity check failure!  ' .
-			 'This user is an Alumni!!!!!</font>',
-			 $name);
-      else
-	$signedup_users++;
+  	  $signedup_users++;
       printf ("<b><font size=\"+1\">%s</font></b><br>\n<table>\n",
 	      $name);
 
@@ -274,7 +265,7 @@ function display_all_signups ()
     }
 
     printf ("<b><font size=\"+1\">%s</font></b><br>\n" .
-	    "<font color=\"red\">Not signed up for any games</font>\n\n<P>\n",
+	    "<font color=\"red\">Not signed up for anything</font>\n\n<P>\n",
 	    $name);
     array_shift($users);
   }
@@ -282,7 +273,7 @@ function display_all_signups ()
   $percent = (float)$signedup_users / (float)($users_count);
   //  echo "percent: $percent<p>\n";
 
-  printf ("%d out of %d (%.1f%%) attendees have signed up for at least one game<P>\n",
+  printf ("%d out of %d (%.1f%%) attendees have signed up for at least one thing<P>\n",
 	  $signedup_users,
 	  $users_count,
 	  100.0 * $percent);

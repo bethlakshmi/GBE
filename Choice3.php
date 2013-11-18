@@ -42,8 +42,8 @@ function signup_spy ()
   if (! user_has_priv (PRIV_CON_COM))
     return display_access_error ();
 
-  echo "<H2>Games of Choice</H2>\n";
-  echo "<p>GMs are excluded from this list</p>\n";
+  echo "<H2>Event Runs of Choice</H2>\n";
+  echo "<p>The people in charge of the event are excluded from this list</p>\n";
 
   // Get the list of GMs
 
@@ -132,8 +132,8 @@ function signup_spy ()
   if ('' != $UntilGame)
   {
     echo "<i>$UntilGame</i> filled at SignupId: $max_signup_id.<br>\n";
-    echo "Note that there may be some players waitlisted for this game due\n";
-    echo "to gender quotas.<p>\n";
+    echo "Note that there may be some players waitlisted for this run due\n";
+    echo "to quotas.<p>\n";
   }
 
   $user_signups = array ();
@@ -287,10 +287,10 @@ function signup_spy ()
   echo "Numbers are presented as &quot;Confirmed / All Signups&quot;.\n";
   echo "All Signups include Confirmed, Waitlisted and Withdrawn.\n";
 
-  echo "<h3>Game Choices:</h3>\n";
+  echo "<h3>Event Choices:</h3>\n";
   echo "<table border=1>\n";
   echo "  <tr align=center>\n";
-  echo "    <th align=left valign=bottom>Game</th>\n";
+  echo "    <th align=left valign=bottom>Event</th>\n";
   for ($i = 1; $i <= 10; $i++)
     echo "    <th>&nbsp;&nbsp;$i&nbsp;&nbsp;</th>\n";
   echo "    <th>Total</th>\n";

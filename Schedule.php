@@ -1219,41 +1219,6 @@ function is_user_gm_for_game ($UserId, $EventId)
     return true;
 }
 
-/*
- * count_signed_up_games
- *
- * Count the number of games this user is signed up for
- */
-
-function count_signed_up_games ()
-{
-  $sql = 'SELECT Runs.EventId, Events.IsOps, Events.IsConSuite';
-  $sql .= ' FROM Signup, Runs, Events';
-  $sql .= ' WHERE Signup.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-  $sql .= '   AND Signup.State<>"Withdrawn"';
-  $sql .= '   AND Signup.Counted="Y"';
-  $sql .= '   AND Signup.RunId=Runs.RunId';
-  $sql .= '   AND Runs.EventId=Events.EventId';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-  {
-    display_mysql_error ('Failed to count games signed up for');
-    return 0;
-  }
-
-  $count = 0;
-
-  while ($row = mysql_fetch_object($result))
-  {
-    if ((! is_user_gm_for_game ($_SESSION[SESSION_LOGIN_USER_ID], $row->EventId)) &&
-	($row->IsOps=='N') &&
-	($row->IsConSuite=='N'))
-      $count++;
-  }
-
-  return $count;
-}
 
 function display_comp_info($EventId)
 {
@@ -1572,7 +1537,7 @@ function show_game ()
     {
 	    echo "<table border=1>\n";
 	    echo "  <tr>\n";
-	    echo "    <td>&nbsp;You must be logged in to signup for this event&nbsp;</td>\n";
+	    echo "    <td>&nbsp;You must be <a href=\"index.php\">logged in</a> to signup for this event&nbsp;</td>\n";
 	    echo "  </tr>\n";
 	    echo "</table>\n";
 	}
@@ -1906,267 +1871,6 @@ function confirm_signup ($conflict_array, $Title, $EventId, $RunId)
   return SIGNUP_CONFIRM;
 }
 
-/*
- * process_signup_request
- *
- * The user has requested to signup for this game.  Make sure there are no
- * conflicts, and that the game isn't full, then add a record to the Signup
- * table.
- */
-
-function process_signup_request ()
-{
-  // Make sure the user is logged in
-
-  if (! is_logged_in ())
-  {
-    display_error ('You must be logged in to signup for games');
-    return SIGNUP_FAIL;
-  }
-
-  // Check for a sequence error
-
-  if (out_of_sequence ())
-    return display_sequence_error (SIGNUP_FAIL);
-
-  // Extract the EventId and RunId and make sure the user isn't already
-  // signed up for this game
-
-  $EventId = trim ($_REQUEST['EventId']);
-  $RunId = trim ($_REQUEST['RunId']);
-  $withdraw_from_conflicts = isset ($_REQUEST['Confirmed']);
-
-  // Get the information about this run
-
-  $sql = 'SELECT Events.Title, Events.Hours, Events.IsOps, Events.IsConSuite,';
-  $sql .= ' Events.MaxPlayersMale, Events.MaxPlayersFemale,';
-  $sql .= ' Events.MaxPlayersNeutral, Events.CanPlayConcurrently,';
-  $sql .= ' Runs.StartHour, Runs.Day';
-  $sql .= ' FROM Runs, Events';
-  $sql .= ' WHERE Runs.RunId=' . $RunId;
-  $sql .= '  AND Events.EventId=Runs.EventId';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-  {
-    display_mysql_error ('Cannot query database for run information');
-    return SIGNUP_FAIL;
-  }
-
-  // This should have matched exactly one row
-
-  if (0 == mysql_num_rows ($result))
-  {
-    display_error ("Failed to find event information for RunId $RunId");
-    return SIGNUP_FAIL;
-  }
-
-  // Extract the game information
-
-  $row = mysql_fetch_object ($result);
-
-  $game_title = $row->Title;
-  $game_hours = $row->Hours;
-  $game_day = $row->Day;
-  $can_play_game_concurrently = $row->CanPlayConcurrently;
-  $is_ops = $row->IsOps == 'Y';
-  $is_consuite = $row->IsConSuite == 'Y';
-  $max_male = $row->MaxPlayersMale;
-  $max_female = $row->MaxPlayersFemale;
-  $max_neutral = $row->MaxPlayersNeutral;
-
-  // I could differentiate this by sex, but not now
-
-  //  $game_max = $row->MaxPlayersMale +
-  //              $row->MaxPlayersFemale +
-  //              $row->MaxPlayersNeutral;
-
-  $game_start_hour = $row->StartHour;
-  $game_end_hour = $row->StartHour + $row->Hours;
-  $game_start_time = start_hour_to_24_hour ($game_start_hour);
-  $game_end_time = start_hour_to_24_hour ($game_end_hour);
-
-  // Is the user a GM for this game?
-
-  $sql = 'SELECT GMs.GMId';
-  $sql .= ' FROM GMs';
-  $sql .= " WHERE GMs.EventId=$EventId";
-  $sql .= '   AND GMs.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-
-  $result = mysql_query ($sql);
-  if (! $result)
-  {
-    display_mysql_error ('Cannot query database for GM status', $sql);
-    return SIGNUP_FAIL;
-  }
-
-  $user_is_gm = mysql_num_rows ($result) > 0;
-
-  // Make sure that the user isn't trying to violate the signup limits
-
-  if (! $user_is_gm)
-  {
-    $signups_allowed = con_signups_allowed ();
-    switch ($signups_allowed)
-    {
-      case 0:
-	display_error ('Signups are not allowed at this time');
-	return SIGNUP_FAIL;
-
-      case UNLIMITED_SIGNUPS:  // No limits
-	break;
-
-      default:
-	if ($signups_allowed <= count_signed_up_games ())
-	{
-	  if ((! $is_ops) && (! $is_consuite))
-	  {
-	    display_error ('You have already signed up for the maximum ' .
-			   'number of games allowed at this time');
-	    return SIGNUP_FAIL;
-	  }
-	}
-    }
-  }
-
-  $waitlist_conflicts = array ();
-
-  if ('N' == $can_play_game_concurrently)
-  {
-    // Get the list of games the user is already registered for which may
-    // conflict with this one
-
-    $sql = 'SELECT Events.Title, Events.Hours,';
-    $sql .= '      Runs.StartHour, Runs.EventId,';
-    $sql .= '      Signup.SignupId, Signup.State';
-    $sql .= ' FROM Signup, Runs, Events';
-    $sql .= ' WHERE Signup.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-    $sql .= '  AND Runs.RunId=Signup.RunId';
-    $sql .= '  AND Events.EventId=Runs.EventId';
-    $sql .= "  AND Events.CanPlayConcurrently='N'";
-    $sql .= '  AND Signup.State!="Withdrawn"';
-    $sql .= "  AND Runs.Day='$game_day'";
-    $sql .= "  AND Runs.StartHour<$game_end_hour";
-
-    //    echo "$sql<p>\n";
-
-    $result = mysql_query ($sql);
-    if (! $result)
-    {
-      display_mysql_error ('Cannot query database for conflicting games',
-			   $sql);
-      return SIGNUP_FAIL;
-    }
-
-    // Scan through the returned list looking for a conflict
-
-/*
-    echo "$game_title<br>\n";
-    echo "   Start hour: $game_start_hour ($game_start_time)<br>\n";
-    echo "   End hour: $game_end_hour ($game_end_time)<p>\n";
-
-    echo 'Rows: ' . mysql_num_rows ($result) . "<p>\n";
-*/
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      $row_start_hour = $row->StartHour;
-      $row_end_hour = $row_start_hour + $row->Hours;
-
-      // If the game the user is already registered for runs into this one,
-      // or if the game the user is already registered for starts during this
-      // on, there's a conflict and the user cannot register for this game
-/*
-      echo "Checking <i>$row->Title</I><br>\n";
-      echo "State: $row->State<br>\n";
-      echo " row_start_hour: $row_start_hour<br>\n";
-      echo " row_end_hour: $row_end_hour<p>\n";
-*/
-
-      if (($row_end_hour > $game_start_hour) &&
-	  ($row_start_hour < $game_end_hour))
-      {
-	// If this is a confirmed game, tell the user that he has to withdraw
-	// from the game before he can signup for this one
-
-	if ('Waitlisted' == $row->State)
-	{
-	  $row_start_time = start_hour_to_24_hour ($row_start_hour);
-	  $row_end_time = start_hour_to_24_hour ($row_end_hour);
-	  $waitlist_conflicts[$row->SignupId] = $row->Title .
- 	                                 " ($row_start_time - $row_end_time)";
-	}
-	else
-	{
-	  $error = sprintf ("You're already registered for " .
-			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
-			    '<I>%s</I></A> which conflicts with this time slot',
-			    SCHEDULE_SHOW_GAME,
-			    $row->EventId,
-			    $row->Title);
-	  display_error ($error);
-	  return SIGNUP_FAIL;
-	}
-      }
-    }
-  }
-
-  // We lock the Signup table to make sure that if there are two users trying
-  // to get the last slot in a game, then only one will succeed.  A READ lock
-  // allows clients that only read the table to continue, but will block
-  // clients that attempt to write to the table
-
-  $result = mysql_query ('LOCK TABLE Signup WRITE, Users READ, Runs Read, Events Read, GMs Read');
-  if (! $result)
-  {
-    display_mysql_error ('Failed to lock the Signup table');
-    return SIGNUP_FAIL;
-  }
-
-  // Make sure there's room in the game, and add a signup record if there is
-
-  $signup_ok = signup_user_for_game ($RunId, $EventId, $game_title,
-				     $user_is_gm,
-				     $max_male, $max_female, $max_neutral,
-				     $waitlist_conflicts,
-				     $withdraw_from_conflicts,
-				     $signup_result);
-
-  // Unlock the Signup table so that other queries can access it
-
-  $result = mysql_query ('UNLOCK TABLES');
-  if (! $result)
-  {
-    display_mysql_error ('Failed to unlock the Signup table');
-    return SIGNUP_FAIL;
-  }
-
-  if (SIGNUP_OK != $signup_ok)
-    return $signup_ok;
-
-  echo "You have $signup_result <I>$game_title</I> on $game_day, ";
-  echo start_hour_to_12_hour ($game_start_hour) . ' - ';
-  echo start_hour_to_12_hour ($game_end_hour);
-  echo "<P>\n";
-
-  // Notify any GMs who have requested notification of signups
-
-  if ('signed up for' == $signup_result)
-    $type = 'Signup';
-  else
-  {
-    $type = 'Waitlist';
-
-    echo "If you are at the head of the waitlist and a player withdraws\n";
-    echo "from the game, you will automatically be signed up for this\n";
-    echo "game<P>\n";
-  }
-
-  notify_gms ($EventId, $game_title, $game_day, $game_start_hour,
-	      $signup_result, $type);
-
-  return SIGNUP_OK;
-}
 
 /*
  * signup_user_for_game
@@ -2926,10 +2630,13 @@ function list_games_alphabetically ($GameType="")
   }
   
   $whereclause ="";
-  if ($GameType != "")
-    $whereclause = " WHERE GameType='".$GameType."'";
-  else
-    $whereclause = "";   // list all events if no type specified
+  if ($GameType == "Conference")
+    $whereclause .= " WHERE GameType='Class' or GameType='Panel'";
+  else if ($GameType == "Ops")
+    $whereclause .= " WHERE GameType='Ops' or GameType='Tech Rehearsal'";  
+  else if ($GameType != "")
+    $whereclause .= " WHERE GameType='".$GameType."'";
+  
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
@@ -2996,7 +2703,7 @@ function list_this_game($row, $GameType)
   if ('' != $row->Fee)
     echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
   echo "</p>\n";
-  }
+}
 
 
 function show_gms($row){
@@ -3865,7 +3572,7 @@ function show_all_signups ()
 
     if (0 == mysql_num_rows ($result))
     {
-      echo "No players are signed up for this game\n";
+      echo "No players are signed up for this event\n";
     }
     else
     {
@@ -3899,7 +3606,7 @@ function show_all_signups ()
 
   if (sizeof ($gms) > 0)
   {
-    echo "<P><B>Warning: The following GMs are not signed up for this game:</B><BR>\n";
+    echo "<P><B>The following Presenters are not signed up for this event:</B><BR>\n";
     foreach ($gms as $gmid => $name)
       echo "&nbsp;&nbsp;&nbsp;&nbsp;$name<BR>\n";
   }
@@ -4836,7 +4543,7 @@ function display_gm_information ()
   echo "    <td colspan=\"2\">\n";	// 
 
   form_checkbox ('DisplayAsGM', 'Y' == $row->DisplayAsGM);
-  echo " Display as GM<br>\n";
+  echo " Display as Presenter<br>\n";
   form_checkbox ('DisplayEMail', 'Y' == $row->DisplayEMail);
   echo " Display EMail Address<br>\n";
   form_checkbox ('ReceiveConEMail', 'Y' == $row->ReceiveConEMail);
@@ -4847,7 +4554,7 @@ function display_gm_information ()
   echo "    </td>\n";
   echo "  </tr>\n";
 
-  form_submit2 ('Update GM Settings', 'Remove as GM', 'Remove');
+  form_submit2 ('Update Settings', 'Remove Presenter', 'Remove');
 
   echo "</table>\n";
   echo "</form>\n";

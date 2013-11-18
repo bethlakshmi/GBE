@@ -90,7 +90,7 @@ function signup_spy ($limited)
   // Get the last 50 signups, in reverse order
 
   $sql = 'SELECT Signup.SignupId, Signup.State, Signup.PrevState,';
-  $sql .= ' Users.FirstName, Users.LastName,';
+  $sql .= ' Users.DisplayName, ';
   $sql .= ' DATE_FORMAT(Signup.TimeStamp, "%d-%b-%Y %H:%i") AS Timestamp,';
   $sql .= ' Events.Title, Runs.TitleSuffix, Runs.Day, Runs.StartHour,';
   $sql .= ' Signup.UserId, Runs.EventId';
@@ -111,7 +111,7 @@ function signup_spy ($limited)
     echo "No signups found\n";
     return true;
   }
-
+  echo "This describes signup of regular participants, it does not list teachers, panelists, heads of staff or other presenters.";
   $confirmed_color = get_bgcolor('Confirmed');
   $waitlisted_color = get_bgcolor('Waitlisted');
   $withdrawn_color = get_bgcolor('Full');
@@ -119,11 +119,11 @@ function signup_spy ($limited)
   echo "<table border=1>\n";
   echo "  <tr>\n";
   echo "    <th>ID</th>\n";
-  echo "    <th align=left>Player</th>\n";
+  echo "    <th align=left>Participant</th>\n";
   echo "    <th>Prev State</th>\n";
   echo "    <th>State</th>\n";
   echo "    <th align=center>Timestamp</th>\n";
-  echo "    <th align=left>Game</th>\n";
+  echo "    <th align=left>Event Run</th>\n";
   echo "  </tr>\n";
   while ($row = mysql_fetch_object ($result))
   {
@@ -135,12 +135,12 @@ function signup_spy ($limited)
       default: $bgcolor = '';  break;
     }
 
-    $name = trim ("$row->LastName, $row->FirstName");
+    $name = trim ("$row->DisplayName");
 
     $game = trim ("$row->Title $row->TitleSuffix");
     $game .= ", $row->Day " . start_hour_to_24_hour ($row->StartHour);
     if (array_key_exists ("$row->EventId,$row->UserId", $gms))
-      $game .= " <b>(GM)</b>";
+      $game .= " <b>(in charge)</b>";
 
     $prev_state = $row->PrevState;
     if ('None' == $prev_state)
