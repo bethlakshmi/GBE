@@ -2521,8 +2521,7 @@ function withdraw_from_game_locked ($SignupId, $name, $email,
   // Fetch game information for the game the user is withdrawing from
 
   $sql = 'SELECT Events.EventId, Events.Title, Events.CanPlayConcurrently,';
-  $sql .= '  Events.MaxPlayersNeutral, Events.MaxPlayersMale,';
-  $sql .= '  Events.MaxPlayersFemale, Events.Hours,';
+  $sql .= '  Events.Hours,';
   $sql .= '  Runs.RunId, Runs.Day, Runs.StartHour, Runs.TitleSuffix';
   $sql .= '  FROM Events, Runs, Signup';
   $sql .= "  WHERE Signup.SignupId=$SignupId";
@@ -2573,8 +2572,7 @@ function withdraw_from_game_locked ($SignupId, $name, $email,
   $neutral_slots = 0;
 
   calculate_available_slot ($row->RunId, $gender,
-			    $row->MaxPlayersMale, $row->MaxPlayersFemale,
-			    $row->MaxPlayersNeutral,
+			    0, 0, $row->MaxPlayersNeutral,
 			    $male_slots, $female_slots, $neutral_slots);
 
   // Accept a player from the waitlist for this game, if there are any
