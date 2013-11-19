@@ -2924,7 +2924,7 @@ function show_signups ()
   echo "<I><B><FONT SIZE='+2'>$Title</FONT></B></I><BR>\n";
   echo "<B><FONT SIZE='+1'>$Date&nbsp;&nbsp;&nbsp;$start_time - $end_time</FONT></B><P>\n";
 
-  echo "Max: $total&nbsp;&nbsp;&nbsp;(";
+  echo "Max: $total&nbsp;&nbsp;&nbsp;";
 
   switch ($OrderBy)
   {
