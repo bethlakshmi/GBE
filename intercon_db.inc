@@ -469,7 +469,6 @@ function get_bgcolor_hex ($state)
     case 'Confirmed':           return '#CCFFCC';  // Light green
     case 'Waitlisted':          return '#FFFFCC';  // Light yellow
     case 'CanPlayConcurrently': return '#CCCCFF';  // Light blue
-    case 'Away':                return '#CCCCCC';  // Light gray
   }
   return "#FFFFFF";
 }
@@ -523,14 +522,16 @@ function is_user($user_id)
  * to_secs
  *
  * Converts the TIME field from the database to a time_t
+ * Database times are a number of EVENT_BLOCKS
  */
 
 function to_secs ($start_time)
 {
-  //  return strtotime ($start_time);
-  return (mktime (intval ($start_time),  // Hours
-		  0,                     // Minutes
-		  0));                   // Seconds
+  $t = $start_time * EVENT_BLOCK;
+  return (mktime (intval ($t / 60),  // Hours
+                  intval ($t % 60),    // Minutes
+      	          0));               // Seconds
+  
 }
 
 /*
@@ -625,8 +626,6 @@ function html_begin ($bShowLogo=true)
     printf ("<p class=dev_warning>Development Version  %s@%s</p>\n",
 	    DB_NAME,
 	    DB_SERVER);
-
-
 }
 
 /*
@@ -961,60 +960,6 @@ function form_submit3 ($display, $display2, $name2, $display3, $name3)
   echo "    <INPUT TYPE=SUBMIT Value=\"$display2\" NAME=\"$name2\">\n";
   echo "    &nbsp;&nbsp;&nbsp;\n";
   echo "    <INPUT TYPE=SUBMIT Value=\"$display3\" NAME=\"$name3\">\n";
-  echo "    </TD>\n";
-  echo "  </TR>\n";
-}
-
-function form_birth_year_and_gender ($year_key, $gender_key)
-{
-  $MaleChecked = 'CHECKED';
-  $FemaleChecked = '';
-
-  if (array_key_exists ($gender_key, $_POST))
-  {
-    if ('Female' == $_POST[$gender_key])
-    {
-      $MaleChecked = '';
-      $FemaleChecked = 'CHECKED';
-    }
-  }
-
-  if (array_key_exists ($year_key, $_POST))
-    $BirthYear = $_POST[$year_key];
-  else
-    $BirthYear = '0';
-
-  echo "  <tr valign=\"top\">\n";
-  echo "    <TD ALIGN=RIGHT>Birth Year:</TD>\n";
-  echo "    <TD ALIGN=LEFT>\n";
-  echo "      <select name=\"$year_key\">\n";
-  if (0 == $BirthYear)
-    $sel = ' selected';
-  else
-    $sel = '';
-  printf ("        <option value=\"0\"%s>Unspecified</option>\n", $sel);
-  $y = intval (date ('Y'));
-  for ($i = 1; $i < 100; $i++)
-  {
-    if ($y - $i == $BirthYear)
-      $sel = ' selected';
-    else
-      $sel = '';
-    printf ("        <option value=\"%d\"%s>%d</option>\n",
-	    $y - $i,
-	    $sel,
-	    $y - $i);
-  }
-  echo "      </select>\n";
-  echo "      &nbsp;&nbsp;&nbsp;Gender:\n";
-  echo "      <INPUT TYPE=RADIO NAME=$gender_key $MaleChecked VALUE=\"Male\"> Male\n";
-  echo "      <INPUT TYPE=RADIO NAME=$gender_key $FemaleChecked VALUE=\"Female\"> Female\n";
-  echo "      <br>\n";
-  echo "      <b>Note:</b> Specifying your birth year is optional. But if\n";
-  echo "      you choose not to, you may not be able to sign up for\n";
-  echo "      age-restricted games.\n";
-  echo "      <br>&nbsp;\n";
-
   echo "    </TD>\n";
   echo "  </TR>\n";
 }
@@ -1710,51 +1655,41 @@ function start_hour_to_am_pm ($t)
   $dt -> setTime($hour, $minutes);
 
   return $dt->format("h:i A");
-/*
-  // Start times go from 8 to 31, which correspond to 8AM to 7AM 'that night'
-  // Noon and Midnight are handled specially
-  $h = $t % 24;
-
-  if (12 == $h)
-    return 'Noon';
-
-  if (0 == $h)
-    return 'Midnight';
-
-  if ($h < 12)
-    return $h . ' AM';
-  else
-    return $h - 12 . ' PM';
-*/
 
 }
 
 /*
  * start_hour_to_24_hour
- *
- * Start hours go from 8 to 31, which correspond to 08:00 to 07:00 'that night'
+ * Returns formatted time for $t as 24-hour time w/o AM/PM indicator
  */
 
 function start_hour_to_24_hour ($t)
 {
-  return sprintf ('%02d:00', $t % 24);
+  $time_in_minutes = $t * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $dt = new DateTime();
+  $dt -> setTime($hour, $minutes);
+
+  return $dt->format("H:i");
+
+	
 }
 /*
  * start_hour_to_12_hour
- *
+ * Returns formatted time for $t, as 12 hour time w/o AM/PM indicator
  * Start hours go from 8 to 31, which correspond to 08:00 to 07:00 'that night'
  */
 
 function start_hour_to_12_hour ($t)
 {
-  $m = "AM";
-  if ($t>11 && $t <24)
-     $m = "PM";
-  
-  $time = $t % 12;
-  if ($time == 0) 
-    $time = 12;
-  return sprintf ('%2d:00 %s', $time, $m);
+  $time_in_minutes = $t * EVENT_BLOCK;
+  $hour = floor($time_in_minutes / 60);
+  $minutes = $time_in_minutes % 60;
+  $dt = new DateTime();
+  $dt -> setTime($hour, $minutes);
+
+  return $dt->format("h:i");
 }
 
 function validate_int ($key, $min, $max, $display=0)
@@ -2847,8 +2782,13 @@ function confirm_withdraw_from_game ()
   if (! $row)
     return display_error ('Failed to find signup record');
 
+<<<<<<< HEAD
   $start_time = start_hour_to_12_hour ($row->StartHour);
   $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
+=======
+  $start_time = start_hour_to_am_pm ($row->StartHour);
+  $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
+>>>>>>> 871e60d4908113a141f041c6e4709ed10dedf6f9
 
   echo "<H1>Confirm Withdrawal</H1>\n";
   echo "<FORM METHOD=POST ACTION=index.php>\n";
@@ -2942,7 +2882,7 @@ function display_available_games ()
       printf ("&#149;&nbsp;&nbsp;%s - %s&nbsp;%s<br>\n",
 	      $row->Title,
 	      $row->Day,
-	      start_hour_to_24_hour ($row->StartHour));
+	      start_hour_to_am_pm ($row->StartHour));
     }
   }
   echo "<br>\n";

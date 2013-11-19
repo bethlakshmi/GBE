@@ -532,8 +532,8 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 
   while ($row = mysql_fetch_object ($result))
   {
-    $start_time = start_hour_to_12_hour ($row->StartHour);
-    $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
+    $start_time = start_hour_to_am_pm ($row->StartHour);
+    $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
     $Title = $row->Title;
     if ("" != $row->TitleSuffix)
@@ -2986,8 +2986,8 @@ function show_gm_games ($UserId, $name)
     echo "<TABLE>\n";
     while ($row = mysql_fetch_object ($result))
     {
-      $start_time = start_hour_to_24_hour ($row->StartHour);
-      $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+      $start_time = start_hour_to_am_pm ($row->StartHour);
+      $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
       echo "  <TR VALIGN=TOP>\n";
       echo "    <TD>$row->Day</TD>\n";
@@ -4125,10 +4125,6 @@ function confirm_withdraw_user_from_all_games ()
     return display_error ('Failed to find user record');
 
   $name = trim ("$row->DisplayName");
-  if ('Male' == $row->Gender)
-    $pronoun = 'he';
-  else
-    $pronoun = 'she';
 
   // Show the games that the user is signed up or waitlisted for
 
@@ -4162,8 +4158,8 @@ function confirm_withdraw_user_from_all_games ()
     echo "    <td>$row->State</td>\n";
     printf ("    <td>&nbsp;%s&nbsp;%s&nbsp;-&nbsp;%s&nbsp;</td>\n",
 	    $row->Day,
-	    start_hour_to_12_hour ($row->StartHour),
-	    start_hour_to_12_hour ($row->StartHour + $row->Hours));
+	    start_hour_to_am_pm ($row->StartHour),
+	    start_hour_to_am_pm ($row->StartHour + $row->Hours));
     echo "    <td>$row->Title</td>\n";
     echo "  </tr>\n";
   }
@@ -4174,7 +4170,7 @@ function confirm_withdraw_user_from_all_games ()
     echo 'all the events';
   else
     echo 'the event';
-  echo " that $pronoun is signed up for?</p>\n";
+  echo " that s/he is signed up for?</p>\n";
 
   echo "<form method=post action=index.php>\n";
   form_add_sequence ();
@@ -4270,50 +4266,5 @@ function withdraw_user_from_all_games ()
 
   return TRUE;
 }
-
-/*
- * convert_age_to_year
- *
- * Convert all user's ages to birth year.  This should only be used once!
- * In fact, the function should be commented out after it's been used!
- */
-
-/*
- * Already done
-function convert_age_to_year()
-{
-  // Only do this if the user has Staff priv
-
-  if (! user_has_priv (PRIV_STAFF))
-    return;
-
-  // Convert the Age column to BirthYear
-
-  $this_year = intval (date ('Y'));
-
-  $sql = 'SELECT FirstName, LastName, UserId, Age FROM Users';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to get users and ages!', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-  {
-    if (0 == $row->Age)
-      $BirthYear = 0;
-    else
-      $BirthYear = $this_year - $row->Age;
-
-    echo "$row->LastName, $row->FirstName: $row->Age => $BirthYear<br>\n";
-
-    $sql = sprintf ('UPDATE Users SET BirthYear=%d WHERE UserId=%s',
-		    $BirthYear,
-		    $row->UserId);
-    $update_result = mysql_query ($sql);
-    if (! $update_result)
-      return display_mysql_error ('Attempt to update user failed', $sql);
-  }
-}
-*/
 
 ?>

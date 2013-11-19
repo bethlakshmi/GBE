@@ -10,6 +10,7 @@ global $LIST_GAME_TEXT;
 $LIST_GAME_TEXT = "\n";
 $LIST_GAME_TEXT .= "Click on a title to schedule a new run.<br>\n";
 $LIST_GAME_TEXT .= "Click on a start time to edit or delete an existing run.<br><br>\n";
+$LIST_GAME_TEXT .= "NOTE: Events are scheduled in half-hour blocks. For example,  2 blocks = 1 hour, 3 blocks = 90 minutes <br><br>\n";
 $LIST_GAME_TEXT .= "\n";
 
 // Connect to the database -- Really should require staff privilege
@@ -171,7 +172,7 @@ function list_games_alphabetically ($showOps=FALSE)
   echo "<table border=\"1\">\n";
   echo "  <tr>\n";
   echo "    <th>Title</th>\n";
-  echo "    <th>Hours</th>\n";
+  echo "    <th>Blocks</th>\n";
   echo "    <th>Day</th>\n";
   echo "    <th>Start Time</th>\n";
   echo "    <th>Run Suffix</th>\n";
@@ -228,7 +229,7 @@ function list_games_alphabetically ($showOps=FALSE)
 
       echo "    <td align=\"center\">$runs_row->Day</td>\n";
 
-      $start_time = start_hour_to_12_hour ($runs_row->StartHour);
+      $start_time = start_hour_to_am_pm ($runs_row->StartHour);
 
       printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 	      EDIT_RUN,
@@ -254,7 +255,7 @@ function list_games_alphabetically ($showOps=FALSE)
 	echo "  <tr>\n";
         echo "    <td align=\"center\">$runs_row->Day</td>\n";
 
-	$start_time = start_hour_to_12_hour ($runs_row->StartHour);
+	$start_time = start_hour_to_am_pm ($runs_row->StartHour);
 
 	printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 		EDIT_RUN,
@@ -299,6 +300,7 @@ function list_games_by ($type, $showOps=FALSE)
   else
     $sql .= ' AND Events.IsOps = \'N\'';  
 
+
   switch ($type)
   {
     case LIST_BY_TIME:
@@ -336,7 +338,7 @@ function list_games_by ($type, $showOps=FALSE)
   echo "    <th>Run Suffix</th>\n";
   echo "    <th>Schedule Note</th>\n";
   echo "    <th>Room(s)</th>\n";
-  echo "    <th>Hours</th>\n";
+  echo "    <th>Blocks</th>\n";
   echo "  </tr>\n";
 
   while ($row = mysql_fetch_object ($result))
@@ -355,20 +357,20 @@ function list_games_by ($type, $showOps=FALSE)
 	echo "    <th>Run Suffix</th>\n";
 	echo "    <th>Schedule Note</th>\n";
 	echo "    <th>Room(s)</th>\n";
-	echo "    <th>Hours</th>\n";
+	echo "    <th>Blocks</th>\n";
 	echo "  </tr>\n";
       }
       $day = $row->Day;
     }
 
-    $start_time = start_hour_to_24_hour ($row->StartHour);
+    $start_time = start_hour_to_am_pm ($row->StartHour);
 
     echo "  <tr valign=\"top\">\n";
     echo "    <td align=\"center\">$row->Day</td>\n";
     printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 	    EDIT_RUN,
 	    $row->RunId,
-	    start_hour_to_12_hour($start_time));
+	    start_hour_to_am_pm($start_time));
 
     $action = 0;
     if ($showOps)
@@ -397,6 +399,7 @@ function list_games_by ($type, $showOps=FALSE)
     echo "  </tr>\n";
   }
   echo "</table>\n";
+  echo "Note: Events are scheduled in half-hour blocks. 2 blocks = 1 hour, 3 blocks = 90 minutes.";
 }
 
 /*
