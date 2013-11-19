@@ -402,8 +402,6 @@ function build_schedule_subnavbar() {
 function build_about_subnavbar() {
   $aboutSection = new SubNavBar("About <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
   $aboutSection->push(NavBarItem::newStatic("Welcome", "welcome"));
-  if (NAV_SHOW_COST)
-    $aboutSection->push(NavBarItem::newAction("What Does It Cost?", "Cost.php"));
   $aboutSection->push(NavBarItem::newAction("Contacts", "Contacts.php"));
   $aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
   $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)." Staff", "WhosWho.php","Staff"));
