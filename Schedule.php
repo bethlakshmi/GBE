@@ -1596,8 +1596,8 @@ function show_game ()
 	      echo " <TR ALIGN=CENTER VALIGN=TOP>\n";
 	    }
 
-	    $game_start = start_hour_to_12_hour ($run_row->StartHour);
-	    $game_end = start_hour_to_12_hour ($run_row->StartHour +
+	    $game_start = start_hour_to_am_pm ($run_row->StartHour);
+	    $game_end = start_hour_to_am_pm ($run_row->StartHour +
 					       $event->Hours);
 	    $run_text = "$run_row->Day. $game_start - $game_end\n";
 		
@@ -1624,9 +1624,6 @@ function show_game ()
 
 	      //	$date = day_to_date ($run_row->Day);
 
-	      $user_away = check_if_away ($run_row->Day,
-					$run_row->StartHour,
-					$event->Hours);
 	      $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 				    $confirmed['Male'], $confirmed['Female'],
 				    $event->MaxPlayersMale,
@@ -1682,10 +1679,8 @@ function show_game ()
 
 	        $text = '<P>';
 
-	        if ($user_away)
-		       $text .= "<FONT COLOR=RED>You are away during this game</FONT><P>$run_text";
-	        else
-	        {
+
+	        
 				if ($can_signup)
 				{
 				  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
@@ -1698,7 +1693,7 @@ function show_game ()
 				}
 				else
 				  $text .= $run_text;
-	      	}
+	      	
 
 	        $text .= '<P>' . $count_text;
 
@@ -3037,8 +3032,8 @@ function show_signups ()
   if ('' != $row->TitleSuffix)
     $Title .= " - $row->TitleSuffix";
 
-  $start_time = start_hour_to_24_hour ($row->StartHour);
-  $end_time = start_hour_to_24_hour ($row->StartHour + $row->Hours);
+  $start_time = start_hour_to_am_pm ($row->StartHour);
+  $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
   $Day = $row->Day;
   $Date = day_to_date ($Day);
@@ -3731,8 +3726,8 @@ function display_user_information ()
   if ('' != $row->TitleSuffix)
     $Title .= " - $row->TitleSuffix";
 
-  $start_time = start_hour_to_12_hour ($row->StartHour);
-  $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
+  $start_time = start_hour_to_am_pm ($row->StartHour);
+  $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
   $Day = $row->Day;
   $Date = day_to_date ($Day);
