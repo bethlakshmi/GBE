@@ -261,8 +261,8 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
 
       if ('Waitlisted' == $row->State)
       {
-        $row_start_time = start_hour_to_12_hour ($row_start_hour);
-        $row_end_time = start_hour_to_12_hour ($row_end_hour);
+        $row_start_time = start_hour_to_am_pm ($row_start_hour);
+        $row_end_time = start_hour_to_am_pm ($row_end_hour);
         $waitlist_conflicts[$row->SignupId] = $row->Title .
  	                                 " ($row_start_time - $row_end_time)";
       }
@@ -273,7 +273,7 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
 			    '<I>%s</I></A> at %s which conflicts with this time slot',
 			    SCHEDULE_SHOW_GAME, 
 			    $row->EventId,
-			    $row->Title, start_hour_to_12_hour ($row_start_hour));
+			    $row->Title, start_hour_to_am_pm ($row_start_hour));
 	    display_error ($error);
 	    return SIGNUP_FAIL;
 	  }
@@ -332,13 +332,13 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
 
     if (($row_end_hour > $game_start_hour) && ($row_start_hour < $game_end_hour))
     {
-      $error = sprintf ("There is a conflict with leading the following event " .
+      $error = sprintf ("There is a conflict with presenting for the following event " .
 			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
 			    '<I>%s</I></A> at %s which conflicts with this time slot',
 			    SCHEDULE_SHOW_GAME,  
 			    $row->EventId,
 			    $row->Title,
-			    $game_start_hour);
+			    start_hour_to_am_pm($game_start_hour));
       display_error ($error);
       return SIGNUP_FAIL;
     }

@@ -714,12 +714,11 @@ function process_add_run ()
   }
   
   global $OPS_TYPES;
-  if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-       || $row->GameType == $OPS_TYPES[3] )
-    if ( !validate_int ('ShowId', 1, 2000))
+  if ( ($row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
+       || $row->GameType == $OPS_TYPES[3] ) && ( !validate_int ('ShowId', 1, 2000)))
     {
       $form_ok &= false;
-      display_error("...which means... You must pick a show for this type of Ops run<br>\n");
+      display_error("...which means... For a run of type ".$row->GameType.", you must pick a show for this type of Ops run<br>\n");
     }
 
 
@@ -803,12 +802,13 @@ function process_add_ops ()
       $EndHour = $_POST['StartHour'] + ($_POST['Hours']*$_POST['Sessions']) - 1;
       $form_ok &= validate_day_time_by_val ($EndHour, trim ($_POST['Day']));
 
-      if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-             || $row->GameType == $OPS_TYPES[3])
-        if ( !validate_int ('ShowId', 1, 2000))
+      global $OPS_TYPES;
+
+      if ( ($_POST['GameType'] == $OPS_TYPES[1] || $_POST['GameType'] == $OPS_TYPES[2] 
+           || $_POST['GameType'] == $OPS_TYPES[3] ) && ( !validate_int ('ShowId', 1, 2000)))
         {
           $form_ok &= false;
-          display_error("...which means... You must pick a show for this type of Ops run<br>\n");
+          display_error("...which means... For a run of type ".$_POST['GameType'].", you must pick a show for this type of Ops run<br>\n");
 		}
     }
     else 
