@@ -2782,13 +2782,8 @@ function confirm_withdraw_from_game ()
   if (! $row)
     return display_error ('Failed to find signup record');
 
-<<<<<<< HEAD
-  $start_time = start_hour_to_12_hour ($row->StartHour);
-  $end_time = start_hour_to_12_hour ($row->StartHour + $row->Hours);
-=======
   $start_time = start_hour_to_am_pm ($row->StartHour);
   $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
->>>>>>> 871e60d4908113a141f041c6e4709ed10dedf6f9
 
   echo "<H1>Confirm Withdrawal</H1>\n";
   echo "<FORM METHOD=POST ACTION=index.php>\n";
