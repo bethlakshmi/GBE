@@ -304,109 +304,20 @@ function process_away_form ()
 
 function show_away_schedule_form ()
 {  
-  // Arrays for times away for each day
-
-  $fri_hours = array ();
-  $sat_hours = array ();
-  $sun_hours = array ();
   $signed_up_runs = array ();
-  $signup_count_male = array ();
-  $signup_count_female = array ();
-  $game_max_male = array();
-  $game_max_female = array();
-  $game_max_neutral = array();
-
-  $away_fri = '';
-  $away_sat = '';
-  $away_sun = '';
-  $AwayId = 0;
 
   $logged_in = is_logged_in();
 
-  // Initialize the daily hours away arrays
-
-  for ($h = FRI_MIN; $h <= FRI_MAX; $h++)
-    $fri_hours[$h] = '';
-
-  for ($h = SAT_MIN; $h <= SAT_MAX; $h++)
-    $sat_hours[$h] = '';
-
-  for ($h = SUN_MIN; $h <= SUN_MAX; $h++)
-    $sun_hours[$h] = '';
-
   if ($logged_in)
   {
-    // Get the user's away record
-
-    $sql = 'SELECT * FROM Away WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
-
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Query for away record failed');
-
-    $row = mysql_fetch_array ($result);
-    if ($row)
-    {
-      if (1 == $row['Fri'])
-	$away_fri = 'CHECKED';
-      if (1 == $row['Sat'])
-	$away_sat = 'CHECKED';
-      if (1 == $row['Sun'])
-	$away_sun = 'CHECKED';
-
-      $AwayId = intval ($row['AwayId']);
-
-      for ($h = FRI_MIN; $h <= FRI_MAX; $h++)
-      {
-	$k = sprintf ('Fri%02d', $h);
-	if (1 == $row[$k])
-	  $fri_hours[$h] = 'CHECKED';
-      }
-
-      for ($h = SAT_MIN; $h <= SAT_MAX; $h++)
-      {
-	$k = sprintf ('Sat%02d', $h);
-	if (1 == $row[$k])
-	  $sat_hours[$h] = 'CHECKED';
-      }
-
-      for ($h = SUN_MIN; $h <= SUN_MAX; $h++)
-      {
-	$k = sprintf ('Sun%02d', $h);
-	if (1 == $row[$k])
-	  $sun_hours[$h] = 'CHECKED';
-      }
-    }
-
-    //  dump_array ('fri_hours', $fri_hours);
-    //  dump_array ('sat_hours', $sat_hours);
-    //  dump_array ('sun_hours', $sun_hours);
-
-    // Find out what runs the user is signed up for
-
     $result = get_signed_up_runs();
-
     if (! $result)
       return display_mysql_error ('Query for signup list failed');
 
     while ($row = mysql_fetch_object ($result))
     {
       // Note that the user is signed up for this run
-
       $signed_up_runs[$row->RunId] = $row->State;
-
-      // Note that these hours may not be marked as away from the con
-
-      $start_hour = $row->StartHour;
-      for ($h = $start_hour; $h < $start_hour + $row->Hours; $h++)
-      {
-	switch ($row->Day)
-	{
-          case 'Fri': $fri_hours[$h] = 'Hidden'; break;
-          case 'Sat': $sat_hours[$h] = 'Hidden'; break;
-          case 'Sun': $sun_hours[$h] = 'Hidden'; break;
-	}
-      }
     }
   }
 
@@ -416,10 +327,6 @@ function show_away_schedule_form ()
   form_add_sequence ();
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
 	  SCHEDULE_PROCESS_AWAY_FORM);
-  echo "<INPUT TYPE=HIDDEN NAME=AwayId VALUE=$AwayId>\n";
-
-  // Display the schedule for each day
-  // HEADS UP! THIS IS WHERE THE SCHEDULE IS GENERATED!!!
 
   schedule_day ('Fri', $signed_up_runs,  false);
   schedule_day ('Sat', $signed_up_runs, false);
