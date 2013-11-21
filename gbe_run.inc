@@ -305,8 +305,8 @@ function get_volunteer_bookings(&$Bookings, &$Tracks)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-  $Bookings[$run->StartHour."-".$run->Event->Title]=$run;
-  $Tracks[$run->Event->Title]=$run->Event->Title;
+    $Bookings[$run->StartHour."-".$run->Event->Title]=$run;
+    $Tracks[$run->Event->Title]=$run->Event->Title;
   }
 }
 
@@ -341,8 +341,8 @@ function get_general_bookings(&$Bookings, &$Rooms)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-  $Bookings[$run->StartHour."-".$run->Rooms]=$run;
-  $Rooms[$run->Rooms]=$run->Rooms;
+    $Bookings[$run->StartHour."-".$run->Rooms]=$run;
+    $Rooms[$run->Rooms]=$run->Rooms;
   }
 
 }
