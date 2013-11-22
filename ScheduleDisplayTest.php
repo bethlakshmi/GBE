@@ -85,65 +85,75 @@ foreach ($Rooms3 as $room)
 
 echo "<br><br><b>Bookings are:</b><br>";
 
-section("bookings");
 
-start_table();
-table_header(array("Title", "Day", "Start Time", "End Time", "Type"));
+start_table("bookings", "tablesorter");
+table_header(array("Title", "Day", "Start Time", "End Time", "Type", "Register"));
 
 foreach ($Bookings3 as $key => $booking)
 {
-  row(array($booking->Event->Title, $booking->Day, 
+  $title_with_link  =   $text = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+		   SCHEDULE_SHOW_GAME,
+		   $booking->EventId,
+		   $booking->RunId,
+		   $booking->Event->Title);
+
+  row(array($title_with_link, $booking->Day, 
       start_hour_to_am_pm($booking->StartHour), 
       start_hour_to_am_pm($booking->StartHour + $booking->Event->Hours), 
       $booking->Event->GameType));
 
 }
 end_table();
-close_section();
+
   
 // Add the postamble
 
 html_end ();
 
 function table_header($column_labels){
-  echo "<tr class=\"header_row\">";
+  echo "<thead>";
   foreach ($column_labels as $label){
-    cell($label); 
+    header_cell($label); 
   } 
-  echo "</tr>\n\n";
+  echo "</thead>\n";
 }
 
 function row($values){
   foreach ($values as $value){
     cell($value); 
   } 
-  echo "</tr>\n\n";
+  echo "</tr>\n";
 }
 
-function start_table(){
-  echo "<table>\n";
+function start_table($table_id, $table_class){
+  echo "<table id=\"$table_id\" class=\"$table_class\">\n";
 }
 
-function end_table(){
+function close_table(){
   echo "</table>\n";
 }
+function thead(){
+  echo "<thead>\n";
+}
+function close_thead(){
+  echo "</thead>\n";
+}
+
 
 function div_wrap($text, $div_class){
-  $foo =  "<div class=".$div_class.">";
-  echo $foo;
-  echo $text;
-  echo "</div>";
+  echo "<div class=".$div_class."> $text </div>";
 }
 
 function cell($text){
-  $foo =  "<td>".$text."</td>";
-  echo $foo;
+  echo "<td>".$text."</td>";
+}
+
+function header_cell($text){
+  echo "<th>$text</th>";
 }
 
 function section($section_name){
-
-   $foo =  "<div class=" .$section_name . "_wrapper> \n";
-   echo $foo;
+   echo "<div class=" .$section_name . "_wrapper> \n";
 }
 
 function close_section(){

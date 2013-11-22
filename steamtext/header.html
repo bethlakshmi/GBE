@@ -5,11 +5,12 @@
 <meta http-equiv="charset" content="iso-8859-1">
 <meta name="google-site-verification" content="9yWQZ9402aK1LXPwNS5VqaZFV0-O7IGI_ZTMi1Fws3M" />
 <link href='screen.css.php' rel='stylesheet' type='text/css' media='screen'>
-<link type="text/css" rel="stylesheet" href="schedule.css" />
+
 <link href='print.css' rel='stylesheet' type='text/css' media='print'>
 <script src="ckeditor/ckeditor.js"></script>
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="themes/blue/style.css" type="text/css" media="print, projection, screen">
 <STYLE>
   // body {background-image: url("http://localhost:8888/src/GBE/Bid-10.jpg")}
   //  li, td {font-family: Arial, Helvetica, sans-serif}
@@ -22,6 +23,17 @@
   .shirtReverse { color: #503984; background-color: #cccccc }
 </STYLE>
 <script type="text/javascript" src="spamspan.js"></script>
+<script type="text/javascript" src="jquery-1.10.2.js"></script> 
+<script type="text/javascript" src="jquery.tablesorter.js"></script> 
+
+<script type="text/javascript">  
+  $(document).ready(function() 
+    { 
+        $("#bookings").tablesorter(); 
+    } 
+  ); 
+</script>    
+
 </HEAD>
 
 
