@@ -491,8 +491,8 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 {
   // Query the database for the games the user is registered for
 
-  $sql = 'SELECT Events.EventId, Events.Title, Events.Hours,';
-  $sql .= ' Runs.Day, Runs.StartHour, Runs.TitleSuffix,';
+  $sql = 'SELECT Events.EventId, Events.Title, Events.Hours, Events.GameType,';
+  $sql .= ' Runs.Day, Runs.StartHour, Runs.TitleSuffix, Runs.ShowId,';
   $sql .= ' Signup.SignupId, Signup.RunId';
   $sql .= ' FROM Signup, Events, Runs';
   $sql .= " WHERE Signup.UserId=$UserId";
@@ -512,7 +512,7 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
   $num_rows = mysql_num_rows ($result);
   if (0 == $num_rows)
   {
-    echo "<B>$prefix not $type for any volunteer opportunities.</B><P>\n";
+ //   echo "<B>$prefix not $type for any volunteer opportunities.</B><P>\n";
     return TRUE;
   }
 
@@ -525,7 +525,7 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 
   // Start displaying the table of games
 
-  echo "<B>$prefix currently $type for $num_rows $games:</B>\n<br>";
+  echo "<B>$prefix currently $type for:</B>\n<br>";
   echo "<TABLE>\n";
 
   // Display one row per game the user is signed up for
@@ -547,9 +547,9 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
     {
       $wait = get_waitlist_number ($row->RunId, $row->SignupId);
       if (0 == $wait)
-	$wait_str = '&nbsp;';
+	    $wait_str = '&nbsp;';
       else
-	$wait_str = "Wait #$wait";
+	    $wait_str = "Wait #$wait";
 
       echo "    <TD NOWRAP>$wait_str&nbsp;</TD>\n";
     }
@@ -564,11 +564,27 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
 
     if (-1 != $sequence_number)
     {
-      $link = sprintf ('<A HREF=index.php?action=%d&SignupId=%d&Seq=%d>',
+      $SignupId = $row->SignupId;
+      if ($row->GameType=="Tech Rehearsal")
+	          $SignupId .= "&ShowId=".$row->ShowId;
+	          
+      if ($row->GameType=="Show")
+        $link = "To Withdraw send mail to ".mailto_or_obfuscated_email_address (EMAIL_CON_CHAIR);
+      elseif ($row->GameType=="Class")
+        $link = "To Withdraw send mail to ".mailto_or_obfuscated_email_address (EMAIL_BID_CHAIR);
+      elseif ($row->GameType=="Panel")
+        $link = "To Withdraw send mail to ".mailto_or_obfuscated_email_address (EMAIL_BID_CHAIR);
+      elseif ($row->GameType=="Call")
+        $link = "&nbsp;";
+      else
+       {
+        $link = sprintf ('<A HREF=index.php?action=%d&SignupId=%s&Seq=%d>Withdraw</A>',
 		       WITHDRAW_FROM_GAME,
-		       $row->SignupId,
+		       $SignupId,
 		       $sequence_number);
-      echo "    <TD BGCOLOR=\"#FFCCCC\">[${link}Withdraw</A>]</TD>\n";
+	   }
+       echo "    <TD>${link}</TD>\n";
+      
     }
     echo "  </TR>\n";
   }
@@ -578,207 +594,7 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
   echo "</TABLE>\n<P>\n";
 }
 
-/*
- * build_order_string
- *
- * Build a string with shirt order information
- */
 
-function build_order_string ($n, $size, &$s, &$count, $type)
-{
-  if (0 == $n)
-    return;
-
-  if ('' != $s)
-    $s .= ', ';
-  $s .= "$n $size $type";
-  $count += $n;
-}
-
-
-/*
- * show_user_homepage_shirts
- *
- * Show any shirts the user has ordered
- */
-
-function show_user_homepage_shirts ($UserId)
-{
-  // Display the header for the user's TShirt order
-
-  display_header ('<p>' . CON_NAME . ' Shirts Ordered');
-
-  // Count up the number of shirts the user has ordered
-
-  $sql = 'SELECT * FROM TShirts';
-  $sql .= " WHERE UserId=$UserId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Failed to count ordered shirts', $sql);
-
-  $paid_count = 0;
-  $unpaid_count = 0;
-  $pending_count = 0;
-
-  $paid_order = '';
-  $unpaid_order = '';
-  $pending_order = '';
-
-
-  while ($row = mysql_fetch_object ($result))
-  if ($row)
-  {
-    if ('Cancelled' == $row->Status)
-      continue;
-
-    $order = '';
-    $count = 0;
-
-    build_order_string ($row->Small, "Small", $order, $count, SHIRT_NAME);
-    build_order_string ($row->Medium, "Medium", $order, $count, SHIRT_NAME);
-    build_order_string ($row->Large, "Large", $order, $count, SHIRT_NAME);
-    build_order_string ($row->XLarge, "XLarge", $order, $count, SHIRT_NAME);
-    build_order_string ($row->XXLarge, "XXLarge", $order, $count, SHIRT_NAME);
-    build_order_string ($row->X3Large, "X3Large", $order, $count, SHIRT_NAME);
-    build_order_string ($row->X4Large, "X4Large", $order, $count, SHIRT_NAME);
-    build_order_string ($row->X5Large, "X5Large", $order, $count, SHIRT_NAME);
-
-    $order_2 = '';
-    $count_2 = 0;
-
-    build_order_string ($row->Small_2, "Small", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->Medium_2, "Medium", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->Large_2, "Large", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->XLarge_2, "XLarge", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->XXLarge_2, "XXLarge", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X3Large_2, "X3Large", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X4Large_2, "X4Large", $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X5Large_2, "X5Large", $order, $count, SHIRT_2_NAME);
-
-    switch ($row->Status)
-    {
-      case 'Paid':
-        if ($count > 0)
-	{
-	  if ('' != $paid_order)
-	    $paid_order .= ', ';
-	  $paid_order .= $order;
-	}
-
-        if ($count_2 > 0)
-	{
-	  if ('' != $paid_order)
-	    $paid_order .= ', ';
-	  $paid_order .= $order_2;
-	}
-
-	$paid_count += $count + $count_2;
-	break;
-
-      case 'Unpaid':
-        if ($count > 0)
-	{
-          if ('' != $unpaid_order)
-	    $unpaid_order .= ', ';
-	  $unpaid_order .= $order;
-	}
-
-        if ($count_2 > 0)
-	{
-          if ('' != $unpaid_order)
-	    $unpaid_order .= ', ';
-	  $unpaid_order .= $order_2;
-	}
-
-	$unpaid_count = $count + $count_2;
-	break;
-    }
-  }
-
-  if ((0 == $paid_count) && (0 == $unpaid_count) && (0 == $pending_count))
-  {
-    echo '<p>You have not requested any ' . CON_NAME . " Shirts.\n";
-    if (! past_shirt_deadline())
-      echo "Click <a href='TShirts.php'>here</a> to order shirts.<p>\n";
-    else
-    {
-      echo "A limited number of shirts will be available at the con.\n";
-      echo "If you want a shirt, check at the registration desk to see\n";
-      echo "if any are available in your size.\n";
-    }
-    echo "</p>\n";
-    return true;
-  }
-
-  show_shirt_link ($paid_count, $paid_order, 'Paid');
-  show_shirt_link ($unpaid_count, $unpaid_order, 'Unpaid');
-  show_shirt_link ($pending_count, $pending_order, 'Pending');
-
-  return true;
-}
-
-function show_shirt_link ($count, $order, $type)
-{
-  if (0 == $count)
-    return;
-
-  if (1 == $count)
-    $shirt = 'shirt';
-  else
-    $shirt = 'shirts';
-
-  $shirt_close = strftime ('%d-%b-%Y', parse_date (SHIRT_CLOSE));
-
-  switch ($type)
-  {
-    case 'Paid':
-      echo "You have ordered and paid for $order $shirt.\n";
-      if (! past_shirt_deadline())
-      {
-	echo "Click <a href='TShirts.php'>here</a> to order more shirts.\n";
-        echo "The deadline for shirt orders is $shirt_close.<p>\n";
-      }
-      else
-      {
-	echo "The order deadline for shirts was $shirt_close.  If you want\n";
-	echo "additional shirts you should ask whether there are any shirts\n";
-	echo "available in your size when you checkin at registration at\n";
-	echo "the con.<p>\n";
-      }
-      break;
-
-    case 'Unpaid':
-      echo "You have ordered and not yet paid for $order $shirt.\n";
-      echo "The deadline for shirt orders is $shirt_close.  Any unpaid\n";
-      echo "shirt orders as of $shirt_close will be cancelled.\n";
-      echo "Click <a href='TShirts.php'>here</a> to pay for your $shirt\n";
-      echo "using PayPal.  Or you can send a check or money order made out\n";
-      echo "to\n";
-      echo "&quot<B>New&nbsp;England&nbsp;Interactive&nbsp;Literature</B>&quot;\n";
-      echo "to<br>\n";
-      echo "<table>\n";
-      echo "  <tr>\n";
-      echo "    <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>\n";
-      printf ("    <td><b>%s<br>c/o %s<br>%s</b></td>\n",
-	      CON_NAME,
-	      NAME_SEND_CHECKS,
-	      ADDR_SEND_CHECKS);
-      echo "  </tr>\n";
-      echo "</table>\n";
-      //      echo "Shirt payments must be received by December 25, 2006.<p>";
-      break;
-
-    case 'Pending':
-      echo "You have ordered $order $shirt and the payment has not been\n";
-      echo "registered with the website.  Please contact the\n";
-      printf ("<a href=mailto:%s>Registrar</a> to resolve this.<p>\n",
-	      EMAIL_REGISTRAR);
-      echo "The deadline for shirt orders is $shirt_close.  Any unpaid\n";
-      echo "shirt orders as of $shirt_close will be cancelled.\n";
-      break;
-  }      
-}
 
 /*
  * show_user_homepage_gm
@@ -1370,10 +1186,6 @@ function show_user_homepage ()
 
   show_user_homepage_plugs ($_SESSION[SESSION_LOGIN_USER_ID]);
 
-  // Show any TShirts the user has ordered.
-
-  if (SHOW_TSHIRTS)
-    show_user_homepage_shirts ($_SESSION[SESSION_LOGIN_USER_ID]);
     
   // Show the users what tickets he has purchased.
   

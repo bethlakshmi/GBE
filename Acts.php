@@ -5,6 +5,7 @@ include ("files.php");
 include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
+include_once ("gbe_run.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -1819,6 +1820,7 @@ function change_bid_status ()
   	  $Act->load_from_bidid($BidId);
   	  $showId = $Act->ShowId;
   	  form_hidden_value("ActId",$Act->ActId);
+  	  form_hidden_value("OldShowId",$Act->ShowId);
   	  $isGroup = $Act->isGroup;
   	  if ($isGroup == 1)
   	    $GroupName = $Act->GroupName;
@@ -1928,7 +1930,7 @@ function process_status_change ()
 
   // Fetch the status to see if this is really a change
 
-  $sql = "SELECT Title, Status, EventId From Bids WHERE BidId=$BidId";
+  $sql = "SELECT * From Bids WHERE BidId=$BidId";
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ("Query failed for BidId $BidId");
@@ -1939,10 +1941,10 @@ function process_status_change ()
   if (1 != mysql_num_rows ($result))
     return display_error ("Found multiple entries for BidId $BidId");
 
-  $row = mysql_fetch_object ($result);
+  $row = mysql_fetch_array ($result);
 
-  if ($row->Status == $Status)
-    display_error ("Status unchanged for $row->Title - Status is:  $Status");
+  if ($row['Status'] == $Status)
+    display_error ("Status unchanged for ".$row['Title']." - Status is:  $Status");
 
   // Update the bid status
 
@@ -1951,37 +1953,28 @@ function process_status_change ()
   if (! $result)
     return display_mysql_error ("Failed to update status for BidId $BidId");
 
+  // Bids that have moved to Under Review need to have a discussion entry
+  // added
+  if ('Under Review' == $Status)
+    return create_feedback_forum ($BidId);
+
   // Handle dropped bids
 
   if ('Dropped' == $Status)
-    return drop_bid ($BidId);
+  {
+    echo "About to drop, UserId: ".$row['UserId'];
+    return drop_bid($BidId,$row['UserId']);
 
-  // Bids that have moved to Under Review need to have a discussion entry
-  // added
-
-  if ('Under Review' == $Status)
-    return create_feedback_forum ($BidId);
+  }
 
   // If the status isn't accepted, we're done
 
   if ('Accepted' != $Status)
     return TRUE;
 
-  // Fetch the bid information and stuff it into the $_POST array so we
+
+  // stuff bid into the $_POST array so we
   // so we can write it into the User and Event tables
-
-  $sql = "SELECT * FROM Bids WHERE BidId=$BidId";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query failed for BidId $BidId");
-
-  if (0 == mysql_num_rows ($result))
-    return display_error ("Failed to find BidId $BidId");
-
-  if (1 != mysql_num_rows ($result))
-    return display_error ("Found multiple entries for BidId $BidId");
-
-  $row = mysql_fetch_array ($result, MYSQL_ASSOC);
 
   foreach ($row as $key => $value)
   {
@@ -1991,13 +1984,11 @@ function process_status_change ()
       $_POST[$key] = $value;
   }
 
-//  dump_array ("_POST", $_POST);
+  //  dump_array ("_POST", $_POST);
 
-
-
-  // If the submitter is unpaid, comp him or her now
 
   $UserId = intval ($_POST['UserId']);
+
 
   // Let the submitter deal with who's comped
 /*
@@ -2028,9 +2019,48 @@ function process_status_change ()
   $Act->convert_from_array($_POST);
   $Act->save_to_db();
   $Act->add_performer($UserId);
+  
+  $Show = new Run();
+  $Call = new Run();
 
+  // if this is just a change in show, withdraw from old show
+  if ($row['Status'] == 'Accepted' && $_POST['OldShowId'] != $ShowId)
+  {
+  
+    $Show->load_from_ShowId($_POST['OldShowId'],"Show");
+    $Call->load_from_ShowId($_POST['OldShowId'], "Call");
 
+    if (strlen($Show->RunId) == 0 && strlen($Call->RunId) == 0 )
+      return display_error("Error - no show time or call time found for the show  
+                            Performer signup ay be broken.");
+    
+    $ShowRuns = array($Show, $Call);
+  
+    unbook_user($ShowRuns, $UserId);
 
+  }
+  // if there's no change in show for an accepted bid - do nothing with performer signup.
+  elseif ($row['Status'] == 'Accepted')
+  {
+    return TRUE;
+  }
+  
+  // Add user as a participant to the Show and the Call
+  // Forcing the withdraw_from_conflicts because shows trump other events and 
+  // this specifically applies only to waitlisting conflicts.
+  
+  $Show->load_from_ShowId($ShowId,"Show");
+  $Call->load_from_ShowId($ShowId, "Call");
+
+  if (strlen($Show->RunId) == 0 || strlen($Call->RunId) == 0 )
+    return display_error("Could not signup the performers for all the commitments.  
+        Please fix the problem and try again.");
+      
+  $ShowRuns = array($Show, $Call);
+  
+  book_user($ShowRuns, $UserId);
+  
+  
   return TRUE;
 }
 
@@ -2329,9 +2359,8 @@ function  create_feedback_forum ($BidId)
  * Change the status of a bid from Accepted to Dropped
  */
 
-function drop_bid ($BidId)
+function drop_bid ($BidId,$UserId)
 {
-
   // Build the string to update the game information in the bid
 
   $sql = 'UPDATE Bids SET ';
@@ -2360,6 +2389,21 @@ function drop_bid ($BidId)
   }
   $Act->remove_from_db();
 
+  if (isset($_POST['OldShowId']))
+  {
+    $Show = new Run();
+    $Call = new Run();
+  
+    $Show->load_from_ShowId($_POST['OldShowId'],"Show");
+    $Call->load_from_ShowId($_POST['OldShowId'], "Call");
+
+    if (strlen($Show->RunId) == 0 && strlen($Call->RunId) == 0 )
+      return display_error("Error - no show time or call time found for the show  Performer signup ay be broken.");
+    
+    $ShowRuns = array($Show, $Call);
+  
+    unbook_user($ShowRuns, $UserId);
+  }
 
   return TRUE;
 }

@@ -1,6 +1,7 @@
 <?php
-include ("gbe_signup.inc");
-include ("gbe_event.inc");
+include_once ("gbe_signup.inc");
+include_once ("gbe_event.inc");
+include_once ("signup_controller.inc");
 
 /* gbe_Run.inc - defines the baselines for Run management.
  * 
@@ -60,6 +61,44 @@ class Run
     $this->convert_from_sql_row($row);
   }
 
+  /* function load_from_Runid
+   * 
+   * Used to load a single Run when that run is part of a Show.
+   * Shows have several Event types that have only 1 run for a given show.
+   * Other types of runs do not offer this model, and even shows can be misconfigured.
+   * If more than 1 run is found, this will always choose the one with the lowest RunId.
+   * Arguments:
+   *    $ShowId = the event id of the show being referenced
+   *    $Type = the GameType of the run
+   *
+   * $ItemId:  the Run Id to be loaded.
+   * Returns: nothing.
+   */
+  function load_from_ShowId($ShowId, $Type)
+  {
+    if ($Type != "Show")
+    {
+      $sql = sprintf("select * from Runs, Events where Runs.ShowId = '%s' AND 
+        Events.GameType='%s' AND Events.EventId=Runs.EventId ORDER BY Runs.RunId", 
+        mysql_real_escape_string($ShowId), mysql_real_escape_string($Type));
+    }
+    else
+    {
+      $sql = sprintf("select * from Runs, Events where Events.EventId = '%s' AND 
+        Events.GameType='%s' AND Events.EventId=Runs.EventId ORDER BY Runs.RunId", 
+        mysql_real_escape_string($ShowId), mysql_real_escape_string($Type));
+    }
+     
+    $result = mysql_query($sql);
+    
+    if (!$result)
+      return display_mysql_error ('Cannot execute query', $sql);
+    if (mysql_num_rows($result) < 1)
+      return display_error("Booking on the schedule for a run of type ".$Type." was not found for ShowId ".$ShowId);
+    
+    $row = mysql_fetch_object($result);
+    $this->convert_from_sql_row($row,1);
+  }
   
   /* function convert_from_sql_row
    * 
@@ -343,6 +382,87 @@ function get_general_bookings(&$Bookings, &$Rooms)
     $run->convert_from_sql_row($row, 1);
     $Bookings[$run->StartHour."-".$run->Rooms]=$run;
     $Rooms[$run->Rooms]=$run->Rooms;
+  }
+
+}
+
+/* function book_user
+ * 
+ * Function signs up a user for a collection of one or more runs..
+ *
+ * Requires: 
+ *   $Bookings - an array of Run objects that should be booked 
+ *   $UserId - the user that is booked
+ * Optional:
+ *   $check_conflicts = a switch to turn off the default of checking for conflicts.
+*      advisable only if there is previous conflict checking elsewhere.
+ */
+function book_user($Bookings, $UserId, $check_conflicts=TRUE)
+{
+  foreach ($Bookings as $run)
+  {
+    $waitlist_conflicts = array();
+    
+    if ($check_conflicts)
+      $status = check_for_conflicts($UserId, $run->StartHour, 
+                    $run->StartHour + $run->Event->Hours, $run->Day, 
+					$waitlist_conflicts, $run->RunId, TRUE);
+					
+    //  echo "State: $state<P>\n";
+
+    $sql = 'INSERT INTO Signup SET UserId=' . $UserId;
+    $sql .= build_sql_string ('RunId', $run->RunId);
+    $sql .= build_sql_string ('State', 'Confirmed');
+    $sql .= build_sql_string ('Counted', 'Y');
+    $sql .= build_sql_string ('Gender','');
+    $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+
+    //  echo $sql . "<p>\n";
+
+    $result = mysql_query ($sql);
+    if (! $result)
+    {
+      display_mysql_error ('Failed to signup for event');
+      return SIGNUP_FAIL;
+    }
+    
+
+  }
+
+}
+
+/* function unbook_user
+ * 
+ * Function signs up a user for a collection of one or more runs..
+ *
+ * Requires: 
+ *   $Bookings - an array of Run objects that should be unbooked 
+ *   $UserId - the user that is booked
+ */
+function unbook_user($Bookings, $UserId)
+{
+  foreach ($Bookings as $run)
+  {
+    $waitlist_conflicts = array();
+    					
+    //  echo "State: $state<P>\n";
+
+    $sql = 'UPDATE Signup SET ';
+    $sql .= build_sql_string ('State', 'Withdrawn', false);
+    $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+    $sql .= ' WHERE RunId='.$run->RunId.' AND UserId='.$UserId;
+    
+
+    //  echo $sql . "<p>\n";
+
+    $result = mysql_query ($sql);
+    if (! $result)
+    {
+      display_mysql_error ('Failed to remove booking for event');
+      return SIGNUP_FAIL;
+    }
+    
+
   }
 
 }

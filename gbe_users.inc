@@ -124,7 +124,6 @@ class Bio
 		if (array_key_exists('PhotoSource', $array))
           $this->PhotoSource = (string)$array['PhotoSource'];		
           
-    echo "Bio Title:  ".$this->Title;
 		return true;
 	}
 
@@ -362,5 +361,34 @@ function user_is_teacher ($UserId, $EventId)
 	return $num != 0;
 }
 
+/*
+ * user_is_performer_for_show
+ *
+ * Returns true if the user is a performer for the specified show.
+ */
+
+function user_is_performer_for_show ($UserId, $ShowId)
+{
+
+	if (0 == $UserId)
+		return false;
+
+	// Query the database to see if the user is GM
+
+	$sql = "SELECT GMs.GMId FROM GMs, Acts ";
+	$sql .= "WHERE GMs.UserId=$UserId AND Acts.ShowId=$ShowId AND Acts.ActId=GMs.EventId";
+	$sql .= ' and GMs.Role="performer" LIMIT 1';
+
+	//	echo "Query: $sql<p>\n";
+
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ('Query for performer failed');
+
+	$num = mysql_num_rows ($result);
+	mysql_free_result ($result);
+
+	return $num != 0;
+}
 
 ?>
