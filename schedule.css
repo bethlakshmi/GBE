@@ -1,0 +1,14 @@
+
+
+div.bookings_wrapper table{
+    background-color:#EEEEEE;
+    border: solid #000000 3px;
+    width: 600px;
+
+}
+
+div.bookings_wrapper tr.header_row {
+    background-color:#CCCCCC;
+    border: solid #000 1px;
+    
+}
