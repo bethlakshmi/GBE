@@ -3,8 +3,8 @@ define ('LIST_BY_GAME', 1);
 define ('LIST_BY_RUNID', 2);
 define ('LIST_BY_TIME', 3);
 
-include ("intercon_db.inc");
-include ("signup_controller.inc");
+include_once ("intercon_db.inc");
+include_once ("signup_controller.inc");
 
 global $LIST_GAME_TEXT;
 $LIST_GAME_TEXT = "\n";
