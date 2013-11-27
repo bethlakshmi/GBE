@@ -1753,7 +1753,7 @@ function change_bid_status ()
     return display_error ("Found multiple entries for BidId $BidId");
 
   $row = mysql_fetch_object ($result);
-  $isGroup = $row->MultipleRuns;
+  $isGroup = ($row->MultipleRuns == "Y");
 
   display_header ("Change status for <I>$row->Title</I>");
 
