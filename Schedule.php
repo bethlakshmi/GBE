@@ -2506,7 +2506,7 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
       $is_gm = $gms[$row->UserId];
       if (strlen($is_gm) == 0) 
         $is_gm = "coordinator";
-      unset ($gms[$row->UserId]);
+      //unset ($gms[$row->UserId]);
       if ('' == $include_gms_checked)
 	continue;
     }
@@ -3038,7 +3038,7 @@ function show_all_signups ()
   $gms = array();
 
   while ($row = mysql_fetch_object ($result))
-    $gms[$row->UserId] = "$row->DisplayName, ";
+    $gms[$row->UserId] = "$row->DisplayName";
 
   // Fetch the list of confirmed and waitlisted users
 
