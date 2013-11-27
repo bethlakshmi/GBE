@@ -3025,7 +3025,7 @@ function show_all_signups ()
 
   // Get the list of GMs.  We'll want to know if any aren't signed up
 
-  $sql = 'SELECT GMs.UserId, Users.FirstName, Users.LastName';
+  $sql = 'SELECT GMs.UserId, Users.DisplayName ';
   $sql .= '  FROM Users, GMs';
   $sql .= "  WHERE GMs.EventId=$EventId";
   $sql .= '    AND Users.UserId=GMs.UserId';
@@ -3038,7 +3038,7 @@ function show_all_signups ()
   $gms = array();
 
   while ($row = mysql_fetch_object ($result))
-    $gms[$row->UserId] = "$row->LastName, $row->FirstName";
+    $gms[$row->UserId] = "$row->DisplayName, ";
 
   // Fetch the list of confirmed and waitlisted users
 
@@ -3072,7 +3072,7 @@ function show_all_signups ()
 
   // Fetch the list of players signed up
 
-  $sql = 'SELECT DISTINCT Users.UserId, Users.FirstName, Users.LastName,';
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName,';
   $sql .= ' Users.EMail,';
   $sql .= ' Signup.SignupId';
   $sql .= ' FROM Signup, Runs, Users';
@@ -3142,7 +3142,7 @@ function show_all_signups ()
 	unset ($gms[$row->UserId]);
       }
 
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if (0 == $row->BirthYear)
 	$age = '?';
