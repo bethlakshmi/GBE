@@ -886,8 +886,8 @@ function process_add_ops ()
       $sql .= build_sql_string ('StartHour', $RunHour);
       //$sql .= build_sql_string ('TitleSuffix');
       $sql .= build_sql_string ('ScheduleNote');
-      if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-           || $row->GameType == $OPS_TYPES[3])
+      if ( $_POST['GameType'] == $OPS_TYPES[1] || $_POST['GameType'] == $OPS_TYPES[2] 
+           || $_POST['GameType'] == $OPS_TYPES[3] )
           $sql .= build_sql_string ('ShowId');
 
       if ( $row->GameType == $OPS_TYPES[2] || $row->GameType == $OPS_TYPES[3])
