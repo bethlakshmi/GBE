@@ -1753,6 +1753,7 @@ function change_bid_status ()
     return display_error ("Found multiple entries for BidId $BidId");
 
   $row = mysql_fetch_object ($result);
+  $isGroup = $row->MultipleRuns;
 
   display_header ("Change status for <I>$row->Title</I>");
 
@@ -1808,7 +1809,6 @@ function change_bid_status ()
   if ($row->Status == 'Accepted' || $row->Status == 'Under Review' )
   {
     $showId = 0;
-    $isGroup = $row->MultipleRuns;
     $GroupName = $row->Organization;
     $Website = $row->Homepage;
     $PhotoSource = $row->PhotoSource;
