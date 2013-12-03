@@ -3,8 +3,8 @@ define ('LIST_BY_GAME', 1);
 define ('LIST_BY_RUNID', 2);
 define ('LIST_BY_TIME', 3);
 
-include ("intercon_db.inc");
-include ("signup_controller.inc");
+include_once ("intercon_db.inc");
+include_once ("signup_controller.inc");
 
 global $LIST_GAME_TEXT;
 $LIST_GAME_TEXT = "\n";
@@ -586,6 +586,7 @@ function add_run_form ($update)
 
 function process_add_run ()
 {
+
   // Check for a sequence error
 
   if (out_of_sequence ())
@@ -599,7 +600,7 @@ function process_add_run ()
   {
     $verb = 'INSERT';
     $action_failed = 'Insert into';
-
+    $RunId = 0;
     $EventId = $_POST['EventId'];
   }
   else
@@ -641,6 +642,7 @@ function process_add_run ()
   $row = mysql_fetch_object ($result);
   $Title = $row->Title;
   $Hours = $row->Hours;
+  $GameType = $row->GameType;
 
   // If DeleteRun is one of the Post parameters, this must be an update request
   // and the user has asked us to delete a run.
@@ -697,7 +699,7 @@ function process_add_run ()
     while( $row = mysql_fetch_object ($result))
     {
       $status = check_for_conflicts($row->UserId, $start_hour, $end_hour, $day, 
-					&$waitlist_conflicts);
+					&$waitlist_conflicts, $RunId, TRUE);
 	  if ($status == SIGNUP_FAIL)
 	    display_error("Scheduling problem was found for ".$row->DisplayName);
 	  if (sizeof($waitlist_conflicts) > 1)
@@ -712,10 +714,10 @@ function process_add_run ()
 
     } // iterate GMs
   }
-  
+
   global $OPS_TYPES;
-  if ( ($row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-       || $row->GameType == $OPS_TYPES[3] ) && ( !validate_int ('ShowId', 1, 2000)))
+  if ( ($GameType == $OPS_TYPES[1] || $GameType == $OPS_TYPES[2] 
+       || $GameType == $OPS_TYPES[3] ) && ( !validate_int ('ShowId', 1, 2000)))
     {
       $form_ok &= false;
       display_error("...which means... For a run of type ".$row->GameType.", you must pick a show for this type of Ops run<br>\n");
@@ -737,11 +739,11 @@ function process_add_run ()
   $sql .= build_sql_string ('Rooms', $Rooms);
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
 
-  if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-        || $row->GameType == $OPS_TYPES[3])
+  if ( $GameType == $OPS_TYPES[1] || $GameType == $OPS_TYPES[2] 
+        || $GameType == $OPS_TYPES[3])
     $sql .= build_sql_string ('ShowId');
 
-  if ( $row->GameType == $OPS_TYPES[2] || $row->GameType == $OPS_TYPES[3])
+  if ( $GameType == $OPS_TYPES[2] || $GameType == $OPS_TYPES[3])
     $sql .= build_sql_string ('Viewable','protect');
 
   if ($Update)
@@ -884,8 +886,8 @@ function process_add_ops ()
       $sql .= build_sql_string ('StartHour', $RunHour);
       //$sql .= build_sql_string ('TitleSuffix');
       $sql .= build_sql_string ('ScheduleNote');
-      if ( $row->GameType == $OPS_TYPES[1] || $row->GameType == $OPS_TYPES[2] 
-           || $row->GameType == $OPS_TYPES[3])
+      if ( $_POST['GameType'] == $OPS_TYPES[1] || $_POST['GameType'] == $OPS_TYPES[2] 
+           || $_POST['GameType'] == $OPS_TYPES[3] )
           $sql .= build_sql_string ('ShowId');
 
       if ( $row->GameType == $OPS_TYPES[2] || $row->GameType == $OPS_TYPES[3])

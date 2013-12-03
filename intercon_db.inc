@@ -21,6 +21,7 @@ require ('intercon_navbar.inc');
 require ('Mail.php');
 require ('display_common.php');
 include ("gbe_acts.inc");
+include_once ("gbe_run.inc");
 
 define (SHOW_TSHIRTS, 1);
 define (TSHIRT_DOLLARS, 20);
@@ -28,14 +29,14 @@ define (UNLIMITED_SIGNUPS, 100);
 
 // Orderings
 
-define (ORDER_BY_SEQ, 1);
-define (ORDER_BY_NAME, 2);
-define (ORDER_BY_AGE, 3);
-define (ORDER_BY_GENDER, 4);
-define (ORDER_BY_CREATION, 5);
-define (ORDER_BY_PAYMENT_STATUS_CHANGE, 6);
-define (ORDER_BY_LAST_MODIFIED, 7);
-define (ORDER_BY_LAST_LOGIN, 8);
+define ('ORDER_BY_SEQ', 1);
+define ('ORDER_BY_NAME', 2);
+define ('ORDER_BY_AGE', 3);
+define ('ORDER_BY_GENDER', 4);
+define ('ORDER_BY_CREATION', 5);
+define ('ORDER_BY_PAYMENT_STATUS_CHANGE', 6);
+define ('ORDER_BY_LAST_MODIFIED', 7);
+define ('ORDER_BY_LAST_LOGIN', 8);
 
 // Privileges - These must match the database SET for the User Priv field
 
@@ -173,20 +174,20 @@ define ('BID_FEEDBACK_PROCESS_BY_CONCOM', 203);
 
 // Action values in ListGames.php
 
-define (LIST_GAMES, 60);
-define (ADD_RUN, 61);
-define (PROCESS_ADD_RUN, 62);
-define (EDIT_RUN, 63);
-define (PROCESS_EDIT_RUN, 64);
-define (LIST_GAMES_BY_TIME, 65);
-//define (ADD_PARALLEL_RUN, 66);
-//define (PROCESS_ADD_PARALLEL_RUN, 67);
-//define (LIST_TO_ADD_PARALLEL_RUN, 68);
-define (LIST_ADD_CONSUITE, 68);
-define (LIST_ADD_OPS, 69);
-define (PROCESS_ADD_OPS, 70);
-define (LIST_OPS, 71);
-define (LIST_OPS_BY_TIME, 72);
+define ('LIST_GAMES', 60);
+define ('ADD_RUN', 61);
+define ('PROCESS_ADD_RUN', 62);
+define ('EDIT_RUN', 63);
+define ('PROCESS_EDIT_RUN', 64);
+define ('LIST_GAMES_BY_TIME', 65);
+//define ('ADD_PARALLEL_RUN', 66);
+//define ('PROCESS_ADD_PARALLEL_RUN', 67);
+//define ('LIST_TO_ADD_PARALLEL_RUN', 68);
+define ('LIST_ADD_CONSUITE', 68);
+define ('LIST_ADD_OPS', 69);
+define ('PROCESS_ADD_OPS', 70);
+define ('LIST_OPS', 71);
+define ('LIST_OPS_BY_TIME', 72);
 
 // Action values in MailTo.php
 
@@ -2684,6 +2685,9 @@ function withdraw_from_game ($SignupId = 0)
       return display_sequence_error (false);
 
     $SignupId = intval (trim ($_REQUEST['SignupId']));
+    if (isset($_REQUEST['ShowId']))
+      $ShowId=$_REQUEST['ShowId'];
+    else $ShowId=0;
 
     // Make sure that this is the user or a staff member
 
@@ -2700,16 +2704,16 @@ function withdraw_from_game ($SignupId = 0)
 	  return display_error ("Failed to find info for signup $SignupId");
 
 	if ($row->UserId != $_SESSION[SESSION_LOGIN_USER_ID])
-	  return display_error ('You are not allowed to withdraw from a game for another user.');
+	  return display_error ('You are not allowed to withdraw from a commitment for another user.');
     }
   }
 
   if (!con_signups_allowed()) {
-      return display_error("Game signups and withdrawals are not allowed at this time.");
+      return display_error("Signups and withdrawals are not allowed at this time.");
   }
 
   $sql = 'SELECT Signup.State, Signup.Counted, Signup.Gender,';
-  $sql .= ' Users.FirstName, Users.LastName, Users.EMail';
+  $sql .= ' Users.DisplayName, Users.EMail, Users.UserId';
   $sql .= ' FROM Signup, Users';
   $sql .= " WHERE SignupId=$SignupId";
   $sql .= '   AND Users.UserId=Signup.UserId';
@@ -2723,7 +2727,7 @@ function withdraw_from_game ($SignupId = 0)
     return display_error ('Failed to find signup to check previous state');
 
   $prev_state = strtolower ($row->State);
-  $name = trim ("$row->FirstName $row->LastName");
+  $name = trim ("$row->DisplayName");
 
   // Lock the Signup table to make sure that if there are two users trying
   // to get the last slot in a game, then only one will succeed.  A READ lock
@@ -2740,7 +2744,22 @@ function withdraw_from_game ($SignupId = 0)
 			     $prev_state,
 			     $row->Gender,
 			     $row->Counted);
+  if ($ShowId)
+  {
+    $Show = new Run();
+    $Call = new Run();
+  
+    $Show->load_from_ShowId($ShowId,"Show");
+    $Call->load_from_ShowId($ShowId, "Call");
 
+    if (strlen($Show->RunId) == 0 && strlen($Call->RunId) == 0 )
+      return display_error("Error - no show time or call time found for the show  Crew signup may be broken.");
+    
+    $ShowRuns = array($Show, $Call);
+  
+    unbook_user($ShowRuns, $row->UserId);
+  }
+  
   // Unlock the Signup table so that other queries can access it
 
   $result = mysql_query ('UNLOCK TABLES');
@@ -2792,6 +2811,10 @@ function confirm_withdraw_from_game ()
 	  WITHDRAW_FROM_GAME_CONFIRMED);
   printf ("<INPUT TYPE=HIDDEN NAME=SignupId VALUE=%d>\n",
 	  $SignupId);
+  if (isset($_REQUEST['ShowId']))
+    printf ("<INPUT TYPE=HIDDEN NAME=ShowId VALUE=%d>\n",
+            intval(trim($_REQUEST['ShowId'])));
+
   echo "Are you sure that you want to withdraw from <I>$row->Title</I>\n";
   echo "being held on <NOBR>$row->Day, $start_time - $end_time?</NOBR><p>\n";
   echo "If you withdraw ";

@@ -7,7 +7,7 @@ include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
 include ("gbe_event.inc");
 include ("WhosWho.inc");
-include ("signup_controller.inc");
+include_once ("signup_controller.inc");
 
 // Connect to the database
 
@@ -447,19 +447,13 @@ function display_event_with_counts($hour, $row, $dimensions, $signup_counts)
   // If we're above the minimum, but less than max, it's light green
   // If we're at max, it's dark green
 
-  if ($male_confirmed < $row->MinPlayersMale ||
-	  $female_confirmed < $row->MinPlayersFemale ||
-	  $total_confirmed < ($row->MinPlayersMale + $row->MinPlayersFemale + $row->MinPlayersNeutral)) {
+  if ( $total_confirmed < ($row->MinPlayersNeutral)) {
 	
     $bgcolor = get_bgcolor_hex ('Full');       // Light red
-  } elseif ($male_confirmed < $row->PrefPlayersMale ||
-	  $female_confirmed < $row->PrefPlayersFemale ||
-	  $total_confirmed < ($row->PrefPlayersMale + $row->PrefPlayersFemale + $row->PrefPlayersNeutral)) {
+  } elseif ($total_confirmed < ($row->PrefPlayersNeutral)) {
 
     $bgcolor = get_bgcolor_hex ('Waitlisted'); // Light yellow		
-  } elseif ($male_confirmed < $row->MaxPlayersMale ||
-	  $female_confirmed < $row->MaxPlayersFemale ||
-	  $total_confirmed < ($row->MaxPlayersMale + $row->MaxPlayersFemale + $row->MaxPlayersNeutral)) {
+  } elseif ($total_confirmed < ($row->MaxPlayersNeutral)) {
 	
     $bgcolor = get_bgcolor_hex ('Confirmed');  // Light green
   } else {
@@ -488,9 +482,9 @@ function display_event_with_counts($hour, $row, $dimensions, $signup_counts)
 		    '<NOBR><FONT COLOR=green>%d</FONT>/' .
 		    '<FONT COLOR=blue>%d</FONT>/' . 
 		    '<FONT COLOR=red>%d</FONT></NOBR>',
-		    $row->MinPlayersMale + $row->MinPlayersFemale + $row->MinPlayersNeutral,
-		    $row->PrefPlayersMale + $row->PrefPlayersFemale + $row->PrefPlayersNeutral,
-		    $row->MaxPlayersMale + $row->MaxPlayersFemale + $row->MaxPlayersNeutral,
+		    $row->MinPlayersNeutral,
+		    $row->PrefPlayersNeutral,
+		    $row->MaxPlayersNeutral,
 		    $total_confirmed,
 		    $not_counted_for_run,
 		    $waitlisted_for_run);
@@ -713,9 +707,9 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
 		  $total_waitlisted[$h] = 0;
 		}
 	
-	    $avail_min[$h] += ($row->MinPlayersMale + $row->MinPlayersFemale + $row->MinPlayersNeutral);
-	    $avail_pref[$h] += ($row->PrefPlayersMale + $row->PrefPlayersFemale + $row->PrefPlayersNeutral);
-	    $avail_max[$h] += ($row->MaxPlayersMale + $row->MaxPlayersFemale + $row->MaxPlayersNeutral);
+	    $avail_min[$h] += ($row->MinPlayersNeutral);
+	    $avail_pref[$h] += ($row->PrefPlayersNeutral);
+	    $avail_max[$h] += ($row->MaxPlayersNeutral);
 	
 		$total_confirmed[$h] += $run_counts["Male"];
 		$total_confirmed[$h] += $run_counts["Female"];
@@ -965,27 +959,7 @@ function display_players ($head, $min, $max, $preferred)
     echo "  </TR>\n";
 }
 
-/*
- * game_full
- *
- * Checks whether the event is full. 
- * This call can be simplified since we're no longer tracking slots by gender.
- */
 
-function game_full (&$msg, $gender, $male, $female,
-		    $max_male, $max_female, $max_neutral, $neutralcount=0)
-{
-  // If we're above total game max, then we're full
-
-  if ($male + $female + $neutralcount >= $max_male + $max_female + $max_neutral)
-  {
-    //    echo "<!-- Above game total -->\n";
-    $msg = 'This opportunity is full';
-    return TRUE;
-  }
-  else 
-       return FALSE;
-}
 
 /*
  * players_will_fit
@@ -1036,63 +1010,6 @@ function get_user_status_for_run ($RunId, &$SignupId, &$is_confirmed)
   $is_confirmed = ('Confirmed' == $row->State);
 
   mysql_free_result ($result);
-
-  return true;
-}
-
-/*
- * get_counts_for_run
- */
-
-function get_counts_for_run ($RunId, &$confirmed, &$waitlisted)
-{
-  // Initialize the array contents
-
-  $confirmed['Male'] = 0;
-  $confirmed['Female'] = 0;
-  $confirmed[''] = 0;
-  
-  $waitlisted['Male'] = 0;
-  $waitlisted['Female'] = 0;
-  $waitlisted[''] = 0;
-
-  // Start by getting the count of confirmed users
-
-  $sql = 'SELECT Gender, COUNT(Gender) AS Count';
-  $sql .= ' FROM Signup';
-  $sql .= " WHERE RunId=$RunId";
-  $sql .= "   AND State='Confirmed'";
-  $sql .= "   AND Counted='Y'";
-  $sql .= ' GROUP BY Gender';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Attempt to count confirmed signups for RunId $RunId Failed', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-    $confirmed[$row->Gender] = $row->Count;
-
-  // Now count the number of waitlisted users
-
-  $sql = 'SELECT Gender, COUNT(Gender) AS Count';
-  $sql .= ' FROM Signup';
-  $sql .= " WHERE RunId=$RunId";
-  $sql .= "   AND State='Waitlisted'";
-  $sql .= "   AND Signup.Counted='Y'";
-  $sql .= ' GROUP BY Gender';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Attempt to count waitlisted signups for RunId $RunId Failed', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-    $waitlisted[$row->Gender] = $row->Count;
-
-  mysql_free_result ($result);
-
-  $confirmed['Total'] = $confirmed['Male'] + $confirmed['Female'] + $confirmed[''];
-  $waitlisted['Total'] = $waitlisted['Male'] + $waitlisted['Female'] + $waitlisted[''];
-
 
   return true;
 }
@@ -1205,7 +1122,9 @@ function show_game ()
        || user_is_teacher ($_SESSION[SESSION_LOGIN_USER_ID], $EventId) )
     $can_edit_game = true;
 
+  
   $can_signup = can_signup();
+  $show_part = user_is_gm_for_game ($_SESSION[SESSION_LOGIN_USER_ID], $EventId);
 
   // Create an Event object
 
@@ -1213,13 +1132,6 @@ function show_game ()
   $event->load_from_eventid($EventId);
 
 
-  // If this is a special event, it can't be edited here
-
-  if (1 == $game_row->SpecialEvent)
-  {
-    $is_gm = false;
-    $can_edit_game = false;
-  }
 
   global $GM_TYPES;
   $gms = $GM_TYPES[$event->GameType];
@@ -1227,10 +1139,6 @@ function show_game ()
   // Note if this is a volunteer event (ConSuite or Ops)
 
   $volunteer_event = ($event->IsOps=='Y') || ($event->IsConSuite=='Y');
-
-  // Note if this is a LARPA Small Game Contest entry
-
-  $is_small_game_contest_entry = ('Y' == $event->IsSmallGameContestEntry);
 
   // Note if there are 0 players.  We'll use this later
 
@@ -1305,7 +1213,7 @@ function show_game ()
     $sql .= " WHERE GMs.EventId=$EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
     $sql .= "   AND Users.UserId=GMs.UserId";
-    $sql .= "   AND (GMs.Role = 'teacher' OR GMs.Role = 'panelist' OR GMs.Role = 'moderator' )";
+    $sql .= "   AND (GMs.Role = 'teacher' OR GMs.Role = 'panelist' OR GMs.Role = 'moderator' OR GMs.Role = '' )";
     $sql .= ' ORDER BY GMs.Role DESC, Users.DisplayName';
 
     //  echo "$sql<P>";
@@ -1315,6 +1223,7 @@ function show_game ()
       display_mysql_error ('Failed to fetch list of GMs');
 
     $num_gms = mysql_num_rows ($gm_result);
+
     if ($num_gms != 0)
     {
       echo "  <TR>\n";
@@ -1371,12 +1280,8 @@ function show_game ()
     else if ($event->GameType == "Show")
       echo "    <th>Total Crew:</th>\n";
     if ($volunteer_event || $event->GameType == "Show")
-    printf ("    <td>Min: %d / Max: %d</td>\n",
-	    $event->MinPlayersMale +
-	    $event->MinPlayersFemale +
+        printf ("    <td>Min: %d / Max: %d</td>\n",
 	    $event->MinPlayersNeutral,
-	    $event->MaxPlayersMale +
-	    $event->MaxPlayersFemale +
 	    $event->MaxPlayersNeutral);
     echo "  </tr>\n";
   }
@@ -1409,7 +1314,7 @@ function show_game ()
 
     // Extract information for the runs of this game
 
-    $sql = "SELECT RunId, Day, StartHour, Rooms FROM Runs";
+    $sql = "SELECT RunId, Day, StartHour, Rooms, ShowId FROM Runs";
     $sql .= ' WHERE EventId=' . $event->EventId;
     $sql .= ' ORDER BY Day, StartHour';
     $runs_result = mysql_query ($sql);
@@ -1417,7 +1322,7 @@ function show_game ()
       return display_mysql_error ("Cannot query runs for Event $event->EventId");
     $run_count = mysql_num_rows ($runs_result);
     $run_col = -1;
-
+    
     // If this is a GM or a privileged user, AND there's only one run AND
     // there are neutral players, offer the user the ability to freeze the
     // gender balance
@@ -1500,7 +1405,7 @@ function show_game ()
 	      $run_col = 0;
 	      echo " <TR ALIGN=CENTER VALIGN=TOP>\n";
 	    }
-
+        $ShowId = $run_row->ShowId;
 	    $game_start = start_hour_to_am_pm ($run_row->StartHour);
 	    $game_end = start_hour_to_am_pm ($run_row->StartHour +
 					       $event->Hours);
@@ -1514,7 +1419,7 @@ function show_game ()
 
         // if signing up is an option create the info related to availability
         // of both slot and user
-        if ($max_signups > 0 && is_signup_event($event->GameType) && $logged_in)
+        if ( ($max_signups > 0 || $can_edit_game || $show_part) && is_signup_event($event->GameType) && $logged_in)
         {
   		  $confirmed = array ();
 		  $waitlisted = array ();
@@ -1531,8 +1436,8 @@ function show_game ()
 
 	      $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
 				    $confirmed['Male'], $confirmed['Female'],
-				    $event->MaxPlayersMale,
-				    $event->MaxPlayersFemale,
+				    0,
+				    0,
 				    $event->MaxPlayersNeutral,$confirmed['']);
 	      $count_text = sprintf ('Signed Up: %d<BR>Waitlist: %d',
 		 		   $confirmed['Total'],
@@ -1541,7 +1446,7 @@ function show_game ()
 	      // If the user can edit the GM (he/she is a GM) or if they
 	      // have Outreach privilege, let them view the signups
 
-  	      if ($can_edit_game || user_has_priv (PRIV_OUTREACH))
+  	      if ($can_edit_game || user_has_priv (PRIV_OUTREACH) || $show_part)
 	      {
 	        $count_text = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d' .
 				     '&EventId=%d&FirstTime=1>%s</A>',
@@ -1567,9 +1472,13 @@ function show_game ()
 		         $text .= "<P><I>You are waitlisted #$wait</I>";
 	        }  
 
-	        if (($can_signup) && (0 != con_signups_allowed()))
+	        if ($event->GameType != "Show" && $event->GameType != "Call" && 
+	             ($can_signup) && (0 != con_signups_allowed()))
 	        {
-		        $link = sprintf ('<A HREF=Schedule.php?action=%d&SignupId=%d' .
+	            if ($event->GameType=="Tech Rehearsal")
+	              $SignupId .= "&ShowId=".$ShowId;
+	              
+		        $link = sprintf ('<A HREF=Schedule.php?action=%d&SignupId=%s' .
 				 '&Seq=%d>',
 				 WITHDRAW_FROM_GAME,
 				 $SignupId,
@@ -1586,7 +1495,7 @@ function show_game ()
 
 
 	        
-				if ($can_signup)
+				if ($can_signup && $max_signups > 0)
 				{
 				  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
 					   'EventId=%d&Seq=%d>',
@@ -1622,7 +1531,7 @@ function show_game ()
 
 	  echo "</TABLE>\n";
 
-	  if ($can_edit_game && is_signup_event($event->GameType))
+	  if ($can_edit_game && is_signup_event($event->GameType) && $show_part)
 	    echo "    <BR>Click on the counts to see signup list\n";
 
 	  if ('Y' == $event->CanPlayConcurrently)
@@ -1995,9 +1904,7 @@ function add_game ()
   {
     // Start by fetching the counts currently in place
 
-    $sql = 'SELECT MaxPlayersMale, MaxPlayersFemale, MaxPlayersNeutral,';
-    $sql .= '  MinPlayersMale, MinPlayersFemale, MinPlayersNeutral,';
-    $sql .= '  PrefPlayersMale, PrefPlayersFemale, PrefPlayersNeutral,';
+    $sql = 'SELECT PrefPlayersMale, PrefPlayersFemale, PrefPlayersNeutral,';
     $sql .= '  Hours';
     $sql .= '  FROM Events';
     $sql .= "  WHERE EventId=$EventId";
@@ -2010,8 +1917,8 @@ function add_game ()
     if (! $row)
       return display_error ("Query for event counts failed for $EventId");
 
-    $old_max_male = $row['MaxPlayersMale'];
-    $old_max_female = $row['MaxPlayersFemale'];
+    $old_max_male = 0;
+    $old_max_female = 0;
     $old_max_neutral = $row['MaxPlayersNeutral'];
 
     if (! validate_new_counts ($EventId,
@@ -2074,14 +1981,6 @@ function add_game ()
 			      $IsSmallGameContestEntry);
     $sql .= build_sql_string ('Hours');
   }
-
-  $sql .= build_sql_string ('MinPlayersMale');
-  $sql .= build_sql_string ('MaxPlayersMale');
-  $sql .= build_sql_string ('PrefPlayersMale');
-
-  $sql .= build_sql_string ('MinPlayersFemale');
-  $sql .= build_sql_string ('MaxPlayersFemale', $new_max_female);
-  $sql .= build_sql_string ('PrefPlayersFemale');
 
   $sql .= build_sql_string ('MinPlayersNeutral');
   $sql .= build_sql_string ('MaxPlayersNeutral', $new_max_neutral);
@@ -2516,7 +2415,6 @@ function show_gms($row){
 function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 			     $order_by, $result, &$status, &$gms, $can_edit,
 			     $include_number_checked, $include_name_checked,
-			     $include_gender_checked, $include_age_checked,
 			     $include_email_checked, $include_gm_flag_checked,
 			     $include_gms_checked,
 			     $include_confirmed_checked,
@@ -2542,10 +2440,6 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
     $checked_state .= '&IncludeNumber=on';
   if ('' != $include_name_checked)
     $checked_state .= '&IncludeName=on';
-  if ('' != $include_gender_checked)
-    $checked_state .= '&IncludeGender=on';
-  if ('' != $include_age_checked)
-    $checked_state .= '&IncludeAge=on';
   if ('' != $include_email_checked)
     $checked_state .= '&IncludeEmail=on';
   if ('' != $include_gm_flag_checked)
@@ -2593,25 +2487,6 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 	    $run_id,
 	    'Name');
 
-  if ('' != $include_gender_checked)
-    printf ('<TH><A HREF=Schedule.php?action=%d&EventId=%d&OrderBy=%d%s%s>' .
-	    "%s</A></TH>\n",
-	    $action,
-	    $EventId,
-	    ORDER_BY_GENDER,
-	    $checked_state,
-	    $run_id,
-	    'Gender');
-
-  if ('' != $include_age_checked)
-    printf ('<TH><A HREF=Schedule.php?action=%d&EventId=%d&OrderBy=%d%s%s>' .
-	    "%s</A></TH>\n",
-	    $action,
-	    $EventId,
-	    ORDER_BY_AGE,
-	    $checked_state,
-	    $run_id,
-	    'Age');
 
   if ('' != $include_email_checked)
     echo "    <TH ALIGN=LEFT>EMail</TH>\n";
@@ -2628,13 +2503,15 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
       $is_gm = '&nbsp;';
     else
     {
-      $is_gm = 'GM';
-      unset ($gms[$row->UserId]);
+      $is_gm = $gms[$row->UserId];
+      if (strlen($is_gm) == 0) 
+        $is_gm = "coordinator";
+      //unset ($gms[$row->UserId]);
       if ('' == $include_gms_checked)
 	continue;
     }
 
-    $name = "$row->LastName, $row->FirstName";
+    $name = "$row->DisplayName";
 
     echo "  <TR VALIGN=TOP>\n";
 
@@ -2657,17 +2534,6 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 	echo "    <TD>$name</TD>\n";
     }
 
-    if ('' != $include_gender_checked)
-      echo "    <TD>$row->Gender</TD>\n";
-
-    if (0 == $row->BirthYear)
-      $age = '?';
-    else
-      $age = birth_year_to_age ($row->BirthYear);
-
-
-    if ('' != $include_age_checked)
-      echo "    <TD ALIGN=CENTER>$age</TD>\n";
 
     if ('' != $include_email_checked)
       echo "    <TD><A HREF=MAILTO:$row->EMail>$row->EMail</A></TD>\n";
@@ -2706,8 +2572,6 @@ function show_signups ()
   {
     $include_number_checked = 'CHECKED';
     $include_name_checked = 'CHECKED';
-    $include_gender_checked = 'CHECKED';
-    $include_age_checked = 'CHECKED';
     $include_email_checked = 'CHECKED';
     $include_gm_flag_checked = 'CHECKED';
     $include_gms_checked = 'CHECKED';
@@ -2729,16 +2593,6 @@ function show_signups ()
       $include_name_checked = 'CHECKED';
     else
       $include_name_checked = '';
-
-    if (array_key_exists ('IncludeGender', $_REQUEST))
-      $include_gender_checked = 'CHECKED';
-    else
-      $include_gender_checked = '';
-
-    if (array_key_exists ('IncludeAge', $_REQUEST))
-      $include_age_checked = 'CHECKED';
-    else
-      $include_age_checked = '';
 
     if (array_key_exists ('IncludeEmail', $_REQUEST))
       $include_email_checked = 'CHECKED';
@@ -2791,11 +2645,9 @@ function show_signups ()
 
   // Fetch the game title and suffix (if any)
 
-  $sql = 'SELECT Events.Title, Events.Hours,';
-  $sql .= ' Events.MinPlayersMale, Events.MaxPlayersMale, Events.PrefPlayersMale,';
-  $sql .= ' Events.MinPlayersFemale, Events.MaxPlayersFemale, Events.PrefPlayersFemale,';
+  $sql = 'SELECT Events.Title, Events.Hours, Events.GameType, ';
   $sql .= ' Events.MinPlayersNeutral, Events.MaxPlayersNeutral, Events.PrefPlayersNeutral,';
-  $sql .= ' Runs.TitleSuffix, Runs.StartHour, Runs.Day';
+  $sql .= ' Runs.TitleSuffix, Runs.StartHour, Runs.Day, Runs.ShowId';
   $sql .= ' FROM Runs, Events';
   $sql .= " WHERE Runs.RunId=$RunId AND Events.EventId=Runs.EventId";
 
@@ -2817,16 +2669,25 @@ function show_signups ()
   if ('' != $row->TitleSuffix)
     $Title .= " - $row->TitleSuffix";
 
+  // if this is associated with a show, figure out the show id
+  $ShowId = NULL;
+  //echo "GameType: ".$row->GameType."<br>";
+  if ($row->GameType == "Show")
+    $ShowId = $EventId;
+  else 
+    $ShowId = $row->ShowId;
+
+
   $start_time = start_hour_to_am_pm ($row->StartHour);
   $end_time = start_hour_to_am_pm ($row->StartHour + $row->Hours);
 
   $Day = $row->Day;
   $Date = day_to_date ($Day);
 
-  $max_male = $row->MaxPlayersMale;
-  $max_female = $row->MaxPlayersFemale;
+  $max_male = 0;
+  $max_female = 0;
   $max_neutral = $row->MaxPlayersNeutral;
-  $total = $row->MaxPlayersMale + $row->MaxPlayersFemale + $row->MaxPlayersNeutral;
+  $total = $row->MaxPlayersNeutral;
 
   echo "<I><B><FONT SIZE='+2'>$Title</FONT></B></I><BR>\n";
   echo "<B><FONT SIZE='+1'>$Date&nbsp;&nbsp;&nbsp;$start_time - $end_time</FONT></B><P>\n";
@@ -2843,37 +2704,40 @@ function show_signups ()
 
     case ORDER_BY_NAME:
       $order_by_text = 'Player Name';
-      $order_by_sql = 'Users.LastName, Users.FirstName';
+      $order_by_sql = 'Users.DisplayName';
       break;
 
-    case ORDER_BY_AGE:
-      $order_by_text = 'Age';
-      $order_by_sql = 'Users.BirthYear, Users.LastName, Users.FirstName';
-      break;
-
-    case ORDER_BY_GENDER:
-      $order_by_text = 'Gender';
-      $order_by_sql = 'Signup.Gender, Users.LastName, Users.FirstName';
-      break;
   }
 
-  // Get the list of GMs.  We'll want to know if any aren't signed up
-
-  $sql = 'SELECT GMs.UserId, Users.FirstName, Users.LastName';
-  $sql .= '  FROM Users, GMs';
-  $sql .= "  WHERE GMs.EventId=$EventId";
-  $sql .= '    AND Users.UserId=GMs.UserId';
+  // Get the list of GMs.  We'll want to know who they are.
+  // if this is a show, it's more important to have performers, who are hooked in differently
+  if ($ShowId == NULL)
+  {
+    $sql = 'SELECT GMs.UserId, GMs.Role ';
+    $sql .= '  FROM GMs';
+    $sql .= "  WHERE GMs.EventId=$EventId AND GMs.Role != 'performer'";
+  }
+  else 
+  {
+    $sql = 'SELECT GMs.UserId, GMs.Role ';
+    $sql .= '  FROM Acts, GMs';
+    $sql .= "  WHERE GMs.EventId=Acts.ActId AND Acts.ShowId=$ShowId";
+    $sql .= '    AND GMs.Role="performer"';
+  }
+  //echo $sql;
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Query failed for GM list for Event $EventId",
+    return display_mysql_error ("Query failed for Coordinator list for Event $EventId",
 				$sql);
 
   $gms = array();
 
   while ($row = mysql_fetch_object ($result))
-    $gms[$row->UserId] = "$row->LastName, $row->FirstName";
-
+  {
+    $gms[$row->UserId] = "$row->Role";
+    //echo "Made GM: ".$row->UserId." Role: ".$row->Role."<br>";
+  }
   // Fetch the list of confirmed and waitlisted users
 
   $status = array ();
@@ -2905,9 +2769,9 @@ function show_signups ()
 
   // Fetch the list of players signed up
 
-  $sql = 'SELECT Users.UserId, Users.FirstName, Users.LastName,';
-  $sql .= ' Users.BirthYear, Users.EMail,';
-  $sql .= ' Signup.SignupId, Signup.Counted, Signup.State, Signup.Gender';
+  $sql = 'SELECT Users.UserId, Users.DisplayName, ';
+  $sql .= ' Users.EMail,';
+  $sql .= ' Signup.SignupId, Signup.Counted, Signup.State';
   $sql .= ' FROM Signup, Users';
   $sql .= " WHERE Signup.RunId=$RunId";
   $sql .= '   AND Users.UserId=Signup.UserId';
@@ -2946,15 +2810,13 @@ function show_signups ()
   echo "      <B>\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeNumber $include_number_checked>&nbsp;Number\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeName $include_name_checked>&nbsp;Name\n";
-  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGender $include_gender_checked>&nbsp;Gender\n";
-  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeAge $include_age_checked>&nbsp;Age\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeEmail $include_email_checked>&nbsp;EMail\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGMFlag $include_gm_flag_checked>&nbsp;Running Flag\n<BR>";
   echo "      </B>\n";
   echo "    </TD>\n";
   echo "  </TR>\n";
   echo "  <TR VALIGN=TOP>\n";
-  echo "    <TD>Include Players:</TD>\n";
+  echo "    <TD>Include Participants:</TD>\n";
   echo "    <TD>\n";
   echo "      <B>\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeConfirmed $include_confirmed_checked>&nbsp;Confirmed\n";
@@ -2995,12 +2857,7 @@ function show_signups ()
 	$gm = 'GM';
       }
 
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
-
-      if (0 == $row->BirthYear)
-	$age = '?';
-      else
-	$age = birth_year_to_age ($row->BirthYear);
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       $s = substr ($row->State, 0, 1);
 
@@ -3021,12 +2878,6 @@ function show_signups ()
 
       if ($include_name_checked != '')
 	echo "\"$name\"$separator";
-
-      if ($include_gender_checked != '')
-	echo "$row->Gender$separator";
-
-      if ($include_age_checked != '')
-	echo "$age$separator";
 
       if ($include_email_checked != '')
 	echo "$row->EMail$separator";
@@ -3062,7 +2913,6 @@ function show_signups ()
 	      show_signups_state (true, $EventId, $RunId, $order_by_text,
 			    $OrderBy, $result, $status, $gms, $can_edit,
 			    $include_number_checked, $include_name_checked,
-			    $include_gender_checked, $include_age_checked,
 			    $include_email_checked, $include_gm_flag_checked,
 			    $include_gms_checked,
 			    $include_confirmed_checked,
@@ -3078,7 +2928,6 @@ function show_signups ()
 	  show_signups_state (false, $EventId, $RunId, $order_by_text,
 			      $OrderBy, $result, $status, $gms, $can_edit,
 			      $include_number_checked, $include_name_checked,
-			      $include_gender_checked, $include_age_checked,
 			      $include_email_checked, $include_gm_flag_checked,
 			      $include_gms_checked,
 			      $include_confirmed_checked,
@@ -3125,8 +2974,6 @@ function show_all_signups ()
   if (array_key_exists ('FirstTime', $_REQUEST))
   {
     $include_name_checked = 'CHECKED';
-    $include_gender_checked = 'CHECKED';
-    $include_age_checked = 'CHECKED';
     $include_email_checked = 'CHECKED';
     $include_confirmed_checked = 'CHECKED';
     $include_waitlisted_checked = 'CHECKED';
@@ -3138,15 +2985,6 @@ function show_all_signups ()
     else
       $include_name_checked = '';
 
-    if (array_key_exists ('IncludeGender', $_REQUEST))
-      $include_gender_checked = 'CHECKED';
-    else
-      $include_gender_checked = '';
-
-    if (array_key_exists ('IncludeAge', $_REQUEST))
-      $include_age_checked = 'CHECKED';
-    else
-      $include_age_checked = '';
 
     if (array_key_exists ('IncludeEmail', $_REQUEST))
       $include_email_checked = 'CHECKED';
@@ -3183,20 +3021,11 @@ function show_all_signups ()
       $order_by_sql = 'Users.LastName, Users.FirstName';
       break;
 
-    case ORDER_BY_AGE:
-      $order_by_text = 'Age';
-      $order_by_sql = 'Users.BirthYear, Users.LastName, Users.FirstName';
-      break;
-
-    case ORDER_BY_GENDER:
-      $order_by_text = 'Gender';
-      $order_by_sql = 'Signup.Gender, Users.LastName, Users.FirstName';
-      break;
   }
 
   // Get the list of GMs.  We'll want to know if any aren't signed up
 
-  $sql = 'SELECT GMs.UserId, Users.FirstName, Users.LastName';
+  $sql = 'SELECT GMs.UserId, Users.DisplayName ';
   $sql .= '  FROM Users, GMs';
   $sql .= "  WHERE GMs.EventId=$EventId";
   $sql .= '    AND Users.UserId=GMs.UserId';
@@ -3209,7 +3038,7 @@ function show_all_signups ()
   $gms = array();
 
   while ($row = mysql_fetch_object ($result))
-    $gms[$row->UserId] = "$row->LastName, $row->FirstName";
+    $gms[$row->UserId] = "$row->DisplayName";
 
   // Fetch the list of confirmed and waitlisted users
 
@@ -3243,9 +3072,9 @@ function show_all_signups ()
 
   // Fetch the list of players signed up
 
-  $sql = 'SELECT DISTINCT Users.UserId, Users.FirstName, Users.LastName,';
-  $sql .= ' Users.BirthYear, Users.EMail,';
-  $sql .= ' Signup.Gender, Signup.SignupId';
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName,';
+  $sql .= ' Users.EMail,';
+  $sql .= ' Signup.SignupId';
   $sql .= ' FROM Signup, Runs, Users';
   $sql .= " WHERE Runs.EventId=$EventId";
   $sql .= '   AND Signup.RunId=Runs.RunId';
@@ -3283,8 +3112,6 @@ function show_all_signups ()
   echo "    <TD>\n";
   echo "      <B>\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeName $include_name_checked>&nbsp;Name\n";
-  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeGender $include_gender_checked>&nbsp;Gender\n";
-  echo "      <INPUT TYPE=CHECKBOX NAME=IncludeAge $include_age_checked>&nbsp;Age\n";
   echo "      <INPUT TYPE=CHECKBOX NAME=IncludeEmail $include_email_checked>&nbsp;EMail<BR>\n";
   echo "      </B>\n";
   echo "      <INPUT TYPE=SUBMIT VALUE=\"Update\">\n";
@@ -3315,7 +3142,7 @@ function show_all_signups ()
 	unset ($gms[$row->UserId]);
       }
 
-      $name = stripslashes (trim ("$row->LastName, $row->FirstName"));
+      $name = stripslashes (trim ("$row->DisplayName"));
 
       if (0 == $row->BirthYear)
 	$age = '?';
@@ -3324,12 +3151,6 @@ function show_all_signups ()
 
       if ($include_name_checked != '')
 	echo "\"$name\",";
-
-      if ($include_gender_checked != '')
-	echo "$row->Gender,";
-
-      if ($include_age_checked != '')
-	echo "$age,";
 
       if ($include_email_checked != '')
 	echo "$row->EMail,";
@@ -3361,7 +3182,6 @@ function show_all_signups ()
       show_signups_state (true, $EventId, 0, $order_by_text,
 			  $OrderBy, $result, $status, $gms, $can_edit,
 			  '', $include_name_checked,
-			  $include_gender_checked, $include_age_checked,
 			  $include_email_checked, '',
 			  '',
 			  $include_confirmed_checked,
@@ -3376,7 +3196,6 @@ function show_all_signups ()
 	show_signups_state (false, $EventId, 0, $order_by_text,
 			    $OrderBy, $result, $status, $gms, $can_edit,
 			    '', $include_name_checked,
-			    $include_gender_checked, $include_age_checked,
 			    $include_email_checked, '',
 			    '',
 			    $include_confirmed_checked,
@@ -3413,11 +3232,11 @@ function display_user_information ()
 
   // Fetch the information about the user
 
-  $sql = 'SELECT Users.*, Signup.Gender AS SignupGender';
+  $sql = 'SELECT Users.*';
   $sql .= ' FROM Signup, Users';
   $sql .= " WHERE Signup.SignupId=$SignupId";
   $sql .= '   AND Users.UserId=Signup.UserId';
-
+echo 
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Cannot execute query');
@@ -3442,12 +3261,6 @@ function display_user_information ()
   else
     $EMail = '';
 
-  if ('Male' == $row->SignupGender)
-    $swapped_gender = 'Female';
-  else
-    $swapped_gender = 'Male';
-
-  echo "<input type=hidden name=\"SwappedGender\" VALUE=\"$swapped_gender\">\n";
 
   print ("<TABLE BORDER=0>\n");
   echo "  <TR>\n";
@@ -3459,9 +3272,6 @@ function display_user_information ()
   display_text_info ('First Name', $row->FirstName);
   display_text_info ('Last Name', $row->LastName);
   display_text_info ('Stage Name', $row->StageName);
-  //display_text_info ('Age', birth_year_to_age ($row->BirthYear));
-  //display_text_info ('Player Gender', $row->Gender);
-  //display_text_info ('Role Gender', $row->SignupGender);
 
   $address = $row->Address1;
   if ('' != $row->Address2)
@@ -3485,8 +3295,8 @@ function display_user_information ()
 
   // Fetch the game title and suffix (if any)
 
-  $sql = 'SELECT Events.Title, Events.EventId, Events.Hours,';
-  $sql .= ' Runs.TitleSuffix, Runs.StartHour, Runs.Day,';
+  $sql = 'SELECT Events.Title, Events.EventId, Events.Hours, Events.GameType,';
+  $sql .= ' Runs.TitleSuffix, Runs.StartHour, Runs.Day, Runs.ShowId,';
   $sql .= ' Signup.State, Signup.Counted';
   $sql .= ' FROM Signup, Runs, Events';
   $sql .= " WHERE Signup.SignupId=$SignupId";
@@ -3497,15 +3307,22 @@ function display_user_information ()
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ("Query for game title and suffix failed for SignupID $SignId");
+    return display_mysql_error ("Query for event title and suffix failed for SignupID $SignId");
 
   if (0 == mysql_num_rows ($result))
-    return display_error ("Failed to find game title and suffix for SignupId $SignupId");
+    return display_error ("Failed to find event title and suffix for SignupId $SignupId");
 
   if (1 != mysql_num_rows ($result))
-    return display_error ("SignupId $SignupId matched multiple games!");
+    return display_error ("SignupId $SignupId matched multiple events or runs!");
 
   $row = mysql_fetch_object ($result);
+
+  // if this is associated with a show, figure out the show id
+  $ShowId = NULL;
+  if ($row->GameType == "Show")
+    $ShowId = $row->EventId;
+  else 
+    $ShowId = $row->ShowId;
 
   $Title = $row->Title;
   if ('' != $row->TitleSuffix)
@@ -3533,7 +3350,11 @@ function display_user_information ()
   echo "  <TR>\n";
   echo "    <TD COLSPAN=2>\n";
   echo "      The attendee is <B>$row->State</B> for this run.<BR>\n";
-  echo "      The attendee <B>$gm_state</B> a teacher, panelist, performer, etc. for this event.\n";
+  if ( $ShowId != NULL && user_is_performer_for_show($UserId, $ShowId))
+    echo "     The attendee is a performer in this show";
+  else
+    echo "      The attendee <B>$gm_state</B> a teacher, panelist, coordinator, etc. for this event.\n";
+
   echo "    </TD>\n";
   echo "  </TR>\n";
 
@@ -3661,125 +3482,6 @@ function calculate_available_slots ($cur_male, $cur_female,
   return $avail_neutral > 0;
 
 }
-
-/*
- * swap_gender_locked
- *
- * Note that this function is very simple now, but will need to get
- * more complex and do more error checking (and see if anyone off of
- * the waitlist can join) before we can allow GMs to gender swap
- * players.
- *
- * NOTE: Since we're not dealing with gender, this can probably go. 
- * I can't find any calls to it. Can we please delete it?
- */
-
-
-
-
-function swap_gender_locked ($SignupId, $RunId, $EventId, $SwappedGender)
-{
-  // How many are signed up now?
-
-  $confirmed = array ();
-  $waitlisted = array ();
-
-  get_counts_for_run ($RunId, $confirmed, $waitlisted);
-
-  // What are the maximums?
-
-  $sql = 'SELECT Events.MaxPlayersMale, Events.MaxPlayersFemale,';
-  $sql .= ' Events.MaxPlayersNeutral, Events.Title, Events.Hours,';
-  $sql .= ' Events.CanPlayConcurrently,';
-  $sql .= ' Runs.Day, Runs.StartHour, Runs.TitleSuffix';
-  $sql .= ' FROM Events, Runs';
-  $sql .= " WHERE Runs.RunId=$RunId";
-  $sql .= "   AND Events.EventId=Runs.EventId";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Query for max players failed for EventId $EventId",
-				$sql);
-  $row = mysql_fetch_object ($result);
-  if (! $row)
-    return display_error ("Failed to fetch max players for EventID $EventId");
-
-  $MaxMale = $row->MaxPlayersMale;
-  $MaxFemale = $row->MaxPlayersFemale;
-  $MaxNeutral = $row->MaxPlayersNeutral;
-  $run_title = stripslashes (trim ("$row->Title, $row->TitleSuffix"));
-  $Hours = $row->Hours;
-  $CanPlayConcurrently = $row->CanPlayConcurrently;
-  $Day = $row->Day;
-  $StartHour = $row->StartHour;
-
-  // Make sure that we can swap this players gender.  If the gender the player
-  // is swapping into is full, we can't do it
-
-  if (game_full ($msg, $SwappedGender,
-		 $confirmed['Male'], $confirmed['Female'],
-		 $MaxMale, $MaxFemale, $MaxNeutral,$confirmed['']))
-    return display_error ($msg);
-
-  // Change the gender of the signup record.  The Signup table is locked,
-  // so this is safe as long as there are available slots...
-
-  $sql = "UPDATE Signup SET Gender='$SwappedGender',";
-  $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
-  $sql .= " WHERE SignupId=$SignupId";
-
-  //    echo $sql;
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ("Failed to update signup table for ID $SignupId",
-				$sql);
-
-  // Change our counts to reflect the change
-
-  if ('Male' == $SwappedGender)
-  {
-    $confirmed['Male']++;
-    $confirmed['Female']--;
-  }
-  else
-  {
-    $confirmed['Male']--;
-    $confirmed['Female']++;
-  }
-
-  // Calculate how many slots are available...
-
-  calculate_available_slots ($confirmed['Male'], $confirmed['Female'],
-			     $MaxMale, $MaxFemale, $MaxNeutral,
-			     $avail_male, $avail_female, $avail_neutral);
-/*
-  printf ("Men: %d, Women: %d<br>\n",
-	  $confirmed['Male'], $confirmed['Female']);
-  echo "MaxMale: $MaxMale, MaxFemale: $MaxFemale, MaxNeutral: $MaxNeutral<br>\n";
-  echo "avail_male: $avail_male, avail_female: $avail_female, avail_neutral: $avail_neutral<p>\n";
-*/
-  // If there's no more open slots, we're done
-
-  if ((0 >= $avail_male) && (0 >= $avail_female) && (0 >= $avail_neutral))
-    return;
-
-  // So, is there anyone one on the waitlist we can pull in?
-
-  accept_players_from_waitlist_for_run ($EventId,
-					$RunId,
-					$RunId,
-					$run_title,
-					$Day,
-					$StartHour,
-					$Hours,
-					'Y' == $CanPlayConcurrently,
-					$avail_male,
-					$avail_female,
-					$avail_neutral);
-}
-
-
 
 
 
@@ -3986,44 +3688,6 @@ function display_gm_list ()
   //    It appears this code is mostly old checks for comped or paid entires.  Since we're
   //	overhauling all of this for Ticketing, going to remove the feature for now.  -MDB
   
-/*  
-	printf ("%s comped for this game.  Each game is allowed up to %d comped\n",
-	  (1 == $comped_count) ?
-	      '1 registration is' :
-	      "$comped_count registrations are",
-	  COMPS_PER_GAME);
-  echo "registrations, as specified in the\n";
-  echo '<a href="Static.php?page=GMPolicies#CompedMemberships">GM ';
-  echo "Benefits, Policies and Services</a> page.<p>\n";
-
-  echo "<B>Note:</B> There is no way for you to uncomp someone after you've comp'd\n";
-  echo "them as a GM.  If you need to reset someone to Unpaid, send mail to the\n";
-  printf ("<a href=mailto:%s>GM Coordinator</a> or\n", EMAIL_GM_COORDINATOR);
-  printf ("<a href=mailto:%s>Webmaster</a><p>\n", EMAIL_WEBMASTER);
-
-  if (count ($unpaid_gms) > 0)
-  {
-    echo "<b><font color=red>WARNING:</font></b>\n";
-    if (1 == count ($unpaid_gms))
-      echo "The following ".$gms." registration is unpaid:\n";
-    else
-      echo "The following ".$gms." registrations are unpaid:\n";
-    echo "<ul>\n";
-    foreach ($unpaid_gms as $k=>$v)
-      echo "<li>$v\n";
-    echo "</ul>\n";
-    echo "On the day they are scheduled to teach or present, they will be given, ";
-    echo "a bare minimum pass for the conference day <u>or</u> show they are a part of.";
-    echo "  In general, teachers, panelists, and performers with no registration payment ";
-    echo "are an attendance risk, it's wise to keep in contact to be sure they will attend.";
-    echo "<br><br>";
-    
-    printf ("For Teachers/Panelists - Contact the <A HREF=MAILTO:%s>Conference Coordinator</A>.<P>\n",
-	    EMAIL_BID_CHAIR);
-    printf ("For Performers - Contact the <A HREF=MAILTO:%s>Show Coordinator</A>.<P>\n",
-	    EMAIL_SHOW_CHAIR);
-  }
- */
 
   $sql = 'SELECT Events.Author';
   $sql .= '  FROM Events';
@@ -4264,11 +3928,11 @@ function process_add_gm ()
     if ($can_play_game_concurrently == "N")
     {
       $status = check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
-                        $waitlist_conflicts);
+                        $waitlist_conflicts, 0, TRUE);
                         
       if ($status == SIGNUP_FAIL)
         display_error("The run with a conflict for ".$game_title." is at ".
-            start_hour_to_12_hour ($game_start_hour)." for ".$game_hours." blocks.");
+            start_hour_to_am_pm ($game_start_hour)." for ".$game_hours." blocks.<hr>");
     }
 	if (sizeof($waitlist_conflicts) > 1)
 	{

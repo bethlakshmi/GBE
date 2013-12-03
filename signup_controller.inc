@@ -1,4 +1,5 @@
 <?php
+include_once ("gbe_run.inc");
 
 define ('SIGNUP_FAIL', 0);
 define ('SIGNUP_OK', 1);
@@ -38,14 +39,39 @@ function process_signup_request ()
   $RunId = trim ($_REQUEST['RunId']);
   $withdraw_from_conflicts = isset ($_REQUEST['Confirmed']);
 
+  $status =  signup_user_for_run($EventId, $UserId, $withdraw_from_conflicts, $RunId);
+}
+
+/* signup_user_for_run
+ *
+ *  Performs the check of a given user's availability for a run of an event
+ *    timeframe, and signs them up if all is well.  If this is a tech rehearsal, the user 
+ *    is also signedup for the Call and Show.
+ *  $UserId = the user being signed up
+ *  $EventId = the event
+ *  $RunId = the run, if set to zero, it's assumed that there will only be 1 run of 
+ *     the given event.  The signup will fail otherwise.
+ *  $withdraw_from_conflicts = the day of the game
+ *  Returns:  Status
+ *    SIGNUP_FAIL
+ *    SIGNUP_OK
+ */
+
+function signup_user_for_run($EventId, $UserId, $withdraw_from_conflicts, $RunId=0)
+{
   // Get the information about this run
+  $RunClause = "";
+  if ($RunId > 0)
+    $RunClause = " Runs.RunId=" . $RunId." AND";
+  else 
+    $RunClause = " Events.EventId=" . $EventId." AND";
 
   $sql = 'SELECT Events.Title, Events.Hours, Events.IsOps, Events.IsConSuite,';
-  $sql .= ' Events.MaxPlayersNeutral, Events.CanPlayConcurrently,';
-  $sql .= ' Runs.StartHour, Runs.Day';
+  $sql .= ' Events.MaxPlayersNeutral, Events.CanPlayConcurrently, Events.GameType,';
+  $sql .= ' Runs.StartHour, Runs.Day, Runs.RunId, Runs.ShowId';
   $sql .= ' FROM Runs, Events';
-  $sql .= ' WHERE Runs.RunId=' . $RunId;
-  $sql .= '  AND Events.EventId=Runs.EventId';
+  $sql .= ' WHERE'.$RunClause;
+  $sql .= ' Events.EventId=Runs.EventId';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -61,6 +87,11 @@ function process_signup_request ()
     display_error ("Failed to find event information for RunId $RunId");
     return SIGNUP_FAIL;
   }
+  else if (mysql_num_rows ($result) > 1)
+  {
+    display_error ("More than one run found for EventId $EventId");
+    return SIGNUP_FAIL;
+  }
 
   // Extract the game information
 
@@ -73,6 +104,9 @@ function process_signup_request ()
   $is_ops = $row->IsOps == 'Y';
   $is_consuite = $row->IsConSuite == 'Y';
   $max_neutral = $row->MaxPlayersNeutral;
+  $RunId = $row->RunId;
+  $GameType = $row->GameType;
+  $ShowId = $row->ShowId;
 
   // I could differentiate this by sex, but not now
 
@@ -82,8 +116,8 @@ function process_signup_request ()
 
   $game_start_hour = $row->StartHour;
   $game_end_hour = $row->StartHour + $row->Hours;
-  $game_start_time = start_hour_to_12_hour ($game_start_hour);
-  $game_end_time = start_hour_to_12_hour ($game_end_hour);
+  $game_start_time = start_hour_to_am_pm ($game_start_hour);
+  $game_end_time = start_hour_to_am_pm ($game_end_hour);
 
   // Is the user a GM for this game?
 
@@ -121,13 +155,43 @@ function process_signup_request ()
   }
 
   $waitlist_conflicts = array ();
-
+  $Show = new Run();
+  $Call = new Run();
+ 
   if ('N' == $can_play_game_concurrently)
   {
     $status = check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
                         $waitlist_conflicts);
     if ($status != SIGNUP_OK)
       return $status;
+    // when a user signs up for Tech Rehearsal, they must also be 
+    // committed to Call time and Show time
+    if ($GameType == "Tech Rehearsal")
+    {
+     
+      $Show->load_from_ShowId($ShowId,"Show");
+      $Call->load_from_ShowId($ShowId, "Call");
+
+      if (strlen($Show->RunId) == 0 )
+        return display_error("An error has occured please contact volunteer registration.");
+
+      $status = check_for_conflicts($UserId, $Show->StartHour, $Show->StartHour + $Show->Event->Hours, 
+                    $Show->Day, $waitlist_conflicts, $Show->RunId);
+      if ($status != SIGNUP_OK)
+      { 
+         echo "There is a schedule conflict at the time of the show.  Please fix this conflict and try again."; 
+         return $status;
+      }
+      if (strlen($Call->RunId) != 0)
+        $status = check_for_conflicts($UserId, $Call->StartHour, $Call->StartHour + $Call->Event->Hours, 
+                    $Call->Day, $waitlist_conflicts, $Call->RunId);
+      if ($status != SIGNUP_OK)
+      { 
+         echo "There is a schedule conflict at the time of call for this show.  Please fix this conflict and try again."; 
+         return $status;
+      }
+
+    }
   }
 
   // We lock the Signup table to make sure that if there are two users trying
@@ -150,6 +214,11 @@ function process_signup_request ()
 				     $waitlist_conflicts,
 				     $withdraw_from_conflicts,
 				     $signup_result);
+  if ($GameType == "Tech Rehearsal")
+  {
+    $ShowRuns = array($Show, $Call);
+    book_user($ShowRuns, $UserId, FALSE);
+  }
 
   // Unlock the Signup table so that other queries can access it
 
@@ -197,19 +266,32 @@ function process_signup_request ()
  *  $game_day = the day of the game
  *  $waitlist_conflicts - an array of any conflict with events the user is waitlisted in.
  *     pass in as an array.
+ *  $RunId (optional) - the RunId of the run described by game_start_hour and game_end_hour
+ *      if the run had previously been scheduled and is being updated.
+ *  $keepGoing (optional, default is FALSE) - keep on checking for conflicts, don't 
+ *      stop on the first one - useful for cases where this is a warning, not a stop
  *  Returns:
  *    SIGNUP_FAIL = 0
  *    SIGNUP_OK = 1
  */
  
 function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_day, 
-					&$waitlist_conflicts)
+					&$waitlist_conflicts, $RunId=0, $keepGoing=FALSE)
 {
+  $status = SIGNUP_OK;
+  
+  // if a run has been provided - otherwise, assume this is a new booking 
+  // this keeps the system from raising a conflict when a run is being rescheduled
+  // or otherwise edited.
+  $RunClause = "";
+  if ($RunId > 0 )
+    $RunClause = " AND Runs.RunId!=".$RunId;
+    
   // Get the list of event runs the user is already registered for which may
   // conflict with this one
   $sql = 'SELECT Events.Title, Events.Hours,';
   $sql .= '      Runs.StartHour, Runs.EventId,';
-  $sql .= '      Signup.SignupId, Signup.State';
+  $sql .= '      Signup.SignupId, Signup.State, Runs.Day';
   $sql .= ' FROM Signup, Runs, Events';
   $sql .= ' WHERE Signup.UserId=' . $UserId;
   $sql .= '  AND Runs.RunId=Signup.RunId';
@@ -218,6 +300,7 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
   $sql .= '  AND Signup.State!="Withdrawn"';
   $sql .= "  AND Runs.Day='$game_day'";
   $sql .= "  AND Runs.StartHour<$game_end_hour";
+  $sql .= $RunClause;
 
  //    echo "$sql<p>\n";
 
@@ -270,12 +353,14 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
       {
 	    $error = sprintf ("There is an existing commitment for " .
 			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
-			    '<I>%s</I></A> at %s which conflicts with this time slot',
+			    '<I>%s</I></A> at %s, %s which conflicts with this time slot',
 			    SCHEDULE_SHOW_GAME, 
 			    $row->EventId,
-			    $row->Title, start_hour_to_am_pm ($row_start_hour));
+			    $row->Title, start_hour_to_am_pm ($row_start_hour), $row->Day);
 	    display_error ($error);
-	    return SIGNUP_FAIL;
+	    $status = SIGNUP_FAIL;
+	    if (!$keepGoing)
+	      return $status;
 	  }
     }
   }
@@ -287,7 +372,7 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
 
   $sql = 'SELECT Events.Title, Events.Hours,';
   $sql .= '      Runs.StartHour, Runs.EventId,';
-  $sql .= '      GMs.GMId';
+  $sql .= '      GMs.GMId, Runs.Day';
   $sql .= ' FROM GMs, Runs, Events';
   $sql .= ' WHERE GMs.UserId=' . $UserId;
   $sql .= '  AND Events.EventId=GMs.EventId';
@@ -295,7 +380,9 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
   $sql .= "  AND Events.CanPlayConcurrently='N'";
   $sql .= "  AND Runs.Day='$game_day'";
   $sql .= "  AND Runs.StartHour<$game_end_hour";
-
+  $sql .= $RunClause;
+  $sql .= " ORDER BY Runs.Day, Runs.StartHour";
+  
   //    echo "$sql<p>\n";
 
   $result = mysql_query ($sql);
@@ -334,17 +421,19 @@ function check_for_conflicts($UserId, $game_start_hour, $game_end_hour, $game_da
     {
       $error = sprintf ("There is a conflict with presenting for the following event " .
 			    '<A HREF=Schedule.php?action=%d&EventId=%d>' .
-			    '<I>%s</I></A> at %s which conflicts with this time slot',
+			    '<I>%s</I></A> at %s, %s which conflicts with this time slot',
 			    SCHEDULE_SHOW_GAME,  
 			    $row->EventId,
 			    $row->Title,
-			    start_hour_to_am_pm($game_start_hour));
+			    start_hour_to_am_pm($row_start_hour), $row->Day);
       display_error ($error);
-      return SIGNUP_FAIL;
+      $status = SIGNUP_FAIL;
+	  if (!$keepGoing)
+	      return $status;
     }
   }
   
-  return SIGNUP_OK;
+  return $status;
 }
 
 /*
@@ -360,7 +449,6 @@ function signup_user_for_game ($RunId, $EventId, $Title,
 			       &$signup_result)
 {
   // Get the signup counts for the run
-
   $confirmed = array ();
   $waitlisted = array ();
 
@@ -401,7 +489,6 @@ function signup_user_for_game ($RunId, $EventId, $Title,
   $sql = 'INSERT INTO Signup SET UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
   $sql .= build_sql_string ('RunId', $RunId);
   $sql .= build_sql_string ('State', $state);
-  $sql .= build_sql_string ('Gender', $_SESSION[SESSION_LOGIN_USER_GENDER]);
   $sql .= build_sql_string ('Counted', $counts_towards_total);
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
 
@@ -410,7 +497,7 @@ function signup_user_for_game ($RunId, $EventId, $Title,
   $result = mysql_query ($sql);
   if (! $result)
   {
-    display_mysql_error ('Failed to signup for game');
+    display_mysql_error ('Failed to signup for event');
     return SIGNUP_FAIL;
   }
 
@@ -467,4 +554,74 @@ function confirm_signup ($conflict_array, $Title, $EventId, $RunId)
   echo "</FORM>\n";
 
   return SIGNUP_CONFIRM;
+}
+
+/*
+ * get_counts_for_run
+ */
+
+function get_counts_for_run ($RunId, &$confirmed, &$waitlisted)
+{
+  // Initialize the starting contents
+  $confirmed[''] = 0;
+  $waitlisted[''] = 0;
+
+  // Start by getting the count of confirmed users
+
+  $sql = 'SELECT COUNT(UserId) AS Count';
+  $sql .= ' FROM Signup';
+  $sql .= " WHERE RunId=$RunId";
+  $sql .= "   AND State='Confirmed'";
+  $sql .= "   AND Counted='Y'";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Attempt to count confirmed signups for RunId $RunId Failed', $sql);
+
+  while ($row = mysql_fetch_object ($result))
+    $confirmed[''] = $row->Count;
+
+  // Now count the number of waitlisted users
+
+  $sql = 'SELECT COUNT(UserId) AS Count';
+  $sql .= ' FROM Signup';
+  $sql .= " WHERE RunId=$RunId";
+  $sql .= "   AND State='Waitlisted'";
+  $sql .= "   AND Signup.Counted='Y'";
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Attempt to count waitlisted signups for RunId $RunId Failed', $sql);
+
+  while ($row = mysql_fetch_object ($result))
+    $waitlisted[''] = $row->Count;
+
+  mysql_free_result ($result);
+
+  $confirmed['Total'] = $confirmed[''];
+  $waitlisted['Total'] = $waitlisted[''];
+
+  return true;
+}
+
+/*
+ * game_full
+ *
+ * Checks whether the event is full. 
+ * This call can be simplified since we're no longer tracking slots by gender.
+ */
+
+function game_full (&$msg, $gender, $male, $female,
+		    $max_male, $max_female, $max_neutral, $neutralcount=0)
+{
+  // If we're above total game max, then we're full
+
+  if ($neutralcount >= $max_neutral)
+  {
+    //    echo "<!-- Above game total -->\n";
+    $msg = 'This opportunity is full';
+    return TRUE;
+  }
+  else 
+       return FALSE;
 }
