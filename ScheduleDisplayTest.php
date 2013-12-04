@@ -1,4 +1,5 @@
 <?php
+
 include ("gbe_run.inc");
 include ("intercon_db.inc");
 
@@ -18,6 +19,39 @@ if (! intercon_db_connect ())
 
 html_begin ();
 
+
+if (array_key_exists('action', $_REQUEST))
+   $action = $_REQUEST['action'];
+else $action = GEN_BOOKINGS;
+
+$bookings = array();
+$other_array = array();
+
+echo "Action = $action";
+
+switch ($action) 
+{
+	case VOL_BOOKINGS:
+	{
+	     get_volunteer_bookings($bookings, $other_array);
+	     break;
+	}
+	case CONF_BOOKINGS:
+	{
+		get_conference_bookings($bookings, $other_array);
+		break;
+	}
+	case GEN_BOOKINGS:
+	{
+
+	     get_general_bookings($bookings, $other_array);
+	     break;
+	}
+}
+
+
+
+/*
 echo "<h2>Conference Data Test</h2>";
 echo "This returns all data related to the conference - namely panels and classes.<br><br>";
 get_conference_bookings ($Bookings,$Rooms);
@@ -35,16 +69,17 @@ foreach ($Rooms as $room)
 close_section();
 
 echo "<b>Bookings are:</b>";
-/*
+
 foreach ($Bookings as $key => $booking)
 {
-  echo "Booking: <i>key</i>= ".$key.", <i>StartTime</i>= ".$booking->StartHour.
+ echo "Booking: <i>key</i>= ".$key.", <i>StartTime</i>= ".$booking->StartHour.
     ", <i>Day</i>= ".$booking->Day.", <i>EventId</i>= ".$booking->EventId."<br>";
   echo "&nbsp;&nbsp;EventInfo: <i>Title</i>= ".$booking->Event->Title.
     ", <i>Blocks</i>= ".$booking->Event->Hours.", <i>Type</i>= ".$booking->Event->GameType."<br>";
 }
-  */
-  
+
+$Bookings2 = array();
+$Tracks = array();
 echo "<h2>Volunteer Event Data Test</h2>";
 echo "This returns all data related to the volunteer opportunities - any event that is ";
 echo "created with Schedule Ops and NOT an Act Rehearsal Slot.<br><br>";
@@ -86,10 +121,13 @@ foreach ($Rooms3 as $room)
 echo "<br><br><b>Bookings are:</b><br>";
 
 
-start_table("bookings", "tablesorter");
-table_header(array("Title", "Day", "Start Time", "End Time", "Type", "Register"));
+*/
 
-foreach ($Bookings3 as $key => $booking)
+section ("bookings");
+start_table("bookings", "");
+table_header(array("Title", "Day", "Start Time", "End Time", "Type", "Room"));
+
+foreach ($bookings as $key => $booking)
 {
   $title_with_link  =   $text = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
 		   SCHEDULE_SHOW_GAME,
@@ -100,11 +138,12 @@ foreach ($Bookings3 as $key => $booking)
   row(array($title_with_link, $booking->Day, 
       start_hour_to_am_pm($booking->StartHour), 
       start_hour_to_am_pm($booking->StartHour + $booking->Event->Hours), 
-      $booking->Event->GameType));
+      $booking->Event->GameType, $booking->Rooms));
 
 }
-end_table();
+close_table();
 
+close_section();
   
 // Add the postamble
 
