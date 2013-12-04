@@ -327,6 +327,15 @@ define (LIST_BY_TIME, 2);
 
 define (MAX_TRACKS, 15);
 
+//Schedule display options
+
+
+define ('VOL_BOOKINGS', 1);
+define ('CONF_BOOKINGS', 2);
+define ('GEN_BOOKINGS',3);
+
+
+
 // Minimum and maximum times for con days
 // if these need to be bigger than FRI - 12-31, SAT 8-31, SUN 8-31 
 // Sun > 16 needs a db reload
@@ -340,6 +349,8 @@ define (SAT_MAX, 48);    // Midnight
 define (SUN_MIN, 17);     // 8AM
 define (SUN_MAX, 48);    // Midnight
 
+
+// 
 
 // Events are scheduled in blocks of EVENT_BLOCK minutes
 
