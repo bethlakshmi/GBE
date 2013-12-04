@@ -1025,7 +1025,7 @@ function is_user_gm_for_game ($UserId, $EventId)
 {
   $sql = 'SELECT GMId FROM GMs';
   $sql .= " WHERE UserId=$UserId";
-  $sql .= "   AND EventId=$EventId";
+  $sql .= "   AND EventId=$EventId AND GMs.Role != 'performer'";
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -2161,7 +2161,7 @@ function can_edit_game_info ()
   // See if the logged in user is a GM for this game
 
   $sql = 'SELECT GMId FROM GMs';
-  $sql .= "  WHERE EventId=$EventId";
+  $sql .= "  WHERE EventId=$EventId AND GMs.Role != 'performer'";
   $sql .= "    AND UserId=" . $_SESSION[SESSION_LOGIN_USER_ID];
 
   $result = mysql_query ($sql);
@@ -2373,10 +2373,10 @@ function list_this_game($row, $GameType)
      // Show event leaders for all event types - 
      // CODE REVIEW: Do we want to restrict to certain types?  
     
-//  if ($GameType == "Conference" )
-//  {
+  if ($GameType != "Show" )
+  {
     show_gms($row);
-//  }
+  }
   if ('' != $row->ShortBlurb)
     echo "<br>\n$row->ShortBlurb\n";
   if ('' != $row->Fee)
@@ -2390,7 +2390,7 @@ function show_gms($row){
     $sql .= ' FROM GMs, Users';
     $sql .= " WHERE GMs.EventId=$row->EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
-    $sql .= "   AND Users.UserId=GMs.UserId";
+    $sql .= "   AND Users.UserId=GMs.UserId AND GMs.Role != 'performer'";
     $sql .= ' ORDER BY Users.DisplayName';
 
     $gm_result = mysql_query ($sql);
@@ -2418,7 +2418,7 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 			     $include_email_checked, $include_gm_flag_checked,
 			     $include_gms_checked,
 			     $include_confirmed_checked,
-			     $include_waitlisted_checked)
+			     $include_waitlisted_checked, $showrun=FALSE)
 {
   if ($bConfirmed)
   {
@@ -2493,6 +2493,9 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 
   if ('' != $include_gm_flag_checked)
     echo "    <TH>Teacher/Panelist/Perfomer</TH>\n";
+    
+  if ($showrun)
+    echo "    <TH>When Booked</TH>\n";
 
   echo "  </TR>\n";
 
@@ -2540,6 +2543,10 @@ function show_signups_state ($bConfirmed, $EventId, $RunId, $order_text,
 
     if ('' != $include_gm_flag_checked)
       echo "    <TD ALIGN=CENTER>$is_gm</TD>\n";
+      
+    if ($showrun)
+      echo "    <TD ALIGN=CENTER>$row->Day, ".start_hour_to_am_pm($row->StartHour)."</TD>\n";
+
     echo "  </TR>\n";
   }
   echo "</TABLE>\n";
@@ -3028,7 +3035,7 @@ function show_all_signups ()
   $sql = 'SELECT GMs.UserId, Users.DisplayName ';
   $sql .= '  FROM Users, GMs';
   $sql .= "  WHERE GMs.EventId=$EventId";
-  $sql .= '    AND Users.UserId=GMs.UserId';
+  $sql .= '    AND Users.UserId=GMs.UserId AND GMs.Role != \'performer\'';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3073,7 +3080,7 @@ function show_all_signups ()
   // Fetch the list of players signed up
 
   $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName,';
-  $sql .= ' Users.EMail,';
+  $sql .= ' Users.EMail, Runs.Day, Runs.StartHour, ';
   $sql .= ' Signup.SignupId';
   $sql .= ' FROM Signup, Runs, Users';
   $sql .= " WHERE Runs.EventId=$EventId";
@@ -3155,6 +3162,7 @@ function show_all_signups ()
       if ($include_email_checked != '')
 	echo "$row->EMail,";
 
+      echo " ".$row->Day.", ".start_hour_to_am_pm($row->StartHour);
       echo "<BR>\n";
     }
     echo "</DIV>\n";
@@ -3185,7 +3193,7 @@ function show_all_signups ()
 			  $include_email_checked, '',
 			  '',
 			  $include_confirmed_checked,
-			  $include_waitlisted_checked);
+			  $include_waitlisted_checked, TRUE);
 
       $result = mysql_query ($wait_sql);
       if (! $result)
@@ -3199,7 +3207,7 @@ function show_all_signups ()
 			    $include_email_checked, '',
 			    '',
 			    $include_confirmed_checked,
-			    $include_waitlisted_checked);
+			    $include_waitlisted_checked, TRUE);
     }
   }
 
@@ -3621,8 +3629,8 @@ function display_gm_list ()
   $sql .= '  GMs.ReceiveConEMail, GMs.ReceiveSignupEMail';
   $sql .= '  FROM GMs, Users';
   $sql .= "  WHERE GMs.EventId=$EventId";
-  $sql .= '    AND Users.UserId=GMs.UserId';
-  $sql .= '  ORDER BY Users.LastName, Users.FirstName';
+  $sql .= '    AND Users.UserId=GMs.UserId AND GMs.Role != \'performer\'';
+  $sql .= '  ORDER BY Users.DisplayName';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3845,7 +3853,7 @@ function select_user_as_gm ()
 
   $sql = 'SELECT DISTINCT GMs.UserId';
   $sql .= '  FROM GMs';
-  $sql .= "  WHERE GMs.EventId=$EventId";
+  $sql .= "  WHERE GMs.EventId=$EventId AND GMs.Role != 'performer'";
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3981,7 +3989,7 @@ function display_gm_information ()
   $sql .= "  GMs.ReceiveSignupEMail";
   $sql .= "  FROM Users, GMs";
   $sql .= "  WHERE GMs.GMId=$GMId";
-  $sql .= "    AND Users.UserId=GMs.UserId";
+  $sql .= "    AND Users.UserId=GMs.UserId AND GMs.Role != 'performer'";
 
   $result = mysql_query ($sql);
   if (! $result)

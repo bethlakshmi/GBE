@@ -112,11 +112,11 @@ function form_signups_allowed ($display, $key)
   echo "    <TD COLSPAN=2>$display\n";
   echo "      <SELECT NAME=$key SIZE=1>\n";
   echo "        <option value=NotYet $sel_notyet>Con not yet ready to take signups</option>\n";
-  echo "        <option value=1 $sel_1>Only 1 game</option>\n";
-  echo "        <option value=2 $sel_2>Only 2 games</option>\n";
-  echo "        <option value=3 $sel_3>Only 3 games</option>\n";
-  echo "        <option value=Yes $sel_yes>Game signups open</option>\n";
-  echo "        <option value=NotNow $sel_notnow>Game signups frozen</option>\n";
+  echo "        <option value=1 $sel_1>Only 1 item</option>\n";
+  echo "        <option value=2 $sel_2>Only 2 item</option>\n";
+  echo "        <option value=3 $sel_3>Only 3 item</option>\n";
+  echo "        <option value=Yes $sel_yes>Signups open</option>\n";
+  echo "        <option value=NotNow $sel_notnow>Signups frozen</option>\n";
   echo "      </SELECT>\n";
   echo "    </TD>\n";
   echo "  </TR>   \n";
@@ -187,7 +187,7 @@ function show_status ()
   // Query the database for the con information
 
   $sql = 'SELECT Con.SignupsAllowed, Con.ShowSchedule, Con.News,';
-  $sql .= ' Con.ConComMeetings,';
+  $sql .= ' Con.ConComMeetings, Con.OpenEdit,';
   $sql .= ' DATE_FORMAT(Con.LastUpdated , "%d-%b-%Y %H:%i") AS TimeStamp,';
   $sql .= ' Con.PreconBidsAllowed, Con.AcceptingBids,';
   $sql .= ' Users.FirstName, Users.LastName';
@@ -234,18 +234,10 @@ function show_status ()
   display_text_info ('Sun', SUN_TEXT);
   display_text_info ('Database', DB_NAME);
 
-  form_section ('Prices and Dates');
-  $k = 0;
-  while (get_con_price ($k++, $price, $start_date, $end_date))
-  {
-    echo "<!-- $k, $price, $start_date, $end_date -->\n";
-    show_price_dates ($price, $start_date, $end_date);
-  }
-
   form_section ('Site Control');
   form_signups_allowed ('Signups Allowed:', 'SignupsAllowed');
   form_bids_allowed ('Accepting Bids:', 'AcceptingBids');
-  form_bids_allowed ('Accepting Pre-Con Event Bids:', 'PreconBidsAllowed');
+  form_bids_allowed ('Allow user edit:', 'OpenEdit');
   form_show_schedule ('Show Schedule:', 'ShowSchedule');
   form_textarea ('News', 'News', 20);
 
@@ -278,7 +270,7 @@ function update_status ()
   $sql .= build_sql_string ('ConComMeetings');
   $sql .= build_sql_string ('SignupsAllowed');
   $sql .= build_sql_string ('AcceptingBids');
-  $sql .= build_sql_string ('PreconBidsAllowed');
+  $sql .= build_sql_string ('OpenEdit');
   $sql .= build_sql_string ('ShowSchedule');
   $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
 

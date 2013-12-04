@@ -5,10 +5,12 @@ global $FILE_SIZES;
 $EXTENSIONS = array();
 $EXTENSIONS["picture"] = array("image/gif", "image/jpeg", "image/jpg", "image/png");
 $EXTENSIONS["video"] = array("video/x-m4v", "video/quicktime");
+$EXTENSIONS["music"] = array("audio/mpeg");
 
 $FILE_SIZES = array();
 $FILE_SIZES["picture"]= 1048576;
 $FILE_SIZES["video"]= 60000000;
+$FILE_SIZES["music"]= 41943040;
 
 
 /*
@@ -92,7 +94,7 @@ function process_file($name, $format, $destname, $required=FALSE)
   }
   // if the file was too big or not an allowed type.
   else {
-    echo "Extension:  ".$_FILES[$name]["type"]."<BR>";
+    //echo "Extension:  ".$_FILES[$name]["type"]."<BR>";
     $path = "Error:  file is larger than 1MB or not of an allowed type.";
     $path .= "  Allowed formats are <br>";
     foreach ($EXTENSIONS[$format] as $ext)
@@ -113,7 +115,6 @@ function process_file($name, $format, $destname, $required=FALSE)
 
 function validate_file ($name)
 {
-  
   return $_FILES[$name]["size"] != 0;
 }
 
@@ -158,6 +159,29 @@ function display_media ($photo, $video=NULL, $pre="")
 }
 
 /**
+ * display_media
+ */
+
+function display_media_type ($file)
+{
+ 
+  echo "  <TR valign=TOP>\n";
+  echo "    <TD align=right>\n";
+  if ( $file != NULL && strlen($file) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $file);
+    echo "<b>Current upload:</b></td>";
+    echo "<td><a href=\"{$path}\">";
+    echo "Click to experience";
+    echo "</a>";
+  }
+  else 
+    echo "&nbsp;";
+
+  echo "    </TD>\n";
+  echo "  </TR>\n";
+}
+/**
  * simple photo display
  */
 
@@ -189,4 +213,24 @@ function display_thumbnail ($photo, $align="center")
   }
   else 
     echo "&nbsp;";
+}
+
+/**
+ * return a link for displaying this
+ */
+
+function make_link ($file)
+{
+ $returnVal = "";
+  if ( $file != NULL && strlen($file) > 0 )
+  {
+    $path = str_replace(FILE_UPLOAD_LOC, FILE_DISPLAY_LOC, $file);
+    $returnVal .=  "<a href=\"{$path}\">";
+    $returnVal .=  "Click to experience";
+    $returnVal .=  "</a>";
+  }
+  else 
+    $returnVal =  "&nbsp;";
+
+  return $returnVal;
 }

@@ -23,9 +23,9 @@ require ('display_common.php');
 include ("gbe_acts.inc");
 include_once ("gbe_run.inc");
 
-define (SHOW_TSHIRTS, 1);
-define (TSHIRT_DOLLARS, 20);
-define (UNLIMITED_SIGNUPS, 100);
+define ('SHOW_TSHIRTS', 1);
+define ('TSHIRT_DOLLARS', 20);
+define ('UNLIMITED_SIGNUPS', 100);
 
 // Orderings
 
@@ -40,83 +40,83 @@ define ('ORDER_BY_LAST_LOGIN', 8);
 
 // Privileges - These must match the database SET for the User Priv field
 
-define (PRIV_BID_COM, 'BidCom');
-define (PRIV_BID_CHAIR, 'BidChair');
-define (PRIV_CON_COM, 'ConCom');
-define (PRIV_GM_LIAISON, 'GMLiaison');
-define (PRIV_OUTREACH, 'Outreach');
-define (PRIV_REGISTRAR, 'Registrar');
-define (PRIV_SCHEDULING, 'Scheduling');
-define (PRIV_VENDORS, 'Vendors');
-define (PRIV_DONORS, 'Donors');
-define (PRIV_PRECON_BID_CHAIR, 'PreConBidChair');
-define (PRIV_PRECON_SCHEDULING, 'PreConScheduling');
-define (PRIV_SHOW_COM, 'ShowCom');
-define (PRIV_SHOW_CHAIR, 'ShowChair');
+define ('PRIV_BID_COM', 'BidCom');
+define ('PRIV_BID_CHAIR', 'BidChair');
+define ('PRIV_CON_COM', 'ConCom');
+define ('PRIV_GM_LIAISON', 'GMLiaison');
+define ('PRIV_OUTREACH', 'Outreach');
+define ('PRIV_REGISTRAR', 'Registrar');
+define ('PRIV_SCHEDULING', 'Scheduling');
+define ('PRIV_VENDORS', 'Vendors');
+define ('PRIV_DONORS', 'Donors');
+define ('PRIV_PRECON_BID_CHAIR', 'PreConBidChair');
+define ('PRIV_PRECON_SCHEDULING', 'PreConScheduling');
+define ('PRIV_SHOW_COM', 'ShowCom');
+define ('PRIV_SHOW_CHAIR', 'ShowChair');
 
 // Mail privileges
 
-define (PRIV_MAIL_GMS, 'MailToGMs');
-define (PRIV_MAIL_ATTENDEES, 'MailToAttendees');
-define (PRIV_MAIL_ALL, 'MailToAll');
-define (PRIV_MAIL_VENDORS, 'MailToVendors');
-define (PRIV_MAIL_UNPAID, 'MailToUnpaid');
-define (PRIV_MAIL_ALUMNI, 'MailToAlumni');
+define ('PRIV_MAIL_GMS', 'MailToGMs');
+define ('PRIV_MAIL_ATTENDEES', 'MailToAttendees');
+define ('PRIV_MAIL_ALL', 'MailToAll');
+define ('PRIV_MAIL_VENDORS', 'MailToVendors');
+define ('PRIV_MAIL_UNPAID', 'MailToUnpaid');
+define ('PRIV_MAIL_ALUMNI', 'MailToAlumni');
 
 
 // God privileges
 
-define (PRIV_STAFF, 'Staff');
-define (PRIV_ADMIN, 'Admin');
+define ('PRIV_STAFF', 'Staff');
+define ('PRIV_ADMIN', 'Admin');
 
 // Comp limit
 
-define (COMPS_PER_GAME, 2);
+define ('COMPS_PER_GAME', 0);
 
 // Action values - index.php
 
-define (PROMPT_FOR_LOGIN, 0);
-define (LOGIN_USER, 1);
-define (SHOW_USER_HOMEPAGE, 2);
-define (WITHDRAW_FROM_GAME, 3);
-define (LOGOUT_USER, 4);
-define (NEW_USER, 5);
-define (ADD_USER, 6);
-define (UPDATE_USER, 7);
-define (SHOW_USER, 8);
-define (SEND_PASSWORD, 9);
-define (REQUEST_PASSWORD, 10);
-define (CHANGE_PASSWORD, 11);
-define (PROCESS_PASSWORD_CHANGE, 12);
-define (SELECT_USER_TO_EDIT, 13);
-define (EDIT_USER, 14);
-define (PROCESS_EDIT_USER, 15);
-define (PAID_UP, 16);
-define (SHOW_COMPED_USERS, 17);
-define (SELECT_USER_TO_DELETE, 18);
-define (SHOW_USER_TO_DELETE, 19);
-define (LOGIN_OPENID, 20);
-define (SELECT_USER_TO_MERGE, 21);
-define (SHOW_USER_TO_MERGE, 22);
-define (DELETE_USER, 80);
-define (SELECT_USER_TO_VIEW, 81);
-define (VIEW_USER, 82);
-define (WITHDRAW_FROM_GAME_CONFIRMED, 83);
-define (EDIT_BIO, 84);
-define (UPDATE_BIO, 85);
-define (BIO_REPORT, 86);
-define (WHO_IS_WHO, 87);
-define (WITHDRAW_USER_FROM_ALL_GAMES, 88);
-define (WITHDRAW_USER_FROM_ALL_GAMES_CONFIRMED, 89);
-define (MERGE_USER, 90);
-define (SELECT_USER_TO_SET_PASSWORD, 140);
-define (DISPLAY_PASSWORD_FORM_FOR_USER, 141);
-define (PROCESS_PASSWORD_FORM_FOR_USER, 142);
-define (SELECT_USER_TO_BECOME, 143);
-define (BECOME_USER, 144);
-define (DISPLAY_POLL_FORM, 145);
-define (PROCESS_POLL_FORM, 146);
-define (CONVERT_AGE_TO_YEAR, 147);
+define ('PROMPT_FOR_LOGIN', 0);
+define ('LOGIN_USER', 1);
+define ('SHOW_USER_HOMEPAGE', 2);
+define ('WITHDRAW_FROM_GAME', 3);
+define ('LOGOUT_USER', 4);
+define ('NEW_USER', 5);
+define ('ADD_USER', 6);
+define ('UPDATE_USER', 7);
+define ('SHOW_USER', 8);
+define ('SEND_PASSWORD', 9);
+define ('REQUEST_PASSWORD', 10);
+define ('CHANGE_PASSWORD', 11);
+define ('PROCESS_PASSWORD_CHANGE', 12);
+define ('SELECT_USER_TO_EDIT', 13);
+define ('EDIT_USER', 14);
+define ('PROCESS_EDIT_USER', 15);
+define ('PAID_UP', 16);
+define ('SHOW_COMPED_USERS', 17);
+define ('SELECT_USER_TO_DELETE', 18);
+define ('SHOW_USER_TO_DELETE', 19);
+define ('LOGIN_OPENID', 20);
+define ('SELECT_USER_TO_MERGE', 21);
+define ('SHOW_USER_TO_MERGE', 22);
+define ('DELETE_USER', 80);
+define ('SELECT_USER_TO_VIEW', 81);
+define ('VIEW_USER', 82);
+define ('WITHDRAW_FROM_GAME_CONFIRMED', 83);
+define ('EDIT_BIO', 84);
+define ('UPDATE_BIO', 85);
+define ('BIO_REPORT', 86);
+define ('WHO_IS_WHO', 87);
+define ('WITHDRAW_USER_FROM_ALL_GAMES', 88);
+define ('WITHDRAW_USER_FROM_ALL_GAMES_CONFIRMED', 89);
+define ('MERGE_USER', 90);
+define ('SELECT_USER_TO_SET_PASSWORD', 140);
+define ('DISPLAY_PASSWORD_FORM_FOR_USER', 141);
+define ('PROCESS_PASSWORD_FORM_FOR_USER', 142);
+define ('SELECT_USER_TO_BECOME', 143);
+define ('BECOME_USER', 144);
+define ('DISPLAY_POLL_FORM', 145);
+define ('PROCESS_POLL_FORM', 146);
+define ('CONVERT_AGE_TO_YEAR', 147);
 
 
 // Action values - Schedule.php
@@ -774,14 +774,23 @@ function form_textarea ($display,
 			$key,
 			$rows,
 			$leading_blank_line=TRUE,
-			$required = FALSE)
+			$required = FALSE, $values="", $disabled=FALSE )
 {
-  if (array_key_exists ($key, $_POST))
+  // If not specified, fill in default values
+  if ($values == '')
+    $values = $_POST;
+
+  if ($disabled)
+    $disable_text = "disabled";
+  else 
+    $disable_text = "";
+
+  if (array_key_exists ($key, $values))
   {
     if (1 == get_magic_quotes_gpc())
-       $text = stripslashes ($_POST[$key]);
+       $text = stripslashes ($values[$key]);
     else
-      $text = $_POST[$key];
+      $text = $values[$key];
   }
   else
     $text='';
@@ -796,9 +805,9 @@ function form_textarea ($display,
   if ($leading_blank_line)
     echo "      &nbsp;<br clear=all>\n";
   echo "      $req_prefix$display<br>\n";
-  printf ('      <textarea name="%s" class="ckeditor" cols="80" rows="%d" wrap="physical">' .
+  printf ('      <textarea name="%s" class="ckeditor" cols="80" rows="%d" wrap="physical" %s >' .
 	  "%s</textarea>\n",
-	  $key, $rows, $text);
+	  $key, $rows, $disable_text, $text);
   echo "    </td>\n";
   echo "  </tr>\n";
 }
@@ -1183,9 +1192,16 @@ function form_text_one_col ($size, $display, $key='', $maxsize=0, $required=FALS
  * Add a text input field to a 2 column form
  */
 
-function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suffix='',$key2='')
+function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suffix='',$key2='', $values='', $disabled=FALSE)
 {
+  if ($disabled)
+    $disable_text = "disabled";
+  else 
+    $disable_text = "";
+    
   // If not specified, fill in default values
+  if ($values == '')
+    $values = $_POST;
 
   if ('' == $key)
     $key = $display;
@@ -1203,24 +1219,24 @@ function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suff
 
   // If magic quotes are on, strip off the slashes
 
-  if (! array_key_exists ($key, $_POST))
+  if (! array_key_exists ($key, $values))
     $text = '';
   else
   {
     if (1 == get_magic_quotes_gpc())
-      $text = stripslashes ($_POST[$key]);
+      $text = stripslashes ($values[$key]);
     else
-      $text = $_POST[$key];
+      $text = $values[$key];
   }
 
-  if (! array_key_exists ($key2, $_POST))
+  if (! array_key_exists ($key2, $values))
     $text2 = '';
   else
   {
     if (1 == get_magic_quotes_gpc())
-      $text2 = stripslashes ($_POST[$key2]);
+      $text2 = stripslashes ($values[$key2]);
     else
-      $text2 = $_POST[$key2];
+      $text2 = $values[$key2];
   }
   
   // Spit out the HTML
@@ -1228,18 +1244,20 @@ function form_text ($size, $display, $key='', $maxsize=0, $required=FALSE, $suff
   echo "  <tr>\n";
   echo "    <td align=\"right\">$display</td>\n";
   echo '    <td align="left">';
-  printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s">',
+  printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s" %s>',
 	  $key,
 	  $size,
 	  $maxsize,
-	  htmlspecialchars ($text));
+	  htmlspecialchars ($text),
+	  $disable_text);
 	  
   if ('' != $key2)
-      printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s">',
+      printf ('<input type="text" name="%s" size="%d" maxlength="%d" value="%s" %s>',
 	  $key2,
 	  $size,
 	  $maxsize,
-	  htmlspecialchars ($text2));
+	  htmlspecialchars ($text2), 
+	  $disable_text);
   printf ("%s</td>\n",$suffix);
 
   echo "  </tr>\n";
@@ -1484,10 +1502,11 @@ function display_mysql_error ($msg, $sql=0)
  * Validate an EMail address
  */
 
-function is_valid_email_address ($key='EMail', $required=TRUE)
+function is_valid_email_address ($key='EMail', $required=TRUE, $value="")
 {
-  $value = trim ($_POST[$key]);
-
+  if ($value == "")
+    $value = trim ($_POST[$key]);
+  
   if ('' == $value)
   {
     if (! $required)
@@ -1985,6 +2004,17 @@ function accepting_bids () {
 }
 
 /*
+ * accepting_bids
+ *
+ * Query the Con table to see if the con is accepting bids
+ */
+
+function allowing_edit () {
+
+    return get_con_settings()->OpenEdit == "Yes";
+}
+
+/*
  * select_user
  *
  * General function to display the list of users in the database and allow
@@ -2479,15 +2509,15 @@ function confirm_waitlisted_user ($SignupId,
   // Now send mail to the user telling him that he's been accepted
   // Build the headers and message we're going to send
 
-  $msg = "A slot has opened in \"$run_title\" on $Day starting ";
+  $msg = "A space has opened in \"$run_title\" on $Day starting ";
   $msg .= "at " . start_hour_to_24_hour ($start_hour);
   $msg .= '.  You have been removed from the waitlist and signed up for';
-  $msg .= " the game.\n";
+  $msg .= " it.\n";
 
   if ('' != $withdrawn_from_games)
   {
     $msg .= "\nAs a result, you have been removed from the waitlist for the";
-    $msg .= " following games which conflicted with \"$run_title\":\n";
+    $msg .= " following opportunities which conflicted with \"$run_title\":\n";
     $msg .= stripslashes ($withdrawn_from_games);
   }
 
@@ -3740,7 +3770,7 @@ function form_hidden_value ($name, $value)
 }
 
 
-function form_checkbox ($name, $checked, $value='')
+function form_checkbox ($name, $checked, $value='', $disabled=FALSE)
 {
   $chk;
   if ($checked)
@@ -3748,12 +3778,17 @@ function form_checkbox ($name, $checked, $value='')
   else
     $chk = '';
 
+  if ($disabled)
+    $dis = 'disabled';
+  else
+    $dis = '';
+
   if ('' == $value)
     $val = '';
   else
     $val = "value=\"$value\"";
 
-  echo "<input type=\"checkbox\" name=\"$name\" $val $chk>";
+  echo "<input type=\"checkbox\" name=\"$name\" $val $chk $dis>";
 }
 
 function form_checkboxYN ($name)
@@ -3767,10 +3802,16 @@ function form_checkboxYN ($name)
   echo "<input type=\"checkbox\" name=\"$name\" value=\"Y\" $checked>\n";
 }
 
-function form_single_select($text, $name, $VALUE_LIST, $choice=" ", $neutralOn=FALSE)
+function form_single_select($text, $name, $VALUE_LIST, $choice=" ", $neutralOn=FALSE, $disabled=FALSE)
 {
   echo $text;
-  echo "      <SELECT NAME=$name SIZE=1>\n";
+
+  if ($disabled)
+    $dis = 'disabled';
+  else
+    $dis = '';
+
+  echo "      <SELECT NAME=$name SIZE=1 $dis>\n";
 
   if ( $neutralOn )
   {
@@ -3791,14 +3832,19 @@ function form_single_select($text, $name, $VALUE_LIST, $choice=" ", $neutralOn=F
   echo "      </SELECT>\n";
 }
 
-function form_radio ($name, $value, $checked)
+function form_radio ($name, $value, $checked, $disabled=0)
 {
   if ($checked)
     $chk = 'checked';
   else
     $chk = '';
+    
+  if ($disabled)
+    $dis = 'disabled';
+  else
+    $dis = '';
 
-  echo "<input type=\"radio\" name=\"$name\" value=\"$value\" $chk>";
+  echo "<input type=\"radio\" name=\"$name\" value=\"$value\" $chk $dis>";
 }
 
 function form_issues($key)
@@ -3986,6 +4032,83 @@ function show_user_homepage_bids ($UserId,$Type=NULL)
   echo "</TABLE>\n";
 
   return true;
+}
+
+/* function get_enum_values
+ * 
+ * Get the enumerated values 
+ *
+ * Returns: array of settings, passed by reference.  Settings are of type ActTechDisplay
+ */
+function get_enum_values( $table, $field )
+{
+  $sql = "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = '$table' AND COLUMN_NAME = '$field'";
+  //  echo $sql;
+  $result = mysql_query($sql);
+  if (! $result)
+      return display_mysql_error ("Can't get enumerated list for column $field");
+
+  $row = mysql_fetch_array($result);
+  
+  //echo $row['COLUMN_TYPE'];
+  $enumList = explode(",", str_replace("'", "", substr($row['COLUMN_TYPE'], 5, (strlen($row['COLUMN_TYPE'])-6))));
+
+  return $enumList;
+}
+
+/* function is_valid_enum
+ * 
+ * Check that the $value is a valid number of the enumeration for the $field in the $table
+ *
+ * Returns: true if valid, false if not
+ */
+function is_valid_enum( $table, $field, $value )
+{
+  $valid = FALSE;
+  
+  $sql = "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = '$table' AND COLUMN_NAME = '$field'";
+  //  echo $sql;
+  $result = mysql_query($sql);
+  if (! $result)
+      return display_mysql_error ("Can't get enumerated list for column $field");
+
+  $row = mysql_fetch_array($result);
+  
+  //echo $row['COLUMN_TYPE'];
+  $enumList = explode(",", str_replace("'", "", substr($row['COLUMN_TYPE'], 5, (strlen($row['COLUMN_TYPE'])-6))));
+
+  foreach ($enumList as $enum)
+    if ($value == $enum)
+      $valid = TRUE;
+      
+  return $valid;
+}
+
+/* function get_columns_from_table
+ * 
+ * Get the columns of a table
+ *
+ * Returns: array of settings, passed by reference.  Settings are of type ActTechDisplay
+ */
+function get_columns_from_table( $table )
+{
+  $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = '$table'";
+  //  echo $sql;
+  $result = mysql_query($sql);
+  if (! $result)
+      return display_mysql_error ("Can't get enumerated list for column $field");
+
+   $columns = array();
+   $n=0;
+   while ($row = mysql_fetch_array($result))
+   {
+     $columns[$n] = $row['COLUMN_NAME'];
+     $n++;
+  }
+  return $columns;
 }
 
 ?>

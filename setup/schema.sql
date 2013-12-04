@@ -33,6 +33,66 @@ PRIMARY KEY ( `ActId` )
 ) ENGINE = InnoDB;
 
 --
+-- Table structure for table `ActTechDisplay`
+--
+
+DROP TABLE IF EXISTS `ActTechDisplay`;
+CREATE TABLE `ActTechDisplay` (
+`ActTechDisplayId` INT unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+`ShowId` int  NOT NULL, 
+`ColumnName` varchar(128) NULL, 
+`DisplayText` varchar(128) NULL, 
+`HelpText` varchar(500)  NULL, 
+`Type` enum('radio','checkbox','textbox','textarea', 'pulldown','file','time','none')  NOT NULL, 
+`Order` int unsigned NOT NULL,
+`On` tinyint(1) unsigned NOT NULL default '1',
+`Required` TINYINT( 1 ) UNSIGNED NOT NULL DEFAULT '0'
+PRIMARY KEY ( `ActTechDisplayId` )
+) ENGINE = InnoDB;
+--
+-- Table structure for table `ActTechInfo`
+--
+
+DROP TABLE IF EXISTS `ActTechInfo`;
+CREATE TABLE `ActTechInfo` (
+`ActTechInfoId` INT unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+`ActId` INT NOT NULL,
+`MobilePhone` varchar(30)  NOT NULL, 
+`Email` varchar(100)  NOT NULL, 
+`Hotel` ENUM( "Yes", "No" ) NULL DEFAULT NULL, 
+`Song` varchar(128)  NULL, 
+`Artist` varchar(128)  NULL, 
+`SongMinutes` int(3) unsigned NULL, 
+`SongSeconds` int(3) unsigned NULL, 
+`ActMinutes` int(3) unsigned NULL, 
+`ActSeconds` int(3) unsigned NULL, 
+
+`MusicPath` varchar(256)  NULL, 
+`SoundInstruct` varchar(500)  NULL, 
+`HaveMusic` tinyint(1) unsigned NULL, 
+`NeedMic` tinyint(1) unsigned NULL, 
+
+`LightingInstruct` varchar(500)  NULL, 
+`StageColor` enum('White', 'Amber', 'Blue', 'Cyan', 'Green', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow', 'No lights (not recommended)' )  NOT NULL, 
+`StageSecondColor` enum('White', 'Amber', 'Blue', 'Cyan', 'Green', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow', 'No lights (not recommended)' )  NOT NULL, 
+`CycColor` enum('White','No Lights', 'Amber', 'Blue', 'Cyan', 'Green', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow', 'Back Lit (white light pointing at audience)' )  NOT NULL, 
+`StageColorVendor` enum('White', 'Blue',  'Red', 'No lights (not recommended)' )  NOT NULL, 
+`FollowSpot` tinyint(1) unsigned NOT NULL, 
+`Backlight` tinyint(1) unsigned NOT NULL, 
+
+
+`Props` tinyint(1) unsigned NULL, 
+`SetProps` tinyint(1) unsigned NULL, 
+`ClearProps` tinyint(1) unsigned NULL, 
+`CueProps` tinyint(1) unsigned NULL, 
+`PropInstruct` varchar(500)  NULL, 
+
+`IntroText` varchar(500)  NULL,
+ PRIMARY KEY ( `ActTechInfoId` )
+) ENGINE = InnoDB;
+
+
+--
 -- Table structure for table `Away`
 --
 

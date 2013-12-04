@@ -193,7 +193,7 @@ class Bio
 
 		if ($this->BioId < 1)
 			$this->BioId = mysql_insert_id();
-		echo "Just saved or made BioId: ".$this->BioId."<br>\n";
+		// echo "Just saved or made BioId: ".$this->BioId."<br>\n";
 	}
 	
 	/* function remove_from_db
@@ -229,8 +229,8 @@ function get_acts_for_user($UserId, &$act_list)
 
 	//Get the Act Ids from GM table, join with act info on Acts table
 	$sql = 'SELECT GMs.EventId, Acts.ActId, Acts.BidId, Acts.ShowId, Acts.RehearsalId,';
-	$sql .=' Acts.ActInfoId, Acts.GroupBio, Acts.isGroup FROM GMs, Acts WHERE UserId=' . $UserId;
-	$sql .= ' and Role = "performer" and GMs.EventId = Acts.ActId';
+	$sql .=' Acts.ActInfoId, Acts.GroupBio, Acts.isGroup, Acts.GroupName FROM GMs, Acts WHERE UserId=' . $UserId;
+	$sql .= ' and GMs.Role = "performer" and GMs.EventId = Acts.ActId';
 	$result = mysql_query ($sql);
 	if (! $result)
 		return display_mysql_error ("Query for UserId $UserId failed");
@@ -240,6 +240,35 @@ function get_acts_for_user($UserId, &$act_list)
 		$act = new Act();
 		$act->convert_from_sql_row($row);
 		$act_list[$n] = $act;
+		$n++;
+
+	}
+}
+
+/* function get_users_for_act
+ * 
+ * Function retrieves the users for a given act.  Act must
+ * be cast in a show to show up here.
+ *
+ * $ActId - unique ID number for the act, 
+ * $user_list - the list of users in this act, array of DisplayNames with UserId as key.
+ * Returns: user_list as reference.
+ */
+function get_users_for_act($ActId, &$user_list)
+{
+    $user_list = array();
+    
+	//Get the Act Ids from GM table, join with act info on Users table
+	$sql = 'SELECT GMs.UserId, Users.DisplayName FROM GMs, Users';
+	$sql .= ' WHERE GMs.EventId=' . $ActId;
+	$sql .= ' and GMs.Role = "performer" and GMs.UserId = Users.UserId';
+	$result = mysql_query ($sql);
+	if (! $result)
+		return display_mysql_error ("Query for UserId $UserId failed");
+
+	$n=0;
+	while ($row = mysql_fetch_object($result)) {
+		$user_list[$row->UserId] = $row->DisplayName;
 		$n++;
 
 	}
@@ -385,6 +414,40 @@ function user_is_performer_for_show ($UserId, $ShowId)
 	if (! $result)
 		return display_mysql_error ('Query for performer failed');
 
+	$num = mysql_num_rows ($result);
+	mysql_free_result ($result);
+
+	return $num != 0;
+}
+
+
+/*
+ * user_is_performer_for_act
+ *
+ * Returns true if the user is a performer for the specified act.
+ */
+
+function user_is_performer_for_act ($UserId, $ActId)
+{
+
+	if (0 == $UserId)
+		return false;
+
+	// Query the database to see if the user is GM
+
+	$sql = "SELECT GMs.GMId FROM GMs ";
+	$sql .= "WHERE GMs.UserId=$UserId AND GMs.EventId=$ActId";
+	$sql .= ' and GMs.Role="performer" LIMIT 1';
+
+	//	echo "Query: $sql<p>\n";
+
+	$result = mysql_query ($sql);
+	if (! $result)
+	{
+	   display_mysql_error ('Query for performer failed');
+       return FALSE;
+    }
+    
 	$num = mysql_num_rows ($result);
 	mysql_free_result ($result);
 

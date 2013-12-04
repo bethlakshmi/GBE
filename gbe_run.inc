@@ -45,7 +45,7 @@ class Run
    */
   function load_from_Runid($RunId)
   {
-    $sql = sprintf("select * from Runs where RunId = '%s'", 
+    $sql = sprintf("select * from Runs, Events where RunId = '%s' AND Events.EventId=Runs.EventId", 
       mysql_real_escape_string($RunId));
      
     $result = mysql_query($sql);
@@ -58,10 +58,10 @@ class Run
       return display_error("Run not found:  $RunId");
     
     $row = mysql_fetch_object($result);
-    $this->convert_from_sql_row($row);
+    $this->convert_from_sql_row($row, 1);
   }
 
-  /* function load_from_Runid
+  /* function load_from_ShowId
    * 
    * Used to load a single Run when that run is part of a Show.
    * Shows have several Event types that have only 1 run for a given show.
@@ -307,7 +307,7 @@ function get_conference_bookings(&$Bookings, &$Rooms)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-  $Bookings[$run->StartHour."-".$run->Rooms]=$run;
+  $Bookings[$run->Day."-".$run->StartHour."-".$run->Rooms]=$run;
   $Rooms[$run->Rooms]=$run->Rooms;
   }
 }
@@ -344,7 +344,7 @@ function get_volunteer_bookings(&$Bookings, &$Tracks)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-    $Bookings[$run->StartHour."-".$run->Event->Title]=$run;
+    $Bookings[$run->Day."-".$run->StartHour."-".$run->Event->Title]=$run;
     $Tracks[$run->Event->Title]=$run->Event->Title;
   }
 }
@@ -380,7 +380,7 @@ function get_general_bookings(&$Bookings, &$Rooms)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-    $Bookings[$run->StartHour."-".$run->Rooms]=$run;
+    $Bookings[$run->Day."-".$run->StartHour."-".$run->Rooms]=$run;
     $Rooms[$run->Rooms]=$run->Rooms;
   }
 
@@ -428,6 +428,7 @@ function book_user($Bookings, $UserId, $check_conflicts=TRUE)
     
 
   }
+ return SIGNUP_OK;
 
 }
 
@@ -463,6 +464,40 @@ function unbook_user($Bookings, $UserId)
     }
     
 
+  }
+
+ return SIGNUP_OK;
+}
+
+/* function get_act_rehearsals
+ * 
+ * Get an array of act rehearsals for a given ShowId.  
+ *
+ * Requires: 
+ *   $Rehearsals - an array of run objects for rehearsals for this show Id, ordered by time
+ */
+function get_act_rehearsals($ShowId, &$Rehearsals)
+{
+  if ($ShowId <= 0)
+    return display_error("Problem finding the show - no show information provided.");
+    
+  $Rehearsals = array();
+  
+  $sql = "select * from Runs, Events where Events.GameType = \"Act Rehearsal Slot\" ";
+  $sql .= "and Events.EventId = Runs.EventId and Runs.ShowId='".$ShowId;
+  $sql .= "' order by Runs.Day, Runs.StartHour";
+  
+  $result = mysql_query($sql);
+  //echo $sql;
+  
+  if (!$result)
+    return display_mysql_error ('Cannot execute query', $sql);
+    
+  while ($row = mysql_fetch_object($result))
+  {
+    $run = new Run();
+    $run->convert_from_sql_row($row, 1);
+    $Rehearsals[$run->StartHour]=$run;
   }
 
 }

@@ -4,6 +4,8 @@
 
 include ("intercon_db.inc");
 include ("gbe_users.inc");
+include ("bio_controller.inc");
+include ("acttech_controller.inc");
 
 // Connect to the database
 
@@ -26,10 +28,37 @@ if (! user_is_performer() )
   exit ();
 }
 
-$act_list = array();
-get_acts_for_user($_SESSION[SESSION_LOGIN_USER_ID], $act_list);
-show_user_act_list($act_list);
+if (isset($_REQUEST['ActId']) && !user_is_performer_for_act($_SESSION[SESSION_LOGIN_USER_ID],$_REQUEST['ActId']))
+{
+  display_access_error ();
+  html_end ();
+  exit ();
+}
 
+$errors = array();
+
+if (isset($_REQUEST['ActId']) && isset($_REQUEST['ShowId']))
+{
+  echo "Thanks for picking an act";
+  edit_act_info($_REQUEST['ActId'], $_REQUEST['ShowId'], $errors);
+}
+else 
+{
+  $act_list = array();
+  get_acts_for_user($_SESSION[SESSION_LOGIN_USER_ID], $act_list);
+  if ( count($act_list) > 1)
+  {
+    show_user_act_list($act_list);
+  }
+  else if ( count($act_list) == 1 )
+  {
+    foreach ($act_list as $act)
+      edit_act_info($act->ActId,$act->ShowId, $errors);
+  }
+  else
+    echo "Error - your acts are not booked for any shows.  Please contact our show coordinator - info@burlesque-expo.com";
+    
+}
 
 // Add the postamble
 
@@ -64,7 +93,7 @@ function show_user_act_list(&$act_list)
     echo "<br>\n";
     echo "    <TD>".$act->get_Title()."</TD>\n";
     echo "    <TD>".$thisShow['Title']."</TD>\n";
-    echo sprintf ("    <TD><a href=\"EditActDetail.php?action=%d&UserId=%d\">Edit Tech Info and Rehearsal Slot</a></TD>\n");
+    echo sprintf ("    <TD><a href=\"ManageAct.php?ActId=%d&ShowId=%d\">Edit Act Information</a></TD>\n",$act->ActId,$act->ShowId);
     echo "  </tr>\n";
 
   }
@@ -72,5 +101,6 @@ function show_user_act_list(&$act_list)
   echo "</table>\n";
 
 }
+
 
 ?>

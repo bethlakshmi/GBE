@@ -338,7 +338,7 @@ span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
 span.dropt span {position: absolute; left: -9999px;
   margin: 20px 0 0 0px; padding: 3px 3px 3px 3px;
   border-style:solid; border-color:black; border-width:1px; z-index: 6;}
-span.dropt:hover span {left: 2%; background: #ffffff;} 
+span.dropt:hover span {left: 30%; background: #ffffff;} 
 span.dropt span {position: absolute; left: -9999px;
   margin: 4px 0 0 0px; padding: 3px 3px 3px 3px; 
   border-style:solid; border-color:black; border-width:1px;}

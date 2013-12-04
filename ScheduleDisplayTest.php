@@ -158,6 +158,7 @@ function table_header($column_labels){
 }
 
 function row($values){
+  echo "</tr>";
   foreach ($values as $value){
     cell($value); 
   } 

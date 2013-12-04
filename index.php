@@ -3,6 +3,7 @@
 include ("WhosWho.inc");
 include ("login.php");
 include ("gbe_ticketing.inc");
+include ("acttech_controller.inc");
 
 // Connect to the database
 
@@ -464,7 +465,7 @@ function is_user_gm_for_game ($UserId, $EventId)
 {
   $sql = 'SELECT GMId FROM GMs';
   $sql .= " WHERE UserId=$UserId";
-  $sql .= "   AND EventId=$EventId";
+  $sql .= "   AND EventId=$EventId && GMs.Role != 'performer'";
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -574,6 +575,8 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
         $link = "To Withdraw send mail to ".mailto_or_obfuscated_email_address (EMAIL_BID_CHAIR);
       elseif ($row->GameType=="Panel")
         $link = "To Withdraw send mail to ".mailto_or_obfuscated_email_address (EMAIL_BID_CHAIR);
+      elseif ($row->GameType=="Act Rehearsal Slot")
+        $link = sprintf ('<A HREF=ManageAct.php>Withdraw or Change</A>');
       elseif ($row->GameType=="Call")
         $link = "&nbsp;";
       else
@@ -950,54 +953,9 @@ function show_user_homepage_status ()
 
   $user_status = '';
   
-  // Ideally we replace this with ticketing info.
-/*  switch ($status)
-  {
-    case 'Unpaid':
-    case 'Alumni':
-      return status_unpaid ();
-
-    case 'Paid':
-      $user_status = 'You are paid up';
-      break;
-
-    case 'Comp':
-      $user_status = "You are comp'd";
-
-      if (0 != $row->CompEventId)
-      {
-	$sql = "SELECT Title FROM Events WHERE EventId=$row->CompEventId";
-	$result = mysql_query ($sql);
-	if (! $result)
-	  return display_mysql_error ("Failure querying comp'd game");
-	$comp_row = mysql_fetch_object ($result);
-	if ($comp_row)
-	  $user_status = "You are comp'd by <I>$comp_row->Title</I>";
-      }
-
-      break;
-
-    case 'Marketing':
-      $user_status = 'You have a gift certificate';
-      break;
-
-    case 'Rollover':
-      $user_status = 'Your membership has been rolled over from a previous convention';
-      break;
-
-    case 'Vendor':
-      $user_status = 'You are registered as a vendor';
-      break;
-
-    default:
-      display_error ("Unknown user status $status");
-      return false;
-  }
-
-  printf ("%s for %s.<P>\n",
-	  $user_status,
-	  CON_NAME);
-*/
+  if (user_is_performer())
+    show_act_tech_reminder();
+    
   // Show the user what attendence is looking like, if they've got ConCom
   // priv
 

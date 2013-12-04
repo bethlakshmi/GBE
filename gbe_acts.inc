@@ -202,9 +202,9 @@ class Act
 		$this->ShowId = (int)$row->ShowId;
 		$this->RehearsalId = (int)$row->RehearsalId;	
 		$this->ActInfoId = (int)$row->ActInfoId;
-		$this->GroupName = (string)$row->GroupName;	
-		$this->GroupBio = (int)$row->GroupBio;	
 		$this->isGroup = (bool)$row->isGroup;
+	    $this->GroupName = (string)$row->GroupName;	
+		$this->GroupBio = (int)$row->GroupBio;	
 		
 	}
 	
@@ -313,7 +313,7 @@ class Act
 
 		if ($this->ActId < 1)
           $this->ActId = mysql_insert_id();
-        echo "Just saved or made ActId: ".$this->ActId."<br>\n";
+        // echo "Just saved or made ActId: ".$this->ActId."<br>\n";
 	}
 	
 	/* function remove_from_db

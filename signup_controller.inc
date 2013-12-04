@@ -625,3 +625,31 @@ function game_full (&$msg, $gender, $male, $female,
   else 
        return FALSE;
 }
+
+/*
+ * act_rehearsal_full
+ *
+ * Checks whether the rehearsal slot is full. 
+ * This call is different than a regular event in that we're counting the number of acts,
+ *  not the number of participant signups.
+ */
+
+function act_rehearsal_full ($RunId, $max)
+{
+  // How many acts are signed up?
+  $sql = 'SELECT COUNT(ActId) AS Count';
+  $sql .= ' FROM Acts';
+  $sql .= " WHERE RehearsalId=$RunId";
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Attempt to count confirmed signups for RunId $RunId Failed', $sql);
+
+  while ($row = mysql_fetch_object ($result))
+    $act_count = $row->Count;
+  
+  
+  if ($act_count >= $max)
+    return TRUE;
+  else 
+    return FALSE;
+}
