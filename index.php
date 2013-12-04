@@ -978,7 +978,7 @@ function show_user_homepage_status ()
   if (! $_SESSION[SESSION_CON_SHOW_SCHEDULE])
   {
       echo "The schedule for " . CON_NAME . " is not yet available.  You \n";
-      echo "can see the list of conference and speical events being planned by clicking on \n";
+      echo "can see the list of conference and other events being planned by clicking on \n";
       printf ("<A HREF=Schedule.php>The Events Lists</A>\n",
 	      LIST_GAMES, CON_NAME);
       echo "in the Navigation menu.<p>\n";

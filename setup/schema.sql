@@ -494,6 +494,7 @@ CREATE TABLE `Con` (
   `ConComMeetings` text NOT NULL,
   `AcceptingBids` enum('Yes','No') NOT NULL DEFAULT 'Yes',
   `PreconBidsAllowed` enum('Yes','No') NOT NULL DEFAULT 'Yes',
+  `OpenEdit` enum('Yes','No') NOT NULL DEFAULT 'Yes',
   PRIMARY KEY (`ConId`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
