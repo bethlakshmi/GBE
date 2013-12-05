@@ -46,13 +46,13 @@ $headers[] = "Rehearsal Slot";
 
 get_acttech_display_settings($_REQUEST['ShowId'], &$Settings);
 foreach ($Settings as $setting)
-  if ($setting->On)
+  if ($setting->On && $setting->Type != "none")
     $headers[] = $setting->DisplayText;
   
-start_table("bookings", "tablesorter");
+start_table("acttech", "tablesorter");
 table_header($headers);
 
-get_acttech_listings($tech_list, $act_list);
+get_acttech_listings($tech_list, $act_list, $_REQUEST['ShowId']);
 
 foreach ($tech_list as $key => $tech_item)
 {
@@ -77,11 +77,21 @@ foreach ($tech_list as $key => $tech_item)
   foreach ($Settings as $setting)
   {
     if ($setting->On)
-      //if ($columnname == "MusicPath")
-      //  $display_array[] = make_link($tech_array[$columnname]);
-      //else
-        $display_array[] = $tech_array[$setting->ColumnName];
+    {
+      if ($setting->Type == "file")
+        $display_array[] = make_link($tech_array[$setting->ColumnName]);
+      elseif ($setting->Type == "time")
+        $display_array[] = $tech_array[$setting->ColumnName."Minutes"].":".
+                           $tech_array[$setting->ColumnName."Seconds"];
+      elseif ($setting->Type == "checkbox")
+        if ($tech_array[$setting->ColumnName] == 1)
+          $display_array[] = "CHECKED";
+        else
+          $display_array[] = "";
 
+      elseif ($setting->Type != "none")
+        $display_array[] = $tech_array[$setting->ColumnName];
+    }
   }
   row($display_array);
 

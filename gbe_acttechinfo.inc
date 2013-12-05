@@ -653,7 +653,7 @@ function get_acttech_display_settings($ShowId, &$Settings)
   
 }
 
-/* function get_acttech_display_settings
+/* function get_acttech_listings
  * 
  * Get the settings for a given Show to decide what and how to display
  *
@@ -664,6 +664,10 @@ function get_acttech_listings(&$tech_info, &$act_info, $ShowId=0)
   $tech_info = array();
        
   $sql = "select * from ActTechInfo, Acts WHERE Acts.ActInfoId = ActTechInfo.ActTechInfoId";
+
+  if ($ShowId > 0)
+    $sql .= " AND Acts.ShowId = ".$ShowId;
+    
   //echo $sql;
   
   $result = mysql_query($sql);

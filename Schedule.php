@@ -1386,6 +1386,16 @@ function show_game ()
 	  echo "  </TR>\n";
 	}
 	
+	if ($event->GameType == "Show")
+	{
+	  echo "  <TR>\n";
+	  echo "    <TD COLSPAN=$cols ALIGN=CENTER>\n";
+	  printf ('<A HREF=DisplayActTechInfo.php?ShowId=%d>%s</A>',
+		  $EventId,
+		  'Show tech info');
+	  echo "    </TD>\n";
+	  echo "  </TR>\n";
+	}
 	
 	if ( $run_count > 0)
 	{
