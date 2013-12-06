@@ -166,7 +166,7 @@ function perform_bpt_api_call($event_call)
 		return display_error("Could not retrieve data from BPT: Data not available " . 
 			"on Brown Paper Tickets.");
 	
-	echo $event_call . "<br><br>";
+	//echo $event_call . "<br><br>";
 	
 	curl_close($ch);
 	return produce_XML_object_tree($result_list_xml);
