@@ -508,7 +508,7 @@ function list_ticket_status()
 	printf("Ticket Purchase Status for %s:", CON_NAME);
 	echo "</b><br>\n";
 	
-	printf("<br>The Ticket System was last synchronized with BPT at %s UTC.<br><br>",
+	printf("<br>The Ticket System was last synchronized with BPT at %s MST (Server Time).<br><br>",
 		get_bpt_last_poll_time());
 		
 	show_ticket_status_table();
