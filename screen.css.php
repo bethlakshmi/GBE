@@ -333,7 +333,7 @@ p.dev_warning
 	font-weight: bold;
 }
 
-span.dropt {border-bottom: thin dotted; background: white;}
+span.dropt {border-bottom: background: white;}
 span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
 span.dropt span {position: absolute; left: -9999px;
   margin: 20px 0 0 0px; padding: 3px 3px 3px 3px;

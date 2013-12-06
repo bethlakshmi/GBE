@@ -74,7 +74,7 @@ function show_field($setting, $values, $errors, $editable)
     if ($setting->HelpText != NULL && $setting->HelpText != "none")   
     {
       $text = " <span class=\"dropt\" title=\"Help\">\n";
-      $text .=  "(?)\n";
+      $text .=  "<img src=\"moz-screenshot.png\" alt=\"Help\">\n";
       $text .=   "  <span style=\"width:200px;float:right;text-align:left;\">$setting->HelpText</span>\n";
       $text .=   "</span>\n";
     }
