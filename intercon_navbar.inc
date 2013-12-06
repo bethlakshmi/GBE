@@ -413,10 +413,12 @@ function build_about_subnavbar() {
 }
 function build_participation_subnavbar() {
   $aboutSection = new SubNavBar("I Want To...</NOBR>");  // Sorry, this was bugging me.  :)  -MDB
+
+  $aboutSection->push(NavBarItem::newAction("Buy Tickets", "Cost.php"));
   
   if ( accepting_bids() )
   {
-    $aboutSection->push(NavBarItem::newAction("Submit an Act", "Acts.php", BID_GAME));
+    //$aboutSection->push(NavBarItem::newAction("Submit an Act", "Acts.php", BID_GAME));
     $aboutSection->push(NavBarItem::newAction("Submit a Class", "Bids.php", BID_GAME));
     $aboutSection->push(NavBarItem::newAction("Sit on a Panel", "Panels.php"));
     $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "Bids.php", BID_GAME."&GameType=Panel"));
@@ -427,7 +429,6 @@ function build_participation_subnavbar() {
   $aboutSection->push(NavBarItem::newStatic("Sell my Stuff", "VendorPackage"));
   $aboutSection->push(NavBarItem::newStatic("Advertise", "AdPackage"));
   $aboutSection->push(NavBarItem::newExternal("Reserve a Hotel Room", "https://resweb.passkey.com/go/e7faff68"));
-  $aboutSection->push(NavBarItem::newAction("Buy Tickets", "Cost.php"));
   
   return $aboutSection;
 }
@@ -465,9 +466,9 @@ function display_main_navbar() {
   $navbar->push(new NavBarTitle("Navigation"));
   $navbar->push(NavBarItem::newAction('Home', 'index.php'));
   
+  $navbar->push(build_participation_subnavbar());
   $navbar->push(build_about_subnavbar());
   $navbar->push(build_larps_subnavbar());
-  $navbar->push(build_participation_subnavbar());
 
   if ( user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
     $navbar->push(build_bids_subnavbar());
