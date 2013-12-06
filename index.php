@@ -878,7 +878,7 @@ function display_signup_status ()
       
     case UNLIMITED_SIGNUPS:
       echo "Conference schedule is now fully open!  Please signup for volunteer ";
-      echo "slots, rehearsal slots, buy tickets, or check the schedule for interesting";
+      echo "slots, rehearsal slots, buy tickets, or Events at GBE for interesting";
       echo "shows, classes, special events and more!<p>\n";
       break;
 
@@ -982,7 +982,6 @@ function show_user_homepage_status ()
       printf ("<A HREF=Schedule.php>The Events Lists</A>\n",
 	      LIST_GAMES, CON_NAME);
       echo "in the Navigation menu.<p>\n";
-      return true;
   }
 
   // Tell the user if signups are not yet available
