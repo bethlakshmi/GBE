@@ -154,6 +154,7 @@ function perform_bpt_api_call($event_call)
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $event_call);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_SSLVERSION, 3);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	$result_list_xml = curl_exec($ch);
