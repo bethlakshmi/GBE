@@ -83,6 +83,7 @@ CREATE TABLE `ActTechInfo` (
   `CueProps` tinyint(1) unsigned DEFAULT NULL,
   `PropInstruct` varchar(500) DEFAULT NULL,
   `IntroText` varchar(500) DEFAULT NULL,
+  `Order` INT( 10 ) NOT NULL DEFAULT '0',
   PRIMARY KEY (`ActTechInfoId`)
 ) ENGINE=InnoDB;
 
