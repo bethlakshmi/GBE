@@ -6,7 +6,9 @@ include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
 include ("gbe_event.inc");
+include ("gbe_run.inc");
 include ("WhosWho.inc");
+include ("gbe_schedule.inc");
 include_once ("signup_controller.inc");
 
 // Connect to the database
@@ -613,22 +615,46 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
 
   echo "<H1>$day</H1><br>";
 
+
+
   // Get the day's events
+  $bookings  = get_events_by_day($day);
 
-  $sql = 'SELECT Runs.RunId, Runs.Track, Runs.TitleSuffix, Runs.StartHour,';
-  $sql .= ' Runs.Span, Runs.ScheduleNote, Runs.Rooms, Runs.Track,';
-  $sql .= ' Events.EventId, Events.SpecialEvent, Events.Hours, Events.Title,';
-  $sql .= ' Events.CanPlayConcurrently, LENGTH(Events.Description) AS DescLen,';
-  $sql .= ' MaxPlayersNeutral, ';
-  $sql .= ' MinPlayersNeutral, ';
-  $sql .= ' PrefPlayersNeutral, ';
-  $sql .= ' Events.IsOps, Events.IsConSuite ';
-  $sql .= ' FROM Events, Runs';
-  $sql .= " WHERE Events.EventId=Runs.EventId AND Day='$day'";
-  $sql .= ' ORDER BY StartHour, Hours DESC, Events.Title';
+  $runids = array();
+  foreach ($bookings as $booking){
+  	  $runids[]=$booking->RunId;
+	  
+  }
+  $signup_counts = get_signup_counts($runids);
 
-  $result = mysql_query ($sql);
-  if (! $result)
+  foreach ($bookings as $booking){
+  
+    if (array_key_exists ($booking->RunId, $signed_up_runs))
+    {
+      if ('Confirmed' == $signed_up_runs[$booking->RunId])
+        $booking->Status = 'Confirmed';
+      elseif ('Waitlisted' == $signed_up_runs[$booking->RunId])
+        $booking->Status = 'Waitlisted';
+    }
+    elseif ($signup_counts[$booking->RunId]["Male"] >= $booking->Event->MaxPlayersNeutral )
+    {	
+         echo  $booking->Event->Title . ": " . $signup_counts[$booking->RunId]["Male"]."/".$booking->Event->MaxPlayersNeutral;
+  	 $booking->Status = "Full";
+    }
+    else $booking->Status = "Available";
+    
+  }
+  $grid = new ScheduleGrid();
+
+  $grid -> calculate_columns($bookings, 48);
+  $grid ->create_schedule_table($day, $today_start, $today_end);
+  
+
+
+
+}
+/*
+if (! $result)
     return display_mysql_error ("Schedule query for $day failed");
 
   if (0 == mysql_num_rows ($result))
@@ -828,45 +854,119 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
   echo "</div>";
   echo "</div>";
 }
+*/
 
-function write_away_checkbox ($cur_state, $day, $hour, $away_all_day)
-{
-  if (('Hidden' == $cur_state) || ('CHECKED' == $away_all_day))
-    $input = '<IMG SRC=GrayedCheck.gif>';
-  else
-    $input = sprintf ('<INPUT TYPE=CHECKBOX %s NAME=%s%02d VALUE=1>',
-		      $cur_state,
-		      $day,
-		      $hour);
 
-  write_centering_table ($input);
-}
-
-/*
- * away_init
+/* calculate_columns
+ * Find an arrangement of schedule items such that no overlapping items are placed
+ * in the same column. 
+ * This function assumes that the array of schedule items (Run object) is sorted by start time. 
+ * Returns an array of columns of events s.t. each event in a column starts after the previous one concludes. 
+ * Within each column, events are indexed by their start time (which is unique in this column). The column has value
+ * 0 for each block the event occupies aside from the one in which the event is actually located. Cells in which no 
+ * event is situated have a value of -1. 
  */
 
-function away_init (&$away, $day, $min, $max, $value)
-{
-  $away[$day] = $value;
+/*
+function calculate_columns($sched_items, $blocks){
+  $events_cols = array();
+  $vol_cols = array();
+  $vol_cols[0]= array();
+  $vol_cols = array_pad($vol_cols[0], $blocks, -1);
+  $events_cols[0] = array();
+  $events_cols[0] = array_pad($events_cols[0], $blocks, -1);
+  $nextcol  = 1;
 
-  for ($h = $min; $h <= $max; $h++)
+  foreach ($sched_items  as &$item) 
   {
-    $k = sprintf ('%s%02d', $day, $h);
-    $away[$k] = $value;
+    $title = $item->Event->Title;
+    $start = $item->StartHour;
+    $hours = $item->Event->Hours;
+
+    if ($row->IsOps == "Y" || $row->IsConSuite == "Y") {  
+      $columns = $vol_cols;
+    }
+    else {
+      $columns = $events_cols;
+    }
+   
+    foreach ($columns as &$col) 
+    {	
+      if ($col[$start] === -1) 
+      {
+        $col[$start] = $item;
+        for ($i = 1; $i < $hours; $i++)
+        {
+          $col[$start + $i] = 0;    // mark the following cells so we don't put anything there
+	}
+	continue 2;     // we've placed this item
+      }
+    }
+        // if we get here, we've exhausted the existing columns, so create a new one
+
+    $new_col = array();
+    $new_col = array_pad($new_col, $blocks,  -1);
+    $new_col[$start] = $item; 
+    for ($i = 1; $i < $hours; $i++)
+    {
+      $new_col[$i] = 0;    // mark the occupied cells
+      $columns[$nextcol] = $new_col;
+      $nextcol++;
+      continue;
+    }
   }
+ 
+  return $columns;
+}
+ */
+
+/* create_schedule_table
+ * read an array of columns and create an events grid
+ * $columnns: events indexed by start_hour
+ * $day: The day (used for table's css class)
+ * $start, $end: start and end times for that day's events
+ */
+
+/*
+function create_schedule_table ($columns, $day, $start, $end ) {
+   $table_id = "events_" .$day;
+   $table_class = "events";
+   start_table($table_id, $table_class);
+   print_events_header(count($columns));
+
+   
+   for ($i = $start; $i < $end; $i++) 
+   {   
+
+       $time =  start_hour_to_am_pm($i);
+       echo "<tr><td class = \"time\">$time</td>";
+       foreach ($columns as $col) 
+       {
+              if ($col[$i] === -1){
+           echo '<td>&nbsp</td>';  // no event here, but we need an empty cell
+               }
+         
+      elseif ($col[$i] === 0) {
+         // do nothing; print no cell here
+      }
+      else {   // must be an event
+           $hours = $col[$i]->Event->Hours;
+             $title_with_link  =   $text = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+                                   SCHEDULE_SHOW_GAME,
+                                   $col[$i]->EventId,
+                                   $col[$i]->RunId,
+                                   $col[$i]->Event->Title);
+
+           echo "<td rowspan=$hours class=\"event\">$title_with_link<br>\n";
+           echo $col[$i] -> Rooms.'</td>';
+                  }
+             }
+       echo "</tr>\n";
+    }
+  echo "</table>\n";
 }
 
-function away_add (&$away, &$row, $day, $min, $max)
-{
-  $away[$day] += $row[$day];
-
-  for ($h = $min; $h <= $max; $h++)
-  {
-    $k = sprintf ('%s%02d', $day, $h);
-    $away[$k] += $row[$k];
-  }
-}
+*/
 
 /*
  * display_schedule_with_counts
@@ -2341,18 +2441,13 @@ function list_games_alphabetically ($GameType="")
 
   if ($n > 0)
   {
-    if (file_exists(TEXT_DIR.'/betweencosts.html'))
-	  include(TEXT_DIR.'/betweencosts.html');	     
-
+    echo "<hr width=\"50%\">\n";
     if (SELECTEVENTS_ENABLED)
-//        echo "<br><b>Select event to view:</b>\n";
+        echo "<b>Select event to view:</b>\n";
 
     while ($row = mysql_fetch_object ($result))
     {
        list_this_game($row, $GameType);
-       if (file_exists(TEXT_DIR.'/betweencosts.html'))
-	    include(TEXT_DIR.'/betweencosts.html');	     
-
     }
   }
   mysql_free_result ($result);

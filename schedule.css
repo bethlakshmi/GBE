@@ -10,3 +10,10 @@ div.bookings_wrapper tr.header_row {
     border: solid #000 1px;
     
 }
+
+td.event {
+
+    background-color:#CCCCCC;
+    border: solid #000 1px;
+
+}

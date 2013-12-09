@@ -29,6 +29,7 @@ class Event
     public $SpecialEvent;
     public $CanPlayConcurrently;
     public $IsOps;
+    public $IsConSuite;
     public $ConMailDest;
     public $Description;
     public $ShortBlurb;
@@ -92,6 +93,7 @@ class Event
 		$this->ShortBlurb = (string)$row->ShortBlurb;
 		$this->LastUpdated = (string)$row->LastUpdated;
 		$this->UpdatedById = (int)$row->UpdatedById;
+		$this->IsConSuite = (string)$row->IsConSuite;
 				
 	}
 	
@@ -121,7 +123,7 @@ class Event
 		$this->ConMailDest = (string)$array['ConMailDest'];
 		$this->Description = (string)$array['Description'];
 		$this->ShortBlurb = (string)$array['ShortBlurb'];
-		
+		$this->IsConSuite = (string)$array['IsConSuite'];
 		return true;
 	}
 

@@ -31,7 +31,7 @@ class Run
     public $Viewable;
     public $UpdatedById;
     public $LastUpdated;
-    
+    public $Status;			// This run's status: Confirmed, Waitlisted, Full    
     // link to an Event class object representing the general information
     //  about this run.  Only loaded when setEvent is set to one in convert_from_sql_row.
   public $Event;
@@ -385,6 +385,40 @@ function get_general_bookings(&$Bookings, &$Rooms)
   }
 
 }
+
+
+/* function get_events_by_day
+ * 
+ * Retrieves the events for a given day
+ * (extracted from existing Schedule.php code)
+ * Input:
+ * $day: the day we want. One of "Fri", "Sat", "Sun"
+ */
+function get_events_by_day($day) 
+{
+  $sql = 'SELECT *  FROM Events, Runs';
+  $sql .= " WHERE Events.EventId=Runs.EventId AND Day='$day'";
+  $sql .= ' ORDER BY StartHour, Hours DESC, Events.Title';
+
+  $result = mysql_query ($sql);
+ 
+  if (!$result)
+    return display_mysql_error ('Cannot execute query', $sql);
+    
+    $Bookings = array();
+    $i = 0;
+  while ($row = mysql_fetch_object($result))
+  {
+    $run = new Run();
+    $run->convert_from_sql_row($row, 1);
+//    $Bookings[$run->Day."-".$run->StartHour."-".$run->Rooms]=$run;
+      $Bookings[$i] = $run;
+      $i++;
+  }
+  return $Bookings;
+
+}
+
 
 /* function book_user
  * 
