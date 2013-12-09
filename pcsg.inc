@@ -10,7 +10,7 @@
 // set this to 1 to debug schedule generation
 // requires Firebug or Firebug Lite
 define("PCSG_DEBUG", 0);
-define(PCSG_EVENT_BLOCK, 30); // also defined as EVENT_BLOCK in intercon_db.inc
+define("PCSG_EVENT_BLOCK", 30); // also defined as EVENT_BLOCK in intercon_db.inc
 
 
 if (PCSG_DEBUG) {

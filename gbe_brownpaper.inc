@@ -154,6 +154,7 @@ function perform_bpt_api_call($event_call)
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $event_call);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
+	curl_setopt($ch, CURLOPT_SSLVERSION, 3);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	$result_list_xml = curl_exec($ch);
@@ -164,6 +165,8 @@ function perform_bpt_api_call($event_call)
 	if (0 == strcmp(trim($result_list_xml), "<?xml version=\"1.0\"?>"))
 		return display_error("Could not retrieve data from BPT: Data not available " . 
 			"on Brown Paper Tickets.");
+	
+	//echo $event_call . "<br><br>";
 	
 	curl_close($ch);
 	return produce_XML_object_tree($result_list_xml);
@@ -182,7 +185,15 @@ function get_bpt_event_date_id($event_id)
 		get_bpt_developer_id(), $event_id);
 	
 	$date_xml = perform_bpt_api_call($date_call);
-	return $date_xml->date->date_id;
+	
+	$date_list = array();
+	
+	foreach ($date_xml->date as $date)
+	{
+		array_push($date_list, (string)$date->date_id);
+	}
+	
+	return $date_list;
 }
 
 /* function get_bpt_price_list
@@ -198,20 +209,24 @@ function get_bpt_price_list()
 	
 	foreach ($event_array as $event_id)
 	{
-		$date_id = get_bpt_event_date_id($event_id);
-		$price_call = sprintf("https://www.brownpapertickets.com/api2/pricelist?id=%s&event_id=%s&date_id=%s", 
-			get_bpt_developer_id(), $event_id, $date_id);
-		$price_list_xml = perform_bpt_api_call($price_call);
+		$date_list = get_bpt_event_date_id($event_id);
 		
-		foreach ($price_list_xml->price as $price)
+		foreach ($date_list as $date_id)
 		{
-			$item = new TicketItem();
-			$item->ItemId = sprintf("%s-%s", $event_id, (string)$price->price_id);
-			$item->Title = (string)$price->name;
-			$item->Active = (bool)$price->live;
-			$item->Cost = (double)$price->value;
-			$item->Description = "**Auto-Imported from BPT**";
-			array_push($ticket_items, $item);
+			$price_call = sprintf("https://www.brownpapertickets.com/api2/pricelist?id=%s&event_id=%s&date_id=%s", 
+				get_bpt_developer_id(), $event_id, $date_id);
+			$price_list_xml = perform_bpt_api_call($price_call);
+			
+			foreach ($price_list_xml->price as $price)
+			{
+				$item = new TicketItem();
+				$item->ItemId = sprintf("%s-%s", $event_id, (string)$price->price_id);
+				$item->Title = (string)$price->name;
+				$item->Active = (bool)$price->live;
+				$item->Cost = (double)$price->value;
+				$item->Description = "**Auto-Imported from BPT**";
+				array_push($ticket_items, $item);
+			}
 		}
 	}
 	
@@ -229,6 +244,7 @@ function process_bpt_order_list()
 {
 	$count = 0;
 	$event_array = get_bpt_event_list();
+	
 	
 	foreach ($event_array as $event_id)
 	{
@@ -296,8 +312,10 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	
 	if ($user == null)
 	{
-		return display_error(sprintf("Cannot save payment %s (Name:  %s, Email:  %s) - User Not Found",
-			$order->ticket_number, $order->fname . " " . $order->lname, $order->email));
+		$user_info = sprintf("Name:  %s  Phone:  %s  Email:  %s  Country:  %s  Order Time:  %s", 
+			$order->fname . " " . $order->lname, $order->phone, $order->email, $order->country,
+			$order->order_time);
+		return display_error("User not found:  " . $user_info);
 		
 		// No longer create fake users - we'll just have enter these manually.  -MDB
 		
