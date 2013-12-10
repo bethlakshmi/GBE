@@ -501,7 +501,7 @@ function process_rehearsal_choice($RunId, &$Act)
         start_hour_to_am_pm($run->StartHour).".<br>\n";
     }
     else
-      echo "No rehearsal slot selected - NOTE:  This is not a recommended option.<br>/n";
+      echo "No rehearsal slot selected - NOTE:  This is not a recommended option.<br>\n";
       
     $Act->RehearsalId = $RunId;
   

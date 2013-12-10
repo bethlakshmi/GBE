@@ -6,6 +6,7 @@ include ("gbe_ticketing.inc");
 include ("gbe_brownpaper.inc");
 include ("gbe_users.inc");
 include_once ("gbe_run.inc");
+include_once ("gbe_acttechinfo.inc");
 
 global $VIDEO_LIST;
 $VIDEO_LIST = array('I don\'t have any video of myself performing', 
@@ -2393,17 +2394,29 @@ function drop_bid ($BidId,$UserId)
   {
     $Show = new Run();
     $Call = new Run();
-  
+    $Rehearsal = new Run();
+
     $Show->load_from_ShowId($_POST['OldShowId'],"Show");
     $Call->load_from_ShowId($_POST['OldShowId'], "Call");
+    
 
     if (strlen($Show->RunId) == 0 && strlen($Call->RunId) == 0 )
       return display_error("Error - no show time or call time found for the show  Performer signup ay be broken.");
     
     $ShowRuns = array($Show, $Call);
   
+    if ($Act->RehearsalId > 0)
+    {
+      $Rehearsal->load_from_RunId($Act->RehearsalId);
+      $ShowRuns = array($Show, $Call, $Rehearsal);
+    }
+  
     unbook_user($ShowRuns, $UserId);
   }
+
+  $info = new ActTechInfo();
+  $info->load_from_acttechinfoid($Act->ActInfoId);
+  $info->remove_from_db();
 
   return TRUE;
 }
