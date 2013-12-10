@@ -370,7 +370,7 @@ function list_games_by ($type, $showOps=FALSE)
     printf ("    <td align=\"center\"><a href=\"ListGames.php?action=%d&RunId=%d\">%s</a></td>\n",
 	    EDIT_RUN,
 	    $row->RunId,
-	    start_hour_to_am_pm($start_time));
+	    $start_time);
 
     $action = 0;
     if ($showOps)
