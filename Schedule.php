@@ -2441,13 +2441,16 @@ function list_games_alphabetically ($GameType="")
 
   if ($n > 0)
   {
-    echo "<hr width=\"50%\">\n";
-    if (SELECTEVENTS_ENABLED)
-        echo "<b>Select event to view:</b>\n";
+      if (file_exists(TEXT_DIR.'/betweencosts.html'))
+         include(TEXT_DIR.'/betweencosts.html');	     
 
+ 
     while ($row = mysql_fetch_object ($result))
     {
        list_this_game($row, $GameType);
+       if (file_exists(TEXT_DIR.'/betweencosts.html'))
+         include(TEXT_DIR.'/betweencosts.html');	  
+
     }
   }
   mysql_free_result ($result);
