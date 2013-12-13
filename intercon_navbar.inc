@@ -298,7 +298,7 @@ function build_bids_subnavbar() {
 }
 
 function build_acts_subnavbar() {
-  $bidsSection = new SubNavBar("Shows", true);
+  $bidsSection = new SubNavBar("Manage Shows", true);
   
   if (user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
     $bidsSection->push(NavBarItem::newAction("Status of Acts", "Acts.php", BID_REVIEW_BIDS));
