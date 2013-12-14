@@ -120,12 +120,189 @@ function create_schedule_table ($day, $start, $end ) {
 
           $item_class = "event ".$event->Status;
           echo "<td rowspan=$hours class=\"$item_class\">$title_with_link<br>\n";
-          echo $event -> Rooms.'</td>';
+	  $room = preg_replace(" \(.*\)", "",  $event->Rooms);
+          echo $room.'</td>';
         }
 
   }
 
 
+}
+
+
+function build_events_table($day)
+{
+	$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Pool"=>1);
+
+		      
+	$bookings = array();
+	$rooms = array();
+	get_general_bookings($bookings, $rooms, $day);
+	$events_array = array();
+	$events_array = array_pad($events_array, 48, array());
+	foreach ($bookings as $booking){
+	
+	    $start = $booking->StartHour;
+	    $room = strip_room($booking->Rooms);
+	    $raw_room = $booking->Rooms;
+  	    if (array_key_exists($room, $events_rooms)) {
+	      $events_array[$start][$room] = $booking;
+	    }
+	}
+	return $events_array;
+}
+
+function write_events_table($events_array, $today_start, $today_end) {
+	$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Pool"=>1);
+
+	 echo "<table>";
+ 	 echo "<thead>";
+	 echo "<th>Time</th>";
+	 foreach (array_keys($events_rooms) as $room) {
+ 	     echo "<th>$room</th>";
+	 }
+  	 echo "</thead>";
+	 echo "<tbody>";
+	 for ($i = $today_start; $i<$today_end; $i++) {
+	     $start_time = start_hour_to_am_pm($i);
+	     echo "<tr><td>$start_time</td>";
+	      $row = $events_array[$i];
+	     	 foreach (array_keys($events_rooms) as $room){
+		 	 
+		     if (array_key_exists($room, $row)){
+		        $item = $row[$room];
+		     	$title = $item->Event->Title;
+		     	echo "<td>$title</td>";
+		     }
+		     else {
+		       echo "<td></td>";
+		     }
+		 
+	     }
+	     echo "</tr>\n";
+	 }
+	 echo "</tbody></table>";	 
+}
+
+function build_volunteer_table($day)
+{
+	$vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Haym Solomon"=>1, "Registration"=>1);
+
+		      
+	$bookings = array();
+	$rooms = array();
+	get_volunteer_bookings($bookings, $rooms, $day);
+	$vol_array = array();
+	$vol_array = array_pad($vol_array, 48, array());
+	foreach ($bookings as $booking){
+	
+	    $start = $booking->StartHour;
+	    $room = strip_room($booking->Rooms);
+	    $raw_room = $booking->Rooms;
+  	    if (array_key_exists($room, $vol_rooms)) {
+	      $vol_array[$start][$room] = $booking;
+	    }
+	}
+	return $vol_array;
+}
+
+function write_volunteer_table($vol_array, $today_start, $today_end) {
+	$vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Haym Solomon"=>1, "Registration"=>1);
+
+	 echo "<table>";
+ 	 echo "<thead>";
+	 echo "<th>Time</th>";
+	 foreach (array_keys($vol_rooms) as $room) {
+ 	     echo "<th>$room</th>";
+	 }
+  	 echo "</thead>";
+	 echo "<tbody>";
+	 for ($i = $today_start; $i<$today_end; $i++) {
+	     $start_time = start_hour_to_am_pm($i);
+	     echo "<tr><td>$start_time</td>";
+	      $row = $vol_array[$i];
+	     	 foreach (array_keys($vol_rooms) as $room){
+		 	 
+		     if (array_key_exists($room, $row)){
+		        $item = $row[$room];
+		     	$title = $item->Event->Title;
+		     	echo "<td>$title</td>";
+		     }
+		     else {
+		       echo "<td></td>";
+		     }
+		 
+	     }
+	     echo "</tr>\n";
+	 }
+	 echo "</tbody></table>";	 
+}
+
+function build_conference_table($day)
+{
+	$conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
+		    "Molly Pitcher"=>1, "Crispus Attucks"=>1);
+
+		      
+	$bookings = array();
+	$rooms = array();
+	get_conference_bookings($bookings, $rooms, $day);
+	$conf_array = array();
+	$conf_array = array_pad($conf_array, 48, array());
+	foreach ($bookings as $booking){
+	
+	    $start = $booking->StartHour;
+	    $room = strip_room($booking->Rooms);
+	    $raw_room = $booking->Rooms;
+  	    if (array_key_exists($room, $conf_rooms)) {
+	      $conf_array[$start][$room] = $booking;
+	    }
+	}
+	return $conf_array;
+}
+
+function write_conference_table($conf_array, $today_start, $today_end) {
+	$conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
+		      "Molly Pitcher"=>1, "Crispus Attucks"=>1);
+
+	 echo "<table>";
+ 	 echo "<thead>";
+	 echo "<th>Time</th>";
+	 foreach (array_keys($conf_rooms) as $room) {
+ 	     echo "<th>$room</th>";
+	 }
+  	 echo "</thead>";
+	 echo "<tbody>";
+	 for ($i = $today_start; $i<$today_end; $i++) {
+	     $start_time = start_hour_to_am_pm($i);
+	     echo "<tr><td>$start_time</td>";
+	      $row = $conf_array[$i];
+	     	 foreach (array_keys($conf_rooms) as $room){
+		 	 
+		     if (array_key_exists($room, $row)){
+		        $item = $row[$room];
+		     	$title = $item->Event->Title;
+		     	echo "<td>$title</td>";
+		     }
+		     else {
+		       echo "<td></td>";
+		     }
+		 
+	     }
+	     echo "</tr>\n";
+	 }
+	 echo "</tbody></table>";	 
+
+}
+
+function strip_room($room){
+  $result =  ereg_replace(" \(.*\)", "", $room);
+
+  return $result;
 }
 
 

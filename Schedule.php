@@ -613,7 +613,7 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
      $today_end = SUN_MAX;
   }
 
-  echo "<H1>$day</H1><br>";
+//  echo "<H1>$day</H1><br>";
 
 
 
@@ -638,19 +638,24 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
     }
     elseif ($signup_counts[$booking->RunId]["Male"] >= $booking->Event->MaxPlayersNeutral )
     {	
-         echo  $booking->Event->Title . ": " . $signup_counts[$booking->RunId]["Male"]."/".$booking->Event->MaxPlayersNeutral;
   	 $booking->Status = "Full";
     }
     else $booking->Status = "Available";
     
   }
-  $grid = new ScheduleGrid();
+//  $grid = new ScheduleGrid();
 
-  $grid -> calculate_columns($bookings, 48);
-  $grid ->create_schedule_table($day, $today_start, $today_end);
-  
-
-
+//  $grid -> calculate_columns($bookings, 48);
+//  $grid ->create_schedule_table($day, $today_start, $today_end);
+  echo "<h1>$day</h1><br>\n";
+  $conf_array = build_conference_table($day);
+  write_conference_table($conf_array, $today_start,$today_end);
+ 
+  $vol_array = build_volunteer_table($day);
+  write_volunteer_table($vol_array, $today_start,$today_end);
+  $event_array = build_events_table($day);
+  write_events_table($events_array, $today_start,$today_end);
+ 
 
 }
 /*

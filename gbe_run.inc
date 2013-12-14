@@ -289,14 +289,15 @@ function remove_event_runs($EventId)
  *   $Rooms - reference to the list of rooms applicable for this conference.  Key and 
  *     value are fine.
  */
-function get_conference_bookings(&$Bookings, &$Rooms)
+
+function get_conference_bookings(&$Bookings, &$Rooms, $day)
 {
   $Bookings = array();
   $Rooms = array();
 
   $sql = "select * from Runs, Events where (Events.GameType = \"Class\" or ";
-  $sql .= "Events.GameType = \"Panel\") and Events.EventId = Runs.EventId ";
-  $sql .= "order by Rooms, Day, StartHour";
+  $sql .= "Events.GameType = \"Panel\") and Events.EventId = Runs.EventId and Runs.Day=\"$day\" ";
+  $sql .= "order by StartHour";
   
   $result = mysql_query($sql);
   
@@ -307,8 +308,8 @@ function get_conference_bookings(&$Bookings, &$Rooms)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-  $Bookings[$run->Day."-".$run->StartHour."-".$run->Rooms]=$run;
-  $Rooms[$run->Rooms]=$run->Rooms;
+    $Bookings[$run->StartHour]=$run;
+    $Rooms[$run->Rooms]=$run->Rooms;
   }
 }
 
