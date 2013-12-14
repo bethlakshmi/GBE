@@ -3988,11 +3988,11 @@ function add_gm($EventId, $UserId, $role=NULL)
 
 function show_user_homepage_bids ($UserId,$Type=NULL)
 {
-  $sql = 'SELECT BidId, Status, Title, GameType FROM Bids';
+  $sql = 'SELECT BidId, Status, Title, GameType, EventId FROM Bids';
   $sql .= "  WHERE UserId=$UserId";
   if ($Type != NULL)
     $sql .= " AND GameType=\"".$Type."\"";
-  $sql .= '  ORDER BY Title';
+  $sql .= '  ORDER BY Status, Title';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -4020,7 +4020,28 @@ function show_user_homepage_bids ($UserId,$Type=NULL)
       $status = "Submitted Successfully";
     echo "  <TR>\n";
     echo "    <TD>$status:</TD>\n";
-    printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
+    // if it's accepted, change editing
+    if ($row->Status == "Accepted")
+    {
+      if ($row->GameType != "Performance" )
+        printf ("    <TD>%s - <A HREF=%s.php?action=%d&EventId=%d>%s</A></TD>\n",
+          $row->GameType,
+          "Schedule",
+          SCHEDULE_SHOW_GAME,
+          $row->EventId,
+          $row->Title);
+       else 
+       {
+          $Act = new Act();
+          $Act->load_from_bidid($row->BidId);
+          printf ("    <TD>%s - <b>%s</b> for %s</TD>\n",
+            $row->GameType,
+            $row->Title,
+            $Act->get_show_name());
+        }
+    }
+    else
+      printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
     	$row->GameType,
      	$type,
 	    BID_GAME,

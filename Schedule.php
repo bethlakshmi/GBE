@@ -2019,7 +2019,7 @@ function add_game ()
   {
     // Start by fetching the counts currently in place
 
-    $sql = 'SELECT PrefPlayersMale, PrefPlayersFemale, PrefPlayersNeutral,';
+    $sql = 'SELECT PrefPlayersNeutral,';
     $sql .= '  Hours';
     $sql .= '  FROM Events';
     $sql .= "  WHERE EventId=$EventId";

@@ -308,6 +308,8 @@ function build_acts_subnavbar() {
     if (user_has_priv(PRIV_GM_LIAISON))
       $bidsSection->push(NavBarItem::newStatic("Show Commmittee Responsibilities", "ShowCommittee"));
   }
+  if (user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON))
+    $bidsSection->push(NavBarItem::newAction("View Shows", "Schedule.php", LIST_GAMES,NULL,'Show&no=diff'));
       
   return $bidsSection;
 }
