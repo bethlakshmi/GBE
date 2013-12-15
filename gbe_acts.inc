@@ -446,7 +446,7 @@ function update_act_order($array){
     $n++;
   }
   
-  
+  echo "The order of acts has been updated.<br>\n";
 
 }
 ?>
