@@ -1330,6 +1330,7 @@ function add_user()
   $sql .= build_sql_string ('DisplayName', $DisplayName);
   $sql .= build_sql_string ('Nickname');
   $sql .= build_sql_string ('EMail');
+  $sql .= build_sql_string ('PurchaseEmail',$_POST['EMail']);
   $sql .= build_sql_string ('BirthYear');
   $sql .= build_sql_string ('Gender');
   $sql .= build_sql_string ('Address1');
@@ -1571,11 +1572,24 @@ function display_user_form ($returning_alumni, $errors='')
   {
     echo "<FONT color=\"red\"><b>Please register to setup your account.</b></font>";
   }
+  
+  // not used everywhere but created for consistency
+  $text="";
+  $text = " <span class=\"dropt\" title=\"Help\">\n";
+  $text .=  "<img src=\"moz-screenshot.png\" alt=\"Help\">\n";
+  $text .=   "  <span style=\"width:200px;float:right;text-align:left;\">";
+  $text .=   "This is the account used for purchasing your tickets.  ";
+  $text .=   "If this is not the email you used for purchasing tickets, ";
+  $text .=   "please contact the registrar at ".mailto_or_obfuscated_email_address (EMAIL_REGISTRAR);
+  $text .=   "</span>\n";
+  $text .=   "</span>\n";
+
 	
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
   form_text (64, 'Stage Name', 'StageName', 0);
   form_text (64, 'EMail', '', 0, TRUE);
+  form_text (64, 'PayPal Account'.$text, 'PurchaseEmail', 0,FALSE, '', '','', TRUE);
   form_text (64, 'Address', 'Address1');
   form_text (64, '', 'Address2');
   form_text (64, 'City');
@@ -1735,6 +1749,7 @@ function display_user_form_for_others ()
   form_text (30, 'First Name', 'FirstName', 0, TRUE);
   form_text (30, 'Last Name', 'LastName', 0, TRUE);
   form_text (64, 'EMail', '', 0, TRUE);
+  form_text (64, 'PayPal Account', 'PurchaseEmail', 0, TRUE);
   form_text (64, 'Stage Name', 'StageName',0);
   //form_birth_year_and_gender ('BirthYear', 'Gender');
   form_text (64, 'Address', 'Address1');
@@ -1966,6 +1981,7 @@ function process_edit_user ()
   // that it's valid would be impolite
 
   $EMail = trim ($_POST['EMail']);
+  $PurchaseEmail = trim ($_POST['PurchaseEmail']);
   if (! is_valid_email_address ('EMail'))
     return "'$EMail' does not appear to be a valid EMail address";
 
@@ -1973,6 +1989,11 @@ function process_edit_user ()
     $EMail = stripslashes ($EMail);
 
   $EMail = mysql_escape_string ($EMail);
+
+  if (1 == get_magic_quotes_gpc())
+    $PurchaseEmail = stripslashes ($PurchaseEmail);
+
+  $PurchaseEmail = mysql_escape_string ($PurchaseEmail);
 
   // Check that the EMail address isn't already being used by another player
 
@@ -2001,6 +2022,7 @@ function process_edit_user ()
   $form_ok = validate_string ('FirstName', 'First Name');
   $form_ok &= validate_string ('LastName', 'Last Name');
   $form_ok &= validate_email ('EMail');
+  $form_ok &= validate_email ('PurchaseEmail');
 
   $BirthYear = intval (trim ($_POST['BirthYear']));
 
@@ -2039,6 +2061,7 @@ function process_edit_user ()
   $sql .= build_sql_string ('DisplayName',$DisplayName);
   $sql .= build_sql_string ('Nickname');
   $sql .= build_sql_string ('EMail');
+  $sql .= build_sql_string ('PurchaseEmail');
   $sql .= build_sql_string ('BirthYear');
   $sql .= build_sql_string ('Gender');
   $sql .= build_sql_string ('Address1');
@@ -3242,6 +3265,7 @@ function view_user ()
   echo "<TABLE BORDER=0>\n";
 
   display_array_info ($row, 'EMail');
+  display_array_info ($row, 'PayPal Account','PurchaseEmail');
   echo "  <tr valign=\"top\">\n";
   echo "    <td align=\"right\"><b>Age:</b></td>\n";
   //printf ("    <td align=\"left\">%d</td>\n",
@@ -3263,54 +3287,6 @@ function view_user ()
   display_array_info ($row, 'Privileges', 'Priv');
   display_array_info ($row, 'Status', 'CanSignup');
 
-  /*
-  form_comped_for_game ($_POST['CompEventId']);
-
-  echo "</TABLE>\n";
-
-  // Fetch info on updating user
-
-  if ($UserId != 0)
-  {
-    $Modified = timestamp_to_datetime ($_POST['Modified']);
-    $LastLogin = timestamp_to_datetime ($_POST['LastLogin']);
-    $Created = timestamp_to_datetime ($_POST['Created']);
-    
-    // If the ModifiedBy column is 0, the user's record hasn't ever been
-    // modified
-
-    if (0 == $_POST['ModifiedBy'])
-      echo "<P>Created $Created\n";
-    else
-    {
-      $sql = 'SELECT FirstName, LastName FROM Users WHERE UserId=' .
-	     $_POST['ModifiedBy'];
-      $result = mysql_query ($sql);
-      if (! $result)
-	return display_mysql_error ("Query for modifying UserId $UserId failed");
-
-      $row = mysql_fetch_object ($result);
-
-      echo "<P>Last modified by $row->FirstName $row->LastName, $Modified\n";
-    }
-
-    $StatusModified = timestamp_to_datetime ($_POST['CanSignupModified']);
-
-    if (0 != $_POST['CanSignupModifiedId'])
-    {
-      $sql = 'SELECT FirstName, LastName FROM Users WHERE UserId=' .
-	     $_POST['CanSignupModifiedId'];
-      $result = mysql_query ($sql);
-      if (! $result)
-	return display_mysql_error ("Query for modifying UserId $UserId failed");
-
-      $row = mysql_fetch_object ($result);
-
-      echo "<P>Payment status last modified by $row->FirstName $row->LastName, $StatusModified\n";
-      //echo "<BR>Note: This will be the user himself if he paid using PayPal<P>\n";
-    }
-  }
-*/
   echo "</TABLE>\n";
 
   echo "<br><B>Ticket Purchase Status for $name</B><P>\n";
