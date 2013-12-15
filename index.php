@@ -559,7 +559,7 @@ function show_games ($UserId, $prefix, $type, $state, $sequence_number = -1)
                        "&EventId=$row->EventId>$Title</A>&nbsp;&nbsp;&nbsp;";
 
     if (is_user_gm_for_game ($UserId, $row->EventId))
-      echo  '[GM]&nbsp;&nbsp;&nbsp;';
+      echo  '[Presenter]&nbsp;&nbsp;&nbsp;';
 
     echo "</TD>\n";
 

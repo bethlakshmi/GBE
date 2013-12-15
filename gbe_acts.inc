@@ -30,7 +30,8 @@ class Act
 	public $GroupBio;
 	public $GroupName;
 	public $isGroup;
-	
+    public $Order;
+
 	/* function get_Title
 	 * 
 	 * Get the title the performer used in bidding this act.
@@ -205,7 +206,8 @@ class Act
 		$this->isGroup = (bool)$row->isGroup;
 	    $this->GroupName = (string)$row->GroupName;	
 		$this->GroupBio = (int)$row->GroupBio;	
-		
+        $this->Order = (int)$row->Order;
+
 	}
 	
 	/* function convert_from_array
@@ -230,6 +232,8 @@ class Act
 		}
 		else 
 		  $this->isGroup = false;
+		  
+		$this->Order = (int)$array['Order'];
 		
 		return true;
 	}
@@ -302,7 +306,8 @@ class Act
 		  $sql .= build_sql_string('GroupBio', $this->GroupBio);
 		}
 		$sql .= build_sql_string('isGroup', $this->isGroup);
-			
+        $sql .= build_sql_string('Order', $this->Order);
+
 		if (mysql_num_rows($result) == 1)
 			$sql .= sprintf(" where ActId = '%s'", $this->ActId);
 		//echo $sql;
@@ -409,6 +414,40 @@ function get_preferred_shows($BidId, &$bid_pref_slots)
   while ($row = mysql_fetch_assoc($result)) {
     $bid_pref_slots[$row['Day'].$row['Slot']] = $row['Pref'];
   }
+}
+
+/* function update_act_order
+ * 
+ * Update the order of acts that was provided by the array.  
+ *  Array should have keys "Order<n>", and "ActId<n>" where n starts at 0 
+ *  and goes up linearly.
+ *
+ * Returns: nothing
+ */
+function update_act_order($array){
+  $n=0;
+  
+  // get the order value and the ActId
+  while (isset($array['Order'.$n]) && $array['ActId'.$n])
+  {
+    $act = new Act();
+    $act->ActId = $array['ActId'.$n];
+    $act->Order = $array['Order'.$n];
+
+
+    $sql = sprintf("UPDATE `Acts` SET `Order` = '%d' WHERE `Acts`.`ActId` =%d; \n",
+                     $array['Order'.$n],$array['ActId'.$n]);
+    //echo $sql;
+    
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ("Update of order for Acts failed for ActId=".$array['ActId'.$n]);
+
+    $n++;
+  }
+  
+  
+
 }
 ?>
 

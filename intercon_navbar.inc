@@ -414,7 +414,7 @@ function build_about_subnavbar() {
   return $aboutSection;
 }
 function build_participation_subnavbar() {
-  $aboutSection = new SubNavBar("I Want To...</NOBR>");  // Sorry, this was bugging me.  :)  -MDB
+  $aboutSection = new SubNavBar("I Want To...");  // Sorry, this was bugging me.  :)  -MDB
 
   $aboutSection->push(NavBarItem::newAction("Buy Tickets", "Cost.php"));
   
