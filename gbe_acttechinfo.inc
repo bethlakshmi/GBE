@@ -663,13 +663,13 @@ function get_acttech_listings(&$tech_info, &$act_info, $ShowId=0)
 {
   $tech_info = array();
        
-  $sql = "select * from ActTechInfo, Acts WHERE Acts.ActInfoId = ActTechInfo.ActTechInfoId";
+  $sql = "select * from ActTechInfo, Acts WHERE (Acts.ActInfoId = ActTechInfo.ActTechInfoId or Acts.ActInfoid = 0) ";
 
   if ($ShowId > 0)
     $sql .= " AND Acts.ShowId = ".$ShowId;
     
-  //echo $sql;
-  
+  $sql .= " order by Acts.Order";
+    
   $result = mysql_query($sql);
   //echo $sql;
   
@@ -678,8 +678,10 @@ function get_acttech_listings(&$tech_info, &$act_info, $ShowId=0)
     
   while ($row = mysql_fetch_object($result))
   {
+  
     $list_item = new ActTechInfo();
-    $list_item->convert_from_sql_row($row);
+    if ($row->ActInfoId == $row->ActTechInfoId)
+      $list_item->convert_from_sql_row($row);
     $act_item = new Act();
     $act_item ->convert_from_sql_row($row);
     $tech_info[$list_item->ActTechInfoId]=$list_item;

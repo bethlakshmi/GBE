@@ -29,6 +29,7 @@ CREATE TABLE`Acts` (
 `GroupBio` INT( 10 ) NOT NULL DEFAULT '0' COMMENT 'Bio for Group',
 `isGroup` INT NOT NULL COMMENT 'Boolean - for whether or not this a group act',
 `GroupName` VARCHAR( 50 ) NULL DEFAULT NULL,
+`Order` int(10) unsigned NOT NULL,
 PRIMARY KEY ( `ActId` )
 ) ENGINE = InnoDB;
 
@@ -44,7 +45,6 @@ CREATE TABLE `ActTechDisplay` (
   `DisplayText` varchar(128) DEFAULT NULL,
   `HelpText` varchar(500) DEFAULT NULL,
   `Type` enum('radio','checkbox','textbox','textarea','pulldown','file','time','none') NOT NULL,
-  `Order` int(10) unsigned NOT NULL,
   `On` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `Required` tinyint(1) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`ActTechDisplayId`)
@@ -1069,6 +1069,7 @@ CREATE TABLE IF NOT EXISTS `Users` (
   `StageName` char(64) NOT NULL DEFAULT '',
   `Nickname` char(30) NOT NULL DEFAULT '',
   `EMail` char(64) NOT NULL DEFAULT '',
+  `PurchaseEmail` char(64) NOT NULL DEFAULT '',
   `Age` int(11) NOT NULL DEFAULT '0',
   `BirthYear` int(10) unsigned NOT NULL DEFAULT '0',
   `Gender` enum('Male','Female') NOT NULL DEFAULT 'Male',
