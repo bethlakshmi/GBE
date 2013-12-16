@@ -38,8 +38,6 @@ class ScheduleGrid
   }
 
 function place_item_in_grid($item, &$columns, $blocks){
-
-
       $title = $item->Event->Title;
       $start = $item->StartHour;
       $hours = $item->Event->Hours;
@@ -112,7 +110,7 @@ function create_schedule_table ($day, $start, $end ) {
        }
         else {   // must be an event
           $hours = $event->Event->Hours;
-          $title_with_link  =   $text = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+          $title_with_link = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
                                    SCHEDULE_SHOW_GAME,
                                    $event->EventId,
                                    $event->RunId,
@@ -128,17 +126,12 @@ function create_schedule_table ($day, $start, $end ) {
 
 
 }
-
-
-function build_events_table($day)
-{
 	$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
-		    "Pool"=>1);
+		    "Pool"=>1);		      
 
-		      
-	$bookings = array();
-	$rooms = array();
-	get_general_bookings($bookings, $rooms, $day);
+
+function build_events_table($day, $bookings, $rooms)
+{
 	$events_array = array();
 	$events_array = array_pad($events_array, 48, array());
 	foreach ($bookings as $booking){
@@ -146,18 +139,24 @@ function build_events_table($day)
 	    $start = $booking->StartHour;
 	    $room = strip_room($booking->Rooms);
 	    $raw_room = $booking->Rooms;
-  	    if (array_key_exists($room, $events_rooms)) {
+  	    if (array_key_exists($room, $rooms)) {
 	      $events_array[$start][$room] = $booking;
+	      for ($i = 1; $i < $booking->Event->Hours; $i++)
+	      	  $events_array[$start+$i][$room] = 0;
 	    }
 	}
 	return $events_array;
 }
 
-function write_events_table($events_array, $today_start, $today_end) {
+function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end) {
 	$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Pool"=>1);
 
 	 echo "<table>";
+ 	 echo "<thead>";
+	 $column_count = count($events_rooms) +1;
+	 echo "<th colspan=$column_count>$day: $label</th>";
+	 echo "</thead>";
  	 echo "<thead>";
 	 echo "<th>Time</th>";
 	 foreach (array_keys($events_rooms) as $room) {
@@ -172,9 +171,19 @@ function write_events_table($events_array, $today_start, $today_end) {
 	     	 foreach (array_keys($events_rooms) as $room){
 		 	 
 		     if (array_key_exists($room, $row)){
+		     	
 		        $item = $row[$room];
-		     	$title = $item->Event->Title;
-		     	echo "<td>$title</td>";
+			if ($item === 0) {
+  			   // don't write a cell here
+			} 
+          		$title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+                                   SCHEDULE_SHOW_GAME,
+                                   $item->EventId,
+                                   $item->RunId,
+                                   $item->Event->Title);
+		        $item_class = "event ".$item->Status;
+			$rows = $item->Event->Hours;  
+		     	echo "<td rowspan=$rows class=\"$item_class\">$title_with_link</td>";
 		     }
 		     else {
 		       echo "<td></td>";

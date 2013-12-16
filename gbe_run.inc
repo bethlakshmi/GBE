@@ -327,14 +327,14 @@ function get_conference_bookings(&$Bookings, &$Rooms, $day)
  *   $Tracks - reference to the list of tracks for this conference.  Key and 
  *     value are fine.
  */
-function get_volunteer_bookings(&$Bookings, &$Tracks)
+function get_volunteer_bookings(&$Bookings, &$Tracks, $day)
 {
   $Bookings = array();
   $Tracks = array();
 
   $sql = "select * from Runs, Events where Events.IsOps = \"Y\" and ";
-  $sql .= "Runs.Viewable is NULL and Events.EventId = Runs.EventId ";
-  $sql .= "order by Title, Day, StartHour";
+  $sql .= "Runs.Viewable is NULL and Events.EventId = Runs.EventId and Runs.Day=\"$day\"  ";
+  $sql .= "order by StartHour";
   
   $result = mysql_query($sql);
   
@@ -363,14 +363,14 @@ function get_volunteer_bookings(&$Bookings, &$Tracks)
  *   $Rooms - reference to the list of rooms applicable for this conference.  Key and 
  *     value are fine.
  */
-function get_general_bookings(&$Bookings, &$Rooms)
+function get_general_bookings(&$Bookings, &$Rooms, $day)
 {
   $Bookings = array();
   $Rooms = array();
 
   $sql = "select * from Runs, Events where Events.SpecialEvent = \"1\" ";
-  $sql .= "and Events.EventId = Runs.EventId ";
-  $sql .= "order by Rooms, Day, StartHour";
+  $sql .= "and Events.EventId = Runs.EventId and Runs.Day=\"$day\" ";
+  $sql .= "order by StartHour";
   
   $result = mysql_query($sql);
   

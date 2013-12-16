@@ -613,10 +613,6 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
      $today_end = SUN_MAX;
   }
 
-//  echo "<H1>$day</H1><br>";
-
-
-
   // Get the day's events
   $bookings  = get_events_by_day($day);
 
@@ -648,13 +644,29 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
 //  $grid -> calculate_columns($bookings, 48);
 //  $grid ->create_schedule_table($day, $today_start, $today_end);
   echo "<h1>$day</h1><br>\n";
-  $conf_array = build_conference_table($day);
-  write_conference_table($conf_array, $today_start,$today_end);
+  $bookings = array();
+  $rooms = array();
+  get_general_bookings($bookings, $rooms, $day);
+  $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Pool"=>1);		      
+
+	$vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+		    "Haym Solomon"=>1, "Registration"=>1);
+
+	$conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
+		    "Molly Pitcher"=>1, "Crispus Attucks"=>1);
+
+  $conf_array = build_events_table($day, $bookings, $events_rooms );
+  write_events_table($conf_array, $events_rooms, "General Events", $day, $today_start, $today_end);
  
-  $vol_array = build_volunteer_table($day);
-  write_volunteer_table($vol_array, $today_start,$today_end);
-  $event_array = build_events_table($day);
-  write_events_table($events_array, $today_start,$today_end);
+  get_volunteer_bookings($bookings, $rooms,  $day);
+  
+  $vol_array = build_events_table($day, $bookings, $vol_rooms);
+  write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end);
+
+  get_conference_bookings($bookings, $rooms, $day);
+  $event_array = build_events_table($day, $bookings, $conf_rooms);
+  write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end);
  
 
 }
