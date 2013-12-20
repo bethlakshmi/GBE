@@ -11,9 +11,57 @@ div.bookings_wrapper tr.header_row {
     
 }
 
-td.event {
 
+table.sched_selectors {
+    background-color:#999999;
+    border: solid #222222 3px;
+    width: 800px;
+
+}
+
+table.sched_selectors td.highlighted {
+    background-color:#000000;
+    color:#FFFFFF;
+}
+
+table.schedule_grid{
+    background-color:#EEEEEE;
+    border: solid #000000 3px;
+    width: 800px;
+
+}
+
+table.schedule_grid thead  {
+    background-color:#CCCCCC;
+    border: solid #FFF 1px;
+    
+} 
+
+
+table.schedule_grid thead th.time_head  {
+    width: 100px;
+}
+
+table.schedule_grid td.time {
+    text-align:center;
+    background-color:#909090C;
+    border: solid #FFF 1px;
+
+}
+
+
+table.schedule_grid td.event {
+    text-align:center;
     background-color:#CCCCCC;
     border: solid #000 1px;
 
+}
+
+*.ckeditor {
+   visibility:visible !important;
+
+}
+
+input.Author {
+  visibility:visible !important;
 }
