@@ -330,6 +330,7 @@ function show_away_schedule_form ()
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
 	  SCHEDULE_PROCESS_AWAY_FORM);
 
+	  write_sched_selectors();
   schedule_day ('Fri', $signed_up_runs,  false);
   schedule_day ('Sat', $signed_up_runs, false);
   schedule_day ('Sun', $signed_up_runs,  false);
@@ -623,30 +624,13 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
   }
   $signup_counts = get_signup_counts($runids);
 
-  foreach ($bookings as $booking){
-  
-    if (array_key_exists ($booking->RunId, $signed_up_runs))
-    {
-      if ('Confirmed' == $signed_up_runs[$booking->RunId])
-        $booking->Status = 'Confirmed';
-      elseif ('Waitlisted' == $signed_up_runs[$booking->RunId])
-        $booking->Status = 'Waitlisted';
-    }
-    elseif ($signup_counts[$booking->RunId]["Male"] >= $booking->Event->MaxPlayersNeutral )
-    {	
-  	 $booking->Status = "Full";
-    }
-    else $booking->Status = "Available";
-    
-  }
-//  $grid = new ScheduleGrid();
 
-//  $grid -> calculate_columns($bookings, 48);
-//  $grid ->create_schedule_table($day, $today_start, $today_end);
-  echo "<h1>$day</h1><br>\n";
+
+
   $bookings = array();
   $rooms = array();
   get_general_bookings($bookings, $rooms, $day);
+  set_status($bookings, $signup_counts, $signed_up_runs);
   $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Pool"=>1);		      
 
@@ -657,14 +641,15 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
 		    "Molly Pitcher"=>1, "Crispus Attucks"=>1);
 
   $conf_array = build_events_table($day, $bookings, $events_rooms );
-  write_events_table($conf_array, $events_rooms, "General Events", $day, $today_start, $today_end);
+  write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end);
  
   get_volunteer_bookings($bookings, $rooms,  $day);
-  
+  set_status($bookings, $signup_counts, $signed_up_runs);
   $vol_array = build_events_table($day, $bookings, $vol_rooms);
   write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end);
 
   get_conference_bookings($bookings, $rooms, $day);
+  set_status($bookings, $signup_counts, $signed_up_runs);
   $event_array = build_events_table($day, $bookings, $conf_rooms);
   write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end);
  
@@ -858,6 +843,7 @@ if (! $result)
 
   display_schedule_runs_in_div($mainBlock, $eventRuns,
 					   "width: $events_width; height: $full_height;",
+
 					   $hour, $signed_up_runs, $signup_counts,
 					   $show_counts);
   
@@ -872,6 +858,42 @@ if (! $result)
   echo "</div>";
 }
 */
+
+
+
+function write_sched_selectors() {
+	 echo "<table class=\"sched_selectors\">";
+	 echo "<tr class=\"day_selectors\">";
+	 echo "<td id=\"Fri\">Friday</td><td id=\"Sat\">Saturday</td><td id=\"Sun\">Sunday</td></tr>";
+	 echo "<tr class=\"event_type_selectors\">";
+	 echo "<td id=\"Events\">Events</td>";
+	 echo "<td id=\"Volunteer\">Volunteer</td>";
+	 echo "<td id=\"Conference\">Conference</td>";
+	 echo "</tr></table>";
+	 
+}
+
+
+function set_status($bookings, $signup_counts, $signed_up_runs){
+
+  foreach ($bookings as $booking){
+  
+    if (array_key_exists ($booking->RunId, $signed_up_runs))
+    {
+      if ('Confirmed' == $signed_up_runs[$booking->RunId])
+        $booking->Status = 'Confirmed';
+      elseif ('Waitlisted' == $signed_up_runs[$booking->RunId])
+        $booking->Status = 'Waitlisted';
+    }
+    elseif ($signup_counts[$booking->RunId]["Male"] >= $booking->Event->MaxPlayersNeutral )
+    {	
+  	 $booking->Status = "Full";
+    }
+    else $booking->Status = "Available";
+    
+  }
+}
+
 
 
 /* calculate_columns
@@ -1010,6 +1032,8 @@ function display_schedule_with_counts ()
   echo "/<FONT COLOR=red>&lt;waitlisted&gt</FONT>/&lt;away&gt; players for this game or hour<P>\n";
   echo "The Totals column includes an extra entry for the number of players who\n";
   echo "have indicated that they will be away that hour<p>\n";
+
+  write_sched_selectors();  
   schedule_day ('Fri', array(), true);
   schedule_day ('Sat', array(), true);
   schedule_day ('Sun', array(), true);
