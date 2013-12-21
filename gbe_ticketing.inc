@@ -966,7 +966,7 @@ function show_user_simple_ticket_table($UserId)
 	get_transactions_for_user($UserId, $Transactions);
 	if (sizeof($Transactions) == 0)
 	{
-		echo "This user has not purchased any tickets.<br><br>\n";
+		echo "<a href=\"index.php?action=7\"><img src=\"notickets.jpg\"></a><br><br>\n";
 		return;
 	}
 
