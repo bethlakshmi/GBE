@@ -149,50 +149,53 @@ function build_events_table($day, $bookings, $rooms)
 }
 
 function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end) {
-	$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
-		    "Pool"=>1);
+	//$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+	//	    "Pool"=>1);
 
 	 echo "<table>";
  	 echo "<thead>";
 	 $column_count = count($events_rooms) +1;
-	 echo "<th colspan=$column_count>$day: $label</th>";
+	 echo "<th colspan=$column_count class=\"schedhead\">$day: $label</th>";
 	 echo "</thead>";
  	 echo "<thead>";
-	 echo "<th>Time</th>";
+	 echo "<th class=\"time\">Time</th>";
 	 foreach (array_keys($events_rooms) as $room) {
- 	     echo "<th>$room</th>";
+ 	     echo "<th class=\"room\">$room</th>";
 	 }
-  	 echo "</thead>";
+  	 echo "</thead>\n";
 	 echo "<tbody>";
 	 for ($i = $today_start; $i<$today_end; $i++) {
 	     $start_time = start_hour_to_am_pm($i);
-	     echo "<tr><td>$start_time</td>";
+	     echo "<tr><td class=\"timeslot\">$start_time</td>\n";
 	      $row = $events_array[$i];
 	     	 foreach (array_keys($events_rooms) as $room){
 		 	 
 		     if (array_key_exists($room, $row)){
 		     	
 		        $item = $row[$room];
-			if ($item === 0) {
-  			   // don't write a cell here
-			} 
+                if ($item === 0 || $item === NULL) {
+  			       // don't write a cell here
+			    } 
+			    
+			    //echo "Run: ".$item->RunId." :: ";
+			    
           		$title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
                                    SCHEDULE_SHOW_GAME,
                                    $item->EventId,
                                    $item->RunId,
                                    $item->Event->Title);
 		        $item_class = "event ".$item->Status;
-			$rows = $item->Event->Hours;  
-		     	echo "<td rowspan=$rows class=\"$item_class\">$title_with_link</td>";
+			    $rows = $item->Event->Hours;  
+		     	echo "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
 		     }
 		     else {
-		       echo "<td></td>";
+		       echo "    <td></td>\n";
 		     }
 		 
 	     }
 	     echo "</tr>\n";
 	 }
-	 echo "</tbody></table>";	 
+	 echo "</tbody></table>\n\n";	 
 }
 
 function build_volunteer_table($day)

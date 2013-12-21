@@ -862,14 +862,14 @@ if (! $result)
 
 
 function write_sched_selectors() {
-	 echo "<table class=\"sched_selectors\">";
-	 echo "<tr class=\"day_selectors\">";
-	 echo "<td id=\"Fri\">Friday</td><td id=\"Sat\">Saturday</td><td id=\"Sun\">Sunday</td></tr>";
-	 echo "<tr class=\"event_type_selectors\">";
-	 echo "<td id=\"Events\">Events</td>";
-	 echo "<td id=\"Volunteer\">Volunteer</td>";
-	 echo "<td id=\"Conference\">Conference</td>";
-	 echo "</tr></table>";
+	 echo "<table class=\"sched_selectors\">\n";
+	 echo "<tr class=\"day_selectors\">\n";
+	 echo "<td id=\"Fri\">Friday</td><td id=\"Sat\">Saturday</td><td id=\"Sun\">Sunday</td></tr>\n";
+	 echo "<tr class=\"event_type_selectors\">\n";
+	 echo "<td id=\"Events\">Events</td>\n";
+	 echo "<td id=\"Volunteer\">Volunteer</td>\n";
+	 echo "<td id=\"Conference\">Conference</td>\n";
+	 echo "</tr></table>\n\n";
 	 
 }
 
