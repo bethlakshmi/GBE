@@ -349,7 +349,8 @@ class Act
  */
 function get_show_list(&$shows)
 {
-	$sql = sprintf("SELECT * FROM Events WHERE GameType = 'Show' ");
+	$sql = sprintf("SELECT * FROM Events, Runs WHERE Events.GameType = 'Show' and 
+	                Events.EventId = Runs.EventId order by Runs.Day, Runs.StartHour");
 
 	$result = mysql_query($sql);
 
