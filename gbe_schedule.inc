@@ -183,7 +183,9 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
                                    $item->EventId,
                                    $item->RunId,
                                    $item->Event->Title);
-		          $item_class = "event ".$item->Status;
+		          $item_class = "event".$item->Status;
+		          if ($label=="Conference" && $item->Status != "Confirmed")
+		            $item_class = "event";
 			      $rows = $item->Event->Hours;  
 		     	  echo "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
                }

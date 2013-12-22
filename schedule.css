@@ -68,7 +68,34 @@ table.schedule td.none{
 
 td.event {
     text-align:center;
+    background-color:#CCCCFF;
+    border: solid #000 1px;
+
+}
+td.eventAvailable {
+    text-align:center;
     background-color:#CCCCCC;
+    border: solid #000 1px;
+
+}
+
+td.eventFull {
+    text-align:center;
+    background-color:#FFCCCC;
+    border: solid #000 1px;
+
+}
+
+td.eventConfirmed {
+    text-align:center;
+    background-color:#CCFFCC;
+    border: solid #000 1px;
+
+}
+
+td.eventWaitlisted {
+    text-align:center;
+    background-color:#FFFFCC;
     border: solid #000 1px;
 
 }
