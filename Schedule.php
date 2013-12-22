@@ -1367,7 +1367,7 @@ function show_game ()
     $sql .= " WHERE GMs.EventId=$EventId";
     $sql .= "   AND GMs.DisplayAsGM='Y'";
     $sql .= "   AND Users.UserId=GMs.UserId";
-    $sql .= "   AND (GMs.Role != 'performer' )";
+    $sql .= "   AND GMs.Role != 'performer' ";
     $sql .= ' ORDER BY GMs.Role DESC, Users.DisplayName';
 
     //  echo "$sql<P>";
@@ -1740,7 +1740,7 @@ if ($event->GameType != "Show")
   $sql .= " WHERE GMs.EventId=$EventId";
   $sql .= "   AND GMs.DisplayAsGM='Y'";
   $sql .= "   AND Users.UserId=GMs.UserId";
-  $sql .= "   AND (GMs.Role = 'teacher' OR GMs.Role = 'panelist' OR GMs.Role = 'moderator' )";
+  $sql .= "   AND GMs.Role != 'performer' ";
   $sql .= ' ORDER BY Users.DisplayName';
 
   //  echo "$sql<P>";
