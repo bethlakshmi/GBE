@@ -501,31 +501,40 @@ function display_main_navbar() {
 
   // About Us/Contact
   $navbar->push(build_about_subnavbar());
+  
+  echo $navbar->render();
+
+}
+
+function display_admin_navbar() {
+  // Title the menu
+  $admin = new NavBar();
+  $admin->push(new NavBarTitle("Special"));
 
   if ( user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
-    $navbar->push(build_bids_subnavbar());
+    $admin->push(build_bids_subnavbar());
   if ( user_has_priv(PRIV_SHOW_COM) || user_has_priv(PRIV_GM_LIAISON) )
-    $navbar->push(build_acts_subnavbar());
+    $admin->push(build_acts_subnavbar());
   if (user_is_presenter() || user_has_priv(PRIV_GM_LIAISON) || user_has_priv(PRIV_CON_COM))
-    $navbar->push(build_gm_subnavbar());
+    $admin->push(build_gm_subnavbar());
   if (user_is_performer() )
-    $navbar->push(build_myact_subnavbar());
+    $admin->push(build_myact_subnavbar());
 //  if (is_logged_in() || user_has_priv(PRIV_CON_COM))
 //    $navbar->push(build_shirts_subnavbar());
   if (user_has_priv(PRIV_CON_COM))
-    $navbar->push(build_attendees_subnavbar());
+    $admin->push(build_attendees_subnavbar());
   if (user_has_priv(PRIV_REGISTRAR))
-    $navbar->push(build_ticketing_subnavbar());
+    $admin->push(build_ticketing_subnavbar());
   if (user_has_any_mail_priv ())
-    $navbar->push(build_mail_subnavbar());
+    $admin->push(build_mail_subnavbar());
   if (user_has_priv (PRIV_CON_COM))
-    $navbar->push(build_print_materials_subnavbar());
+    $admin->push(build_print_materials_subnavbar());
   if (user_has_priv (PRIV_SCHEDULING))
-    $navbar->push(build_schedule_subnavbar());
+    $admin->push(build_schedule_subnavbar());
   if (user_has_priv(PRIV_CON_COM) || user_has_priv(PRIV_STAFF))
-    $navbar->push(build_website_subnavbar());
+    $admin->push(build_website_subnavbar());
 
-  echo $navbar->render();
+  echo $admin->render();
 }
 
 function display_links_navbar() {
@@ -561,6 +570,8 @@ function display_navbar() {
   if (NAV_SHOW_LINKS)
     display_links_navbar();
   
+  if (user_is_gm() || user_has_priv(PRIV_CON_COM, true))
+    display_admin_navbar();
   echo "</div> <!-- navbar -->\n\n";
 }
 
