@@ -152,21 +152,21 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
 	//$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 	//	    "Pool"=>1);
 
-	 echo "<table>";
+	 echo "<table class=schedule>";
  	 echo "<thead>";
 	 $column_count = count($events_rooms) +1;
-	 echo "<th colspan=$column_count class=\"schedhead\">$day: $label</th>";
+	 echo "<th colspan=$column_count >$day: $label</th>";
 	 echo "</thead>";
  	 echo "<thead>";
-	 echo "<th class=\"time\">Time</th>";
+	 echo "<th class>Time</th>";
 	 foreach (array_keys($events_rooms) as $room) {
- 	     echo "<th class=\"room\">$room</th>";
+ 	     echo "<th >$room</th>";
 	 }
   	 echo "</thead>\n";
 	 echo "<tbody>";
 	 for ($i = $today_start; $i<$today_end; $i++) {
 	     $start_time = start_hour_to_am_pm($i);
-	     echo "<tr><td class=\"timeslot\">$start_time</td>\n";
+	     echo "<tr><td class=time>$start_time</td>\n";
 	      $row = $events_array[$i];
 	     	 foreach (array_keys($events_rooms) as $room){
 		 	 
@@ -176,20 +176,20 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
                 if ($item === 0 || $item === NULL) {
   			       // don't write a cell here
 			    } 
+			    else {
 			    
-			    //echo "Run: ".$item->RunId." :: ";
-			    
-          		$title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+            		$title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
                                    SCHEDULE_SHOW_GAME,
                                    $item->EventId,
                                    $item->RunId,
                                    $item->Event->Title);
-		        $item_class = "event ".$item->Status;
-			    $rows = $item->Event->Hours;  
-		     	echo "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
+		          $item_class = "event ".$item->Status;
+			      $rows = $item->Event->Hours;  
+		     	  echo "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
+               }
 		     }
 		     else {
-		       echo "    <td></td>\n";
+		       echo "    <td class=\"none\"></td>\n";
 		     }
 		 
 	     }
