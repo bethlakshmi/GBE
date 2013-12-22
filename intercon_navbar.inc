@@ -231,17 +231,17 @@ function navbar_end() {
     echo "</ul>\n";
 }
 
-function build_larps_subnavbar() {
+function build_events_subnavbar() {
   $larpSection = new SubNavBar("Events at <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
+
+  $larpSection->push(NavBarItem::newAction("All Events", "Schedule.php",LIST_GAMES,NULL,'Events'));
+
   if (can_show_schedule()) {
-    $larpSection->push(NavBarItem::newAction("Schedule", "Schedule.php"));    
-    if (user_has_priv(PRIV_CON_COM))
-      $larpSection->push(NavBarItem::newAction("Schedule with Counts", "Schedule.php", SCHEDULE_WITH_COUNTS));            
+    $larpSection->push(NavBarItem::newAction("Calendar of Events", "Schedule.php",SCHEDULE_SHOW."&displayType=Events"));    
   }
+/*
   $larpSection->push(NavBarItem::newAction("Master Classes", "Schedule.php", LIST_GAMES,NULL,'MasterClass'));
-  $larpSection->push(NavBarItem::newAction("The Conference", "Schedule.php", LIST_GAMES,NULL,'Conference'));
   $larpSection->push(NavBarItem::newAction("Drop-In Classes", "Schedule.php", LIST_GAMES,NULL,'Drop-In'));
-  $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
   $larpSection->push(NavBarItem::newAction("Shopping", "Schedule.php", LIST_GAMES,NULL,'Vendors'));
   $larpSection->push(NavBarItem::newAction("Special Events", "Schedule.php", LIST_GAMES,NULL,'Special'));
   if (can_show_schedule() && user_has_priv(PRIV_CON_COM)) {
@@ -251,9 +251,34 @@ function build_larps_subnavbar() {
     $larpSection->push(NavBarItem::newAction('Signups with Choice #s', 'Choice1.php'));
     $larpSection->push(NavBarItem::newAction('Events by Choice', 'Choice3.php'));
   }
+*/
   return $larpSection;
 }
 
+function build_show_subnavbar() {
+  $larpSection = new SubNavBar("Shows");
+
+  $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
+
+  get_show_list(&$shows);
+  foreach ($shows as $id => $show)
+    $larpSection->push(NavBarItem::newAction($show['Title'], "Schedule.php",SCHEDULE_SHOW_GAME."&EventId=".$id));
+
+  return $larpSection;
+}
+
+function build_conf_subnavbar() {
+  $larpSection = new SubNavBar("The Conference");
+
+  if (can_show_schedule()) {
+    $larpSection->push(NavBarItem::newAction("Class Schedule", "Schedule.php", SCHEDULE_SHOW."&displayType=Conference"));    
+  }
+  $larpSection->push(NavBarItem::newAction("Class Descriptions", "Schedule.php", LIST_GAMES,NULL,'Conference'));
+  $larpSection->push(NavBarItem::newAction("Teachers", "WhosWho.php","Conference"));
+
+
+  return $larpSection;
+}
 
 function build_gm_subnavbar() {
   $gmSection = new SubNavBar("Conference Information");
@@ -267,15 +292,6 @@ function build_myact_subnavbar() {
   return $actSection;
 }
 
-function build_shirts_subnavbar() {
-  $shirtsSection = new SubNavBar((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME) . " <NOBR>Shirts</NOBR>");
-  $shirtsSection->push(NavBarItem::newAction("Order Shirts", "TShirts.php"));
-  if (user_has_priv(PRIV_CON_COM)) {
-    $shirtsSection->push(NavBarItem::newAction('Shirt Order Summary', 'TShirts.php', SHOW_TSHIRT_SUMMARY));
-    $shirtsSection->push(NavBarItem::newAction('Shirt Order Report', 'TShirts.php', SHOW_TSHIRT_REPORT));
-  }
-  return $shirtsSection;
-}
 
 function build_bids_subnavbar() {
   $bidsSection = new SubNavBar("Conference Bids", true);
@@ -402,17 +418,15 @@ function build_schedule_subnavbar() {
 }
 
 function build_about_subnavbar() {
-  $aboutSection = new SubNavBar("About <NOBR>".(USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)."</NOBR>");
-  $aboutSection->push(NavBarItem::newStatic("Welcome", "welcome"));
+  $aboutSection = new SubNavBar("About Us/Contact");
+  $aboutSection->push(NavBarItem::newStatic("About Us", "welcome"));
   $aboutSection->push(NavBarItem::newAction("Contacts", "Contacts.php"));
-  $aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
+  //$aboutSection->push(NavBarItem::newStatic("Hotel Info", "hotel"));
   $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME)." Staff", "WhosWho.php","Staff"));
-  $aboutSection->push(NavBarItem::newAction("Conference Presenters", "WhosWho.php","Conference"));
-  if (NAV_SHOW_FLYER)
-    $aboutSection->push(NavBarItem::newAction((USE_CON_SHORT_NAME ? CON_SHORT_NAME : CON_NAME).' Flyer', 'InterconFlyer.pdf'));
   
   return $aboutSection;
 }
+
 function build_participation_subnavbar() {
   $aboutSection = new SubNavBar("I Want To...");  // Sorry, this was bugging me.  :)  -MDB
 
@@ -466,11 +480,27 @@ function display_main_navbar() {
   // Title the menu
   $navbar = new NavBar();
   $navbar->push(new NavBarTitle("Navigation"));
+  
+  // Home
   $navbar->push(NavBarItem::newAction('Home', 'index.php'));
   
+  // I Want To...
   $navbar->push(build_participation_subnavbar());
+ 
+  // Shows 
+  $navbar->push(build_show_subnavbar());
+
+  // Conference 
+  $navbar->push(build_conf_subnavbar());
+
+  // Events at GBE
+  $navbar->push(build_events_subnavbar());
+ 
+  // Vintage Fashion Fair
+  $navbar->push(NavBarItem::newStatic("Vintage Fashion Fair", "vintagefashion"));
+
+  // About Us/Contact
   $navbar->push(build_about_subnavbar());
-  $navbar->push(build_larps_subnavbar());
 
   if ( user_has_priv(PRIV_BID_COM) || user_has_priv(PRIV_GM_LIAISON) || user_has_priv (PRIV_SCHEDULING))
     $navbar->push(build_bids_subnavbar());

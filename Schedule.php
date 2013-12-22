@@ -35,8 +35,12 @@ else
 switch ($action)
 {
   case SCHEDULE_SHOW:
+    $type = "";
+    if (array_key_exists ('displayType', $_REQUEST))
+      $type = $_REQUEST['displayType'];
+
     if (can_show_schedule ())
-      show_away_schedule_form ();
+      show_away_schedule_form ($type);
     else
       display_access_error ();
     break;
@@ -304,7 +308,7 @@ function process_away_form ()
  * be away
  */
 
-function show_away_schedule_form ()
+function show_away_schedule_form ($type)
 {  
   $signed_up_runs = array ();
 
@@ -330,10 +334,12 @@ function show_away_schedule_form ()
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
 	  SCHEDULE_PROCESS_AWAY_FORM);
 
-	  write_sched_selectors();
-  schedule_day ('Fri', $signed_up_runs,  false);
-  schedule_day ('Sat', $signed_up_runs, false);
-  schedule_day ('Sun', $signed_up_runs,  false);
+	  //write_sched_selectors();
+  schedule_day ('Fri', $signed_up_runs,  false, $type);
+  echo "<br><br>\n";
+  schedule_day ('Sat', $signed_up_runs, false, $type);
+  echo "<br><br>\n";
+  schedule_day ('Sun', $signed_up_runs,  false, $type);
 
   //
 
@@ -596,7 +602,7 @@ function get_signup_counts($run_ids) {
 /**
  * Print the schedule for a given day, as a table
  */
-function schedule_day ($day, $signed_up_runs, $show_counts)
+function schedule_day ($day, $signed_up_runs, $show_counts, $type)
 {
   $show_debug_info = user_has_priv (PRIV_SCHEDULING);
 
@@ -625,34 +631,41 @@ function schedule_day ($day, $signed_up_runs, $show_counts)
   $signup_counts = get_signup_counts($runids);
 
 
-
-
-  $bookings = array();
-  $rooms = array();
-  get_general_bookings($bookings, $rooms, $day);
-  set_status($bookings, $signup_counts, $signed_up_runs);
   $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Pool"=>1);		      
 
-	$vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
+  $vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Haym Solomon"=>1, "Registration"=>1);
 
-	$conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
+  $conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
 		    "Molly Pitcher"=>1, "Crispus Attucks"=>1);
 
-  $conf_array = build_events_table($day, $bookings, $events_rooms );
-  write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end);
  
-  get_volunteer_bookings($bookings, $rooms,  $day);
-  set_status($bookings, $signup_counts, $signed_up_runs);
-  $vol_array = build_events_table($day, $bookings, $vol_rooms);
-  write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end);
+  $bookings = array();
+  $rooms = array();
+  
+  if ($type == "" || $type=="Events")
+  {
+    get_general_bookings($bookings, $rooms, $day);
+    set_status($bookings, $signup_counts, $signed_up_runs);
 
-  get_conference_bookings($bookings, $rooms, $day);
-  set_status($bookings, $signup_counts, $signed_up_runs);
-  $event_array = build_events_table($day, $bookings, $conf_rooms);
-  write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end);
- 
+    $conf_array = build_events_table($day, $bookings, $events_rooms );
+    write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end);
+  }
+  if ($type == "" || $type=="Volunteer")
+  {
+    get_volunteer_bookings($bookings, $rooms,  $day);
+    set_status($bookings, $signup_counts, $signed_up_runs);
+    $vol_array = build_events_table($day, $bookings, $vol_rooms);
+    write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end);
+  }
+  if ($type == "" || $type=="Conference")
+  {
+    get_conference_bookings($bookings, $rooms, $day);
+    set_status($bookings, $signup_counts, $signed_up_runs);
+    $event_array = build_events_table($day, $bookings, $conf_rooms);
+    write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end);
+  }
 
 }
 /*
@@ -2452,21 +2465,16 @@ function list_games_alphabetically ($GameType="")
   if (file_exists(TEXT_DIR.'/'.$GameType.'intro.html'))
 	include(TEXT_DIR.'/'.$GameType.'intro.html');	
   
-  // Always shill for games!
-  if (accepting_bids() && ($GameType == "MasterClass" || $GameType == "Show"))
-  {
-     if (file_exists(TEXT_DIR.'/acceptingbids.html'))
-	include(TEXT_DIR.'/acceptingbids.html');	
-  }
   
   $whereclause ="";
   if ($GameType == "Conference")
     $whereclause .= " WHERE GameType='Class' or GameType='Panel'";
   else if ($GameType == "Ops")
     $whereclause .= " WHERE GameType='Ops' or GameType='Tech Rehearsal'";  
+  else if ($GameType == "Events")
+    $whereclause .= " WHERE GameType='Show' or GameType='MasterClass' or GameType='Drop-In' or GameType='Special'";
   else if ($GameType != "")
     $whereclause .= " WHERE GameType='".$GameType."'";
-  
 
   $sql = 'SELECT EventId, Title, ShortBlurb, SpecialEvent,';
   $sql .= ' IsSmallGameContestEntry, GameType, Fee,';
