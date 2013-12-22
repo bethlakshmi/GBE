@@ -1653,8 +1653,8 @@ function validate_players ($gender)
   // Validate the individual numbers
 
   if (! (validate_int ($min, 0, 100, "Min $gender Players") &&
-	 validate_int ($max, 0, 100, "Max $gender Players") &&
-	 validate_int ($pref, 0, 100, "Preferred $gender Players")))
+	 validate_int ($max, 0, 500, "Max $gender Players") &&
+	 validate_int ($pref, 0, 500, "Preferred $gender Players")))
     return false;
 
   // If the user didn't fill in the preferred number, default it to the
