@@ -195,10 +195,6 @@ switch ($action)
       show_away_schedule_form ();
     break;
 
-  case SCHEDULE_WITH_COUNTS:
-    display_schedule_with_counts ();
-    break;
-
   case SCHEDULE_AWAY_FORM:
     show_away_schedule_form ();
     break;
@@ -207,16 +203,6 @@ switch ($action)
     process_away_form ();
     show_away_schedule_form ();
     break;
-
-  case SCHEDULE_FREEZE_GENDER_BALANCE:
-    freeze_gender_balance ();
-    break;
-
-  case SCHEDULE_CONFIRM_FREEZE_GENDER_BALANCE:
-    confirm_freeze_gender_balance ();
-    show_game ();
-    break;
-
 
   default:
     display_error ("Unknown action code: $action");
