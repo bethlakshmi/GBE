@@ -26,6 +26,7 @@ $(document).ready(function() {
     $("td#Fri").click();    //addClass("highlighted");
 //    $("td#Events").addClass("highlighted");
 
+    $("tr.empty").hide();
 });
 
 
