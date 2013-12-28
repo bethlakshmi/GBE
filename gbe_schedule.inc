@@ -149,55 +149,53 @@ function build_events_table($day, $bookings, $rooms)
 }
 
 function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end) {
-	//$events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
-	//	    "Pool"=>1);
-
-	 echo "<table class=schedule>";
- 	 echo "<thead>";
-	 $column_count = count($events_rooms) +1;
-	 echo "<th colspan=$column_count >$day: $label</th>";
-	 echo "</thead>";
- 	 echo "<thead>";
-	 echo "<th class>Time</th>";
-	 foreach (array_keys($events_rooms) as $room) {
- 	     echo "<th >$room</th>";
-	 }
-  	 echo "</thead>\n";
-	 echo "<tbody>";
-	 for ($i = $today_start; $i<$today_end; $i++) {
-	     $start_time = start_hour_to_am_pm($i);
-	     echo "<tr><td class=time>$start_time</td>\n";
-	      $row = $events_array[$i];
-	     	 foreach (array_keys($events_rooms) as $room){
-		 	 
-		     if (array_key_exists($room, $row)){
-		     	
-		        $item = $row[$room];
-                if ($item === 0 || $item === NULL) {
-  			       // don't write a cell here
-			    } 
-			    else {
-			    
-            		$title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+  echo "<table class=schedule>";
+  echo "<thead>";
+  $column_count = count($events_rooms) +1;
+  echo "<th colspan=$column_count >$day: $label</th>";
+  echo "</thead>";
+  echo "<thead>";
+  echo "<th class>Time</th>";
+  foreach (array_keys($events_rooms) as $room) {
+    echo "<th >$room</th>";
+  }
+  echo "</thead>\n";
+  echo "<tbody>";
+  for ($i = $today_start; $i<$today_end; $i++) {
+    $start_time = start_hour_to_am_pm($i);
+    $row_empty="class=empty";
+    $row = $events_array[$i];
+    $cells_html = "";
+    foreach (array_keys($events_rooms) as $room){  
+      if (array_key_exists($room, $row)){
+        $item = $row[$room];
+        if ($item === 0) {
+         $row_empty = "";
+               // don't write a cell here
+        } 
+        else {          
+	  $row_empty = "";
+          $title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
                                    SCHEDULE_SHOW_GAME,
                                    $item->EventId,
                                    $item->RunId,
                                    $item->Event->Title);
-		          $item_class = "event".$item->Status;
-		          if ($label=="Conference" && $item->Status != "Confirmed")
-		            $item_class = "event";
-			      $rows = $item->Event->Hours;  
-		     	  echo "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
-               }
-		     }
-		     else {
-		       echo "    <td class=\"none\"></td>\n";
-		     }
-		 
-	     }
-	     echo "</tr>\n";
-	 }
-	 echo "</tbody></table>\n\n";	 
+          $item_class = "event ".$item->Status;
+          if ($label=="Conference" && $item->Status != "Confirmed")
+            $item_class = "event";
+          $rows = $item->Event->Hours;  
+          $cells_html .=  "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
+        }
+      }
+      else {
+        $cells_html .=  "    <td class=\"none\"></td>\n";
+      }
+    }
+    echo "<tr $row_empty><td class=\"time\">$start_time</td>\n";
+    echo $cells_html;
+  echo "</tr>\n";
+  }
+  echo "</tbody></table>\n\n";   
 }
 
 function build_volunteer_table($day)
