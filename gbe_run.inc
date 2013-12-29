@@ -371,7 +371,7 @@ function get_general_bookings(&$Bookings, &$Rooms, $day)
   $sql = "select * from Runs, Events where Events.SpecialEvent = \"1\" ";
   $sql .= "and Events.EventId = Runs.EventId and Runs.Day=\"$day\" ";
   $sql .= "order by StartHour";
-  
+  //echo $sql."<br>";
   $result = mysql_query($sql);
   
   if (!$result)
