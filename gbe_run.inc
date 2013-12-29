@@ -308,7 +308,7 @@ function get_conference_bookings(&$Bookings, &$Rooms, $day)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-    $Bookings[$run->StartHour]=$run;
+    $Bookings[]=$run;
     $Rooms[$run->Rooms]=$run->Rooms;
   }
 }
@@ -345,7 +345,7 @@ function get_volunteer_bookings(&$Bookings, &$Tracks, $day)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-    $Bookings[$run->Day."-".$run->StartHour."-".$run->Event->Title]=$run;
+    $Bookings[]=$run;
     $Tracks[$run->Event->Title]=$run->Event->Title;
   }
 }
@@ -381,7 +381,7 @@ function get_general_bookings(&$Bookings, &$Rooms, $day)
   {
     $run = new Run();
     $run->convert_from_sql_row($row, 1);
-    $Bookings[$run->Day."-".$run->StartHour."-".$run->Rooms]=$run;
+    $Bookings[]=$run;
     $Rooms[$run->Rooms]=$run->Rooms;
   }
 
