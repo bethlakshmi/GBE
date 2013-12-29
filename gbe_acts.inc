@@ -311,7 +311,7 @@ class Act
 
 		if (mysql_num_rows($result) == 1)
 			$sql .= sprintf(" where ActId = '%s'", $this->ActId);
-		echo $sql;
+		// echo $sql;
 		
 		$result = mysql_query($sql);
 		if (!$result)

@@ -678,14 +678,13 @@ function get_acttech_listings(&$tech_info, &$act_info, $ShowId=0)
     
   while ($row = mysql_fetch_object($result))
   {
-  
     $list_item = new ActTechInfo();
     if ($row->ActInfoId == $row->ActTechInfoId)
       $list_item->convert_from_sql_row($row);
     $act_item = new Act();
     $act_item ->convert_from_sql_row($row);
-    $tech_info[$list_item->ActTechInfoId]=$list_item;
-    $act_info[$list_item->ActTechInfoId]=$act_item;
+    $tech_info[$act_item->ActId]=$list_item;
+    $act_info[$act_item->ActId]=$act_item;
   }  
   
 }

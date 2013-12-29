@@ -740,6 +740,14 @@ function show_game ()
       printf ('<li><a href="Schedule.php?action=%d&EventId=%d">Edit %s</a></li>',
 	    DISPLAY_GM_LIST, $EventId, $gms);
 
+	if ($event->GameType == "Show")
+	{
+	  printf ('<li><A HREF=DisplayActTechInfo.php?ShowId=%d>%s</A></li>',
+		  $EventId,
+		  'Show tech info');
+	  echo "    </TD>\n";
+	  echo "  </TR>\n";
+	}
     //display_comp_info($EventId);
     
     $updater_name = '<Unknown>';
@@ -965,16 +973,7 @@ function show_game ()
 	  echo "  </TR>\n";
 	}
 	
-	if ($event->GameType == "Show")
-	{
-	  echo "  <TR>\n";
-	  echo "    <TD COLSPAN=$cols ALIGN=CENTER>\n";
-	  printf ('<A HREF=DisplayActTechInfo.php?ShowId=%d>%s</A>',
-		  $EventId,
-		  'Show tech info');
-	  echo "    </TD>\n";
-	  echo "  </TR>\n";
-	}
+
 	
 	if ( $run_count > 0)
 	{
