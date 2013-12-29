@@ -207,7 +207,6 @@ class Act
 	    $this->GroupName = (string)$row->GroupName;	
 		$this->GroupBio = (int)$row->GroupBio;	
         $this->Order = (int)$row->Order;
-
 	}
 	
 	/* function convert_from_array
@@ -306,11 +305,13 @@ class Act
 		  $sql .= build_sql_string('GroupBio', $this->GroupBio);
 		}
 		$sql .= build_sql_string('isGroup', $this->isGroup);
-        $sql .= build_sql_string('Order', $this->Order);
+		
+        if ($this->Order != 0)
+          $sql .= build_sql_string('Order', $this->Order);
 
 		if (mysql_num_rows($result) == 1)
 			$sql .= sprintf(" where ActId = '%s'", $this->ActId);
-		//echo $sql;
+		echo $sql;
 		
 		$result = mysql_query($sql);
 		if (!$result)

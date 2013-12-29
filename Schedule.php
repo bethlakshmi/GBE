@@ -3918,4 +3918,19 @@ function parse_start_time ($time_blocks, $date = "NULL")
 	return $date;
 }
 
+/*
+ * display_one_col
+ *
+ * Helper function to display a single column row
+ */
+
+function display_one_col ($head, $subject)
+{
+  if ('' != $subject)
+  {
+    echo "  <tr>\n";
+    echo "    <th align=right valign=top>$head:</th><td>$subject</td>\n";
+    echo "  </tr>\n";
+  }
+}
 ?>
