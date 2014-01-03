@@ -18,8 +18,15 @@ function build_events_table($day, $bookings, $rooms)
 	return $events_array;
 }
 
-function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end) {
-  echo "<table class=schedule>";
+function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end, $selected_type) {
+  if ($selected_type = $label) {
+     $selected = "selected";
+  }
+  else {
+    $selected = "";
+  }
+  
+  echo "<table class=\"schedule $day $label\" $class = $highlighted>";
   echo "<thead>";
   $column_count = count($events_rooms) +1;
   echo "<th colspan=$column_count >$day: $label</th>";

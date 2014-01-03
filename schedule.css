@@ -11,67 +11,106 @@ div.bookings_wrapper tr.header_row {
     
 }
 
-
 table.sched_selectors {
     background-color:#999999;
     border: solid #222222 3px;
+    color: white;
     width: 800px;
-
+    text-align:center;
 }
 
+
+table.sched_selectors td#Fri {
+    background-color: #FFCCFF;
+    color: black;
+}
+
+table.sched_selectors td#Sat {
+    background-color: #33CCFF;
+    color:black;
+}
+
+table.sched_selectors td#Sun {
+    background-color: #33FF99;
+    color:black;
+}
+
+
+table.sched_selectors td#Events {
+    background-color:#000099;
+    border: solid #222222 3px;
+}
+
+table.sched_selectors td#Volunteer {
+    background-color:#990000;
+    border: solid #222222 3px;
+}
+
+
+table.sched_selectors  td#Conference{
+    background-color:#003300;
+    border: solid #222222 3px;
+}
 table.sched_selectors td.highlighted {
     background-color:#000000;
     color:#FFFFFF;
 }
 
-table.schedule_grid{
-    background-color:#EEEEEE;
-    border: solid #000000 3px;
-    width: 800px;
-
-}
-
 table.schedule{
-    background-color:#EEEEEE;
     border: 3px solid #000000;
     width: 800px;
     border-collapse:collapse;
-
+    display:none;
 }
-table.schedule_grid thead  {
-    background-color:#CCCCCC;
-    border: solid #FFFFFF 1px;
-    
-} 
 
 table.schedule thead  {
     background-color:#CCCCCC;
     border: 1px solid black;    
 } 
 
-table.schedule_grid thead th.time_head  {
-    width: 100px;
+table.Fri {
+    background-color: #FFCCFF;
 }
 
+table.Sat {
+    background-color: #33CCFF
+}
+
+table.Sun {
+    background-color: #33FF99
+}
+
+
+table.Volunteer a:link{
+    color: #990000;
+}
+table.Volunteer a:visited{
+    color: #9900ff;
+}
+
+table.Conference a:link{
+    color: #003300;
+}
+table.Conference a:visited{
+    color: #00cc00;
+}
+
+table.Events a:link{
+    color: #000099;
+}
+table.Events a:visited{
+    color: #0066ff;
+}
+
+table.schedule td {
+    border: solid #000000 3px;
+}
 
 td.time {
     text-align:center;
     border: 1px solid black;    
 }
 
-table.schedule td.none{
-    background-color:white;
-    border-right: 1px solid black;
-    border-left: 1px solid black;
-
-}
-
-td.event {
-    text-align:center;
-    background-color:#CCCCFF;
-    border: solid #000 1px;
-
-}
 td.eventAvailable {
     text-align:center;
     background-color:#CCCCCC;

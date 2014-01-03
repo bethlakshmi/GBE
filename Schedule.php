@@ -243,12 +243,13 @@ function show_away_schedule_form ($type)
   form_add_sequence ();
   printf ("<INPUT TYPE=HIDDEN NAME=action VALUE=%d>\n",
 	  SCHEDULE_PROCESS_AWAY_FORM);
+  if ($type == "") {
+    $type = "Events";
+  }
 
-	  //write_sched_selectors();
+  write_sched_selectors($type);
   schedule_day ('Fri', $signed_up_runs,  false, $type);
-  echo "<br><br>\n";
   schedule_day ('Sat', $signed_up_runs, false, $type);
-  echo "<br><br>\n";
   schedule_day ('Sun', $signed_up_runs,  false, $type);
 
   //
@@ -426,7 +427,11 @@ function get_signup_counts($run_ids) {
  */
 function schedule_day ($day, $signed_up_runs, $show_counts, $type)
 {
+
   $show_debug_info = user_has_priv (PRIV_SCHEDULING);
+  if ($type == "") {
+    $type = "Events";
+  }
 
   if ($day == "Fri") {
      $today_start = FRI_MIN;
@@ -465,40 +470,52 @@ function schedule_day ($day, $signed_up_runs, $show_counts, $type)
  
   $bookings = array();
   $rooms = array();
-  
-  if ($type == "" || $type=="Events")
-  {
+//  if ($type == "" || $type=="Events")
+//  {
     get_general_bookings($bookings, $rooms, $day);
     set_status($bookings, $signup_counts, $signed_up_runs);
 
     $conf_array = build_events_table($day, $bookings, $events_rooms );
-    write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end);
-  }
-  if ($type == "" || $type=="Volunteer")
-  {
+    write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end, $type);
+//  }
+ // if ($type == "" || $type=="Volunteer")
+ // {
     get_volunteer_bookings($bookings, $rooms,  $day);
     set_status($bookings, $signup_counts, $signed_up_runs);
     $vol_array = build_events_table($day, $bookings, $vol_rooms);
-    write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end);
-  }
-  if ($type == "" || $type=="Conference")
-  {
+    write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end, $type);
+ // }
+ // if ($type == "" || $type=="Conference")
+ // {
     get_conference_bookings($bookings, $rooms, $day);
     set_status($bookings, $signup_counts, $signed_up_runs);
     $event_array = build_events_table($day, $bookings, $conf_rooms);
-    write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end);
-  }
+    write_events_table($event_array,$conf_rooms, "Conference", $day,  $today_start,$today_end, $type);
+ // }
 
 }
 
-function write_sched_selectors() {
+function write_sched_selectors($type) {
 	 echo "<table class=\"sched_selectors\">\n";
 	 echo "<tr class=\"day_selectors\">\n";
-	 echo "<td id=\"Fri\">Friday</td><td id=\"Sat\">Saturday</td><td id=\"Sun\">Sunday</td></tr>\n";
+	 echo "<td id=\"Fri\" class=\"highlighted\">Friday</td><td id=\"Sat\">Saturday</td><td id=\"Sun\">Sunday</td></tr>\n";
 	 echo "<tr class=\"event_type_selectors\">\n";
+	 if ($type == "Events") {
+	 echo "<td id=\"Events\" class=\"highlighted\">Events</td>\n";
+	 } else {
 	 echo "<td id=\"Events\">Events</td>\n";
+	 }
+	 if ($type== "Volunteer") {
+	 echo "<td id=\"Volunteer\" class=\"highlighted\">Volunteer</td>\n";
+	 }
+	 else {
 	 echo "<td id=\"Volunteer\">Volunteer</td>\n";
-	 echo "<td id=\"Conference\">Conference</td>\n";
+	 }
+	 if ($type == "Conference") {
+	 echo "<td id=\"Conference\" class=\"highlighted\">Conference</td>\n";
+	 }
+	 else {echo "<td id=\"Conference\">Conference</td>\n";
+	 }
 	 echo "</tr></table>\n\n";
 	 
 }
