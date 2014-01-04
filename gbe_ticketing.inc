@@ -628,6 +628,30 @@ function get_user_by_email($EMail, &$User)
 		$User = mysql_fetch_array($result);
 }
 
+/* function get_user_by_purchase_email
+ * 
+ * Used to obtain information about a user by email address.
+ *
+ * $PurchaseEmail - Purchase email of the user to retrieve. 
+ * $User - an array containing the user's information. 
+ * Returns: nothing.
+ */
+function get_user_by_purchase_email($PurchaseEmail, &$User)
+{
+	$sql = sprintf("select * from Users where PurchaseEmail = '%s'", 
+		mysql_real_escape_string(trim($EMail)));
+		 
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+		
+	if (0 == mysql_num_rows($result))
+		$User = null;
+	else
+		$User = mysql_fetch_array($result);
+}
+
 /* function ticket_authorizes_event
  * 
  * Function returns true of the given TicketItemId authorizes the given EventId.

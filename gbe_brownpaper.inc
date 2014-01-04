@@ -307,7 +307,7 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 	
 	if ($user == null)
 	{
-		get_user_by_email((string)$order->email, $user);
+		get_user_by_purchase_email((string)$order->email, $user);
 	}
 	
 	if ($user == null)
@@ -316,18 +316,6 @@ function create_trans_from_bpt_order($eventid, $order, &$trans)
 			$order->fname . " " . $order->lname, $order->phone, $order->email, $order->country,
 			$order->order_time);
 		return display_error("User not found:  " . $user_info);
-		
-		// No longer create fake users - we'll just have enter these manually.  -MDB
-		
-		//create_stand_in_user((string)$order->fname, (string)$order->lname, (string)$order->email, 
-		//	(string)$order->phone, (string)$order->address, (string)$order->city, (string)$order->state, 
-		//	(string)$order->zip, (string)$order->country);
-			
-			
-		//get_user_by_email((string)$order->email, $user);
-		//if ($user == null)
-		//	return display_error(sprintf("Unable to create a local temporary user for: %s", 
-		//	(string)$order->email));
 	}	
 	
 	$trans = new Transaction();
