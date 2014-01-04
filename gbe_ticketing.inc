@@ -341,6 +341,159 @@ class Transaction
 			return display_mysql_error ('Cannot execute query', $sql);
 	}
 }	
+
+/* Class LimboTransaction 
+ * 
+ * This class is used to represent a transaction in limbo.  The current reason for a
+ * transaction to be in this state is because there is no user found to associated with
+ * the transaction, but we want to keep a record of it anyway.  
+ *
+ * This table is meant to be truncated on a regular basis as the GBE database is 
+ * syncrhonized against the payment processor.   
+ * 
+ */
+ 
+class LimboTransaction
+{
+	// These public properties represent the various columns in the table.
+	
+	public $LimboIndex;
+	public $FirstName;
+	public $LastName;
+	public $PaymentEmail;
+	public $Country;
+	public $Phone;
+	public $ItemId;
+	public $Amount;
+	public $PaymentDate;
+	public $PaymentSource;
+	public $Status;
+	public $TenderType;
+	public $Reference;
+	public $TrackerId;
+	
+	/* function load_from_index
+	 * 
+	 * Used to load a specific limbo transaction from the database. 
+	 *
+	 * $LimboIndex:  The unique LimboIndex to be loaded.
+	 * Returns: nothing.
+	 */
+	function load_from_index($LimboIndex)
+	{
+		$sql = sprintf("select * from LimboTransactions where LimboIndex = '%d'", $LimboIndex);
+		 
+		$result = mysql_query($sql);
+		
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+		if (mysql_num_rows($result) > 1)
+			return display_error("Error:  multiple transactions found with same index");	
+		if (1 != mysql_num_rows($result))
+			return display_error("Transaction not found:  $LimboIndex");
+		
+		$row = mysql_fetch_object($result);
+		$this->convert_from_sql_row($row);
+	}
+	
+	/* function convert_from_sql_row
+	 * 
+	 * Used override the object contents with the resultset row from an SQL
+     * select query.	 
+	 *
+	 * $row: an object row from the Transactions table. 
+	 * Returns: nothing.
+	 */
+	function convert_from_sql_row($row)
+	{
+		$this->LimboIndex = (int)$row->LimboIndex;
+		$this->FirstName = (string)$row->FirstName;
+		$this->LastName = (string)$row->LastName;
+		$this->PaymentEmail = (string)$row->PaymentEmail;
+		$this->Country = (string)$row->Country;
+		$this->Phone = (string)$row->Phone;
+		$this->ItemId = (int)$row->ItemId;
+		$this->Amount = (float)$row->Amount;
+		$this->PaymentDate = (string)$row->PaymentDate;
+		$this->PaymentSource = (string)$row->PaymentSource;
+		$this->Status = (string)$row->Status;
+		$this->TenderType = (string)$row->TenderType;
+		$this->Reference = (string)$row->Reference;
+		$this->TrackerId = (string)$row->TrackerId;
+	}
+
+	/* function save_to_db
+	 * 
+	 * Used to save the current status of the transaction to the database.	 
+	 *
+	 * $Update: if true, attempt to update a transaction, not insert.
+	 * Returns: nothing.
+	 */
+	function save_to_db($Update)
+	{	
+		// Sanitize database input.  Note, the build_sql_string uses 
+		// mysql_real_escape_string() below.  
+		
+		if (!is_integer($this->ItemId))
+			return display_error("Item User ID is not in a valid format.");	
+		if (!is_double($this->Amount))
+			return display_error("Transaction Amount is not in a valid format");								
+		
+		// Update the database.
+		
+		if ($Update)
+		{
+			if (!is_integer($this->LimboIndex))
+				return display_error("Limbo Transaction index is not in a valid format.");
+			$sql = "update LimboTransactions set ";
+		}
+		else
+		{
+			$sql = "insert into LimboTransactions set ";
+		}	
+			
+		$sql .= build_sql_string('FirstName', $this->FirstName, false);
+		$sql .= build_sql_string('LastName', $this->LastName);
+		$sql .= build_sql_string('PaymentEmail', $this->PaymentEmail);
+		$sql .= build_sql_string('Country', $this->Country);
+		$sql .= build_sql_string('Phone', $this->Phone);
+		$sql .= build_sql_string('ItemId', $this->ItemId);
+		$sql .= build_sql_string('Amount', $this->Amount);
+		$sql .= build_sql_string('PaymentDate', $this->PaymentDate);
+		$sql .= build_sql_string('PaymentSource', $this->PaymentSource);
+		$sql .= build_sql_string('Status', $this->Status);
+		$sql .= build_sql_string('TenderType', $this->TenderType);
+		$sql .= build_sql_string('Reference', $this->Reference);
+		$sql .= build_sql_string('TrackerId', $this->TrackerId);
+		
+		if ($Update)
+			$sql .= sprintf(" where LimboIndex = '%d'", $this->LimboIndex);
+		
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ("Insert into Limbo Transactions failed");
+		
+		if (!$Update)
+			$this->LimboIndex = mysql_insert_id();
+	}
+	
+	/* function remove_from_db
+	 * 
+	 * Used to remove this transaction from the database. 
+	 *
+	 * Returns: nothing.
+	 */
+	function remove_from_db()
+	{
+		if (!is_integer($this->LimboIndex))
+			return display_error("Limbo Index index is not in a valid format.");
+
+		$sql = sprintf("delete from LimboTransactions where LimboIndex = '%d'", $this->LimboIndex);
+		$result = mysql_query($sql);
+		if (!$result)
+			return display_mysql_error ('Cannot execute query', $sql);
+	}
+}
 			
 /* Class EventTicketLink 
  * 
