@@ -2,7 +2,7 @@
 
 /* gbe_ticketing.inc - contains definitions used with ticketing and cashiering.
  * 
- * Last Updated 9/8/2013 by MDB
+ * Last Updated 1/7/2014 by MDB
  *
  */
  
@@ -349,7 +349,7 @@ class Transaction
  * the transaction, but we want to keep a record of it anyway.  
  *
  * This table is meant to be truncated on a regular basis as the GBE database is 
- * syncrhonized against the payment processor.   
+ * synchronized against the payment processor.   
  * 
  */
  
@@ -412,7 +412,7 @@ class LimboTransaction
 		$this->PaymentEmail = (string)$row->PaymentEmail;
 		$this->Country = (string)$row->Country;
 		$this->Phone = (string)$row->Phone;
-		$this->ItemId = (int)$row->ItemId;
+		$this->ItemId = (string)$row->ItemId;
 		$this->Amount = (float)$row->Amount;
 		$this->PaymentDate = (string)$row->PaymentDate;
 		$this->PaymentSource = (string)$row->PaymentSource;
@@ -434,8 +434,6 @@ class LimboTransaction
 		// Sanitize database input.  Note, the build_sql_string uses 
 		// mysql_real_escape_string() below.  
 		
-		if (!is_integer($this->ItemId))
-			return display_error("Item User ID is not in a valid format.");	
 		if (!is_double($this->Amount))
 			return display_error("Transaction Amount is not in a valid format");								
 		
@@ -792,7 +790,7 @@ function get_user_by_email($EMail, &$User)
 function get_user_by_purchase_email($PurchaseEmail, &$User)
 {
 	$sql = sprintf("select * from Users where PurchaseEmail = '%s'", 
-		mysql_real_escape_string(trim($EMail)));
+		mysql_real_escape_string(trim($PurchaseEmail)));
 		 
 	$result = mysql_query($sql);
 		
@@ -925,6 +923,36 @@ function get_transactions_for_ticket_item($TickeItem, &$Transactions)
 		$trans->convert_from_sql_row($row);	
 		$trans->UserId = $row->UserId;
 		array_push($Transactions, $trans);
+	} 
+}
+
+/* function get_transactions_for_ticket_item
+ * 
+ * Used to obtain a list of the transactions (tickets) purchased by 
+ * ticket item.
+ *
+ * $TickeItem - the ID of the ticket item in question.  
+ * $LimboTrans - an array of LimboTransaction objects in the DB.
+ * Returns: nothing.
+ */
+function get_limbo_trans_for_ticket_item($TickeItem, &$LimboTrans)
+{
+	$sql = "select * from LimboTransactions ";
+	$sql .= sprintf("where ItemId = '%s' ", mysql_real_escape_string($TickeItem));
+    $sql .= "order by PaymentDate";
+	
+	$result = mysql_query($sql);
+		
+	if (!$result)
+		return display_mysql_error('Cannot execute query', $sql);
+
+	$LimboTrans = array();
+	
+	while ($row = mysql_fetch_object($result)) 
+	{
+		$limbo = new LimboTransaction();
+		$limbo->convert_from_sql_row($row);	
+		array_push($LimboTrans, $limbo);
 	} 
 }
 
@@ -1131,6 +1159,55 @@ function show_trans_item_ticket_table($TicketItem)
 	echo "</table><br>\n";
 }
 
+/* function show_limbo_trans_item_ticket_table
+ * 
+ * Used to show the table with all limbo transactions for the given ticket item
+ *  
+ * $TicketItem - the ticket item to use for the query
+ * Returns: nothing.
+ */
+function show_limbo_trans_item_ticket_table($TicketItem)
+{
+	get_limbo_trans_for_ticket_item($TicketItem, $LimboTrans);
+	if (sizeof($LimboTrans) == 0)
+	{
+		echo "There are not transactions for unregistered users for this ticket item.<br><br>\n";
+		return;
+	}
+	
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>User Name</th>\n";
+	echo "    <th>Payment Email</th>\n";
+	echo "    <th>Phone Number</th>\n";
+	echo "    <th>Country</th>\n";
+	echo "    <th>Amount Paid</th>\n";
+	echo "    <th>Payment Source</th>\n";
+	echo "    <th>Payment Date</th>\n";
+	echo "    <th>Status</th>\n";
+	echo "    <th>Tender Type</th>\n";
+	echo "    <th>Payment Reference</th>\n";
+	echo "  </tr>\n";
+	
+	foreach ($LimboTrans as $limbo)
+	{
+		echo "<tr valign=\"top\">\n";
+
+		echo "  <td align=\"left\">$limbo->FirstName $limbo->LastName</td>\n";
+		echo "  <td align=\"left\">$limbo->PaymentEmail</td>\n";
+		echo "  <td align=\"left\">$limbo->Phone</td>\n";
+		echo "  <td align=\"left\">$limbo->Country</td>\n";		
+		printf("  <td align=\"left\">%0.2f</td>\n", $limbo->Amount);		
+		echo "  <td align=\"left\">$limbo->PaymentSource</td>\n";
+		echo "  <td align=\"left\">$limbo->PaymentDate</td>\n";
+		echo "  <td align=\"left\">$limbo->Status</td>\n";
+		echo "  <td align=\"left\">$limbo->TenderType</td>\n";
+		echo "  <td align=\"left\">$limbo->Reference</td>\n";
+		echo "</tr>\n";
+	}
+	echo "</table><br>\n";
+}
+
 /* function show_user_simple_ticket_table
  * 
  * Used to show the table with all transactions for the given user (simple version).
@@ -1174,91 +1251,130 @@ function show_user_simple_ticket_table($UserId)
 
 /* function show_ticket_status_table
  * 
- * Used to show the table with current status of ticket items
+ * Used to show the table with current status of ticket items.   Yeah, this is a long function.
  *  
  * Returns: nothing.
  */
 function show_ticket_status_table()
 {
-	// Get Posted Transactions
-	
-	$sql = "select TicketItems.ItemId, Title, Status, Count(TransIndex), Sum(Amount) ";
-	$sql .= "from Transactions, TicketItems ";
-	$sql .= "where Transactions.ItemId = TicketItems.ItemId ";
-	$sql .= "group by Transactions.ItemId, Title, Status ";
-	$sql .= "order by Transactions.ItemId, Title, Status";
-	
-	$result = mysql_query($sql);
-	if (!$result)
-		return display_mysql_error ('Cannot execute query', $sql);
+	get_ticketitem_list($TicketItems);
 
-	// reorganize the query results for our table.
-
-	$item_list = array();
-	$posted = array();
-	$settled = array();
-	$voided = array();
-	$error = array();
-	
-	while ($row = mysql_fetch_array($result))
-	{
-		$item_list[$row['ItemId']] = $row['Title'];
-		if ($row['Status'] == 'Posted')
-			$posted[$row['ItemId']] = sprintf("%s / $%0.2f", 
-				$row['Count(TransIndex)'], $row['Sum(Amount)']);
-		if ($row['Status'] == 'Settled')
-			$settled[$row['ItemId']] = sprintf("%s / $%0.2f", 
-				$row['Count(TransIndex)'], $row['Sum(Amount)']);
-		if ($row['Status'] == 'Voided')
-			$voided[$row['ItemId']] = sprintf("%s / $%0.2f", 
-				$row['Count(TransIndex)'], $row['Sum(Amount)']);
-		if ($row['Status'] == 'Error')
-			$error[$row['ItemId']] = sprintf("%s / $%0.2f", 
-				$row['Count(TransIndex)'], $row['Sum(Amount)']);
-	}
-	
 	echo "<table border=\"1\">\n";
 	echo "  <tr>\n";
 	echo "    <th>Ticket Item</th>\n";
 	echo "    <th>Ticket Description</th>\n";
-	echo "    <th>Trans. Posted</th>\n";
-	echo "    <th>Trans. Settled</th>\n";
+	echo "    <th>Trans. Paid</th>\n";
 	echo "    <th>Trans. Voided</th>\n";
 	echo "    <th>Trans. Error</th>\n";
+	echo "    <th>Unregistered</th>\n";
+	echo "    <th>Totals</th>\n";
 	echo "  </tr>\n";
 	
-	foreach ($item_list as $id => $title)
-	{
+	foreach ($TicketItems as $item)
+	{	
+		get_ticket_item_info($item->ItemId, "Settled", $count_settled, $amount_settled);
+		get_ticket_item_info($item->ItemId, "Posted", $count_posted, $amount_posted);
+		get_ticket_item_info($item->ItemId, "Voided", $count_voided, $amount_voided);
+		get_ticket_item_info($item->ItemId, "Error", $count_error, $amount_error);
+		get_limbo_ticket_item_info($item->ItemId, $count_limbo, $amount_limbo);
+		
+		$count_total = $count_settled + $count_posted + $count_voided + $count_error + $count_limbo;
+		$amount_total = $amount_settled + $amount_posted + $amount_voided + $amount_error + $amount_limbo;
+		
+		if ($count_total == 0)
+			continue;
+		
 		echo "<tr valign=\"top\">\n";
 		
 		printf( "  <td align=\"left\"><a href=\"TicketAdmin.php?action=%d&TicketItemId=%s\">%s</td>\n", 
-			TICKETITEM_LIST_PMTS, $id, $id);
+			TICKETITEM_LIST_PMTS, $item->ItemId, $item->ItemId);	
+		echo "    <td align=\"left\">$item->Title</td>\n";
 		
-		echo "    <td align=\"left\">$title</td>\n";
-		if (array_key_exists($id, $posted))
-			printf("    <td align=\"left\">%s</td>\n", $posted["$id"]);
-		else
-			echo "<td align=\"left\">0 / $0.00</td>\n";
-		if (array_key_exists($id, $settled))
-			printf("    <td align=\"left\">%s</td>\n", $settled["$id"]);
-		else
-			echo "<td align=\"left\">0 / $0.00</td>\n";
-		if (array_key_exists($id, $voided))
-			printf("    <td align=\"left\">%s</td>\n", $voided["$id"]);
-		else
-			echo "<td align=\"left\">0 / $0.00</td>\n";
-		if (array_key_exists($id, $error))
-			printf("    <td align=\"left\">%s</td>\n", $error["$id"]);
-		else
-			echo "<td align=\"left\">0 / $0.00</td>\n";	
-		echo "  </tr>\n";
+		printf("    <td align=\"left\">%d / \$%0.2f</td>\n", $count_settled + $count_posted, 
+			$amount_settled + $amount_posted);
+		printf("    <td align=\"left\">%d / \$%0.2f</td>\n", $count_voided, $amount_voided);
+		printf("    <td align=\"left\">%d / \$%0.2f</td>\n", $count_error, $amount_error);		
+		printf("    <td align=\"left\">%d / \$%0.2f</td>\n", $count_limbo, $amount_limbo);	
+		printf("    <td align=\"left\">%d / \$%0.2f</td>\n", $count_total, $amount_total);	
 	}
+
 	echo "</table><br>\n";
+}
+
+/* function get_ticket_item_info
+ * 
+ * Function returns the status of the given ticket item and amount.  
+ *  
+ * $TicketItemId - The TicketItem ID in question.
+ * $Status - The status in question.
+ * $Count - the count of the number of transactions for this transaction and status combo.
+ * $Amount - total value amount for this transaction and status combo.
+ * Returns: Nothing;
+ */
+function get_ticket_item_info($TicketItemId, $Status, &$Count, &$Amount)
+{
+	$Count = 0;
+	$Amount = 0.00;
+	
+	$sql = "select TicketItems.ItemId, Transactions.Status, Count(TransIndex), Sum(Amount) ";
+	$sql .= "from Transactions, TicketItems ";
+	$sql .= "where Transactions.ItemId = TicketItems.ItemId ";
+	$sql .= sprintf("and TicketItems.ItemId = '%s' ", mysql_real_escape_string($TicketItemId));
+	$sql .= sprintf("and Transactions.Status =  '%s' ", mysql_real_escape_string($Status));
+
+	$result = mysql_query($sql);
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	if (mysql_num_rows($result) > 1)
+		return display_mysql_error ('Invalid row count returned', $sql);
+	
+	if (mysql_num_rows($result) == 1)
+	{
+		$row = mysql_fetch_array($result);
+		$Count = $row['Count(TransIndex)'];
+		$Amount = $row['Sum(Amount)'];
+	}
+}
+
+/* function get_limbo_ticket_item_info
+ * 
+ * Function returns the status of limbo transactions for the given ticket item id.  Status
+ * is ignored.  
+ *  
+ * $TicketItemId - The TicketItem ID in question.
+ * $Count - the count of the number of transactions for this transaction and status combo.
+ * $Amount - total value amount for this transaction and status combo.
+ * Returns: Nothing;
+ */
+function get_limbo_ticket_item_info($TicketItemId, &$Count, &$Amount)
+{
+	$Count = 0;
+	$Amount = 0.00;
+	
+	$sql = "select TicketItems.ItemId, Count(LimboIndex), Sum(Amount) ";
+	$sql .= "from LimboTransactions, TicketItems ";
+	$sql .= "where LimboTransactions.ItemId = TicketItems.ItemId ";
+	$sql .= sprintf("and TicketItems.ItemId = '%s' ", mysql_real_escape_string($TicketItemId));
+
+	$result = mysql_query($sql);
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	if (mysql_num_rows($result) > 1)
+		return display_mysql_error ('Invalid row count returned', $sql);
+	
+	if (mysql_num_rows($result) == 1)
+	{
+		$row = mysql_fetch_array($result);
+		$Count = $row['Count(LimboIndex)'];
+		$Amount = $row['Sum(Amount)'];
+	}
 }
 
 /* function ticketed_user_count
  * 
- * Used to get the number of paid users, returned in a variable.
+ * Used to get the number of paid users
  *  
  * Returns: number of paid users in the system.
  */
@@ -1271,6 +1387,69 @@ function ticketed_user_count()
 		return display_mysql_error ('Cannot execute query', $sql);
 	
 	return (mysql_num_rows($result));
+}
+
+/* function limbo_user_count
+ * 
+ * Used to get the number of limbo ticket holders
+ *  
+ * Returns: number of limbo users in the system.
+ */
+function limbo_user_count()
+{
+	$sql = "select distinct PaymentEmail from LimboTransactions";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+	
+	return (mysql_num_rows($result));
+}
+
+/* function total_ticket_sales
+ * 
+ * Used to get the total number of ticket sales - limbo and user verified
+ *  
+ * Returns: total ticket sales!
+ */
+function total_ticket_sales()
+{
+	$amount = 0;
+	
+	$sql = "select Sum(Amount) from Transactions where Status in ('Posted', 'Settled')";
+
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+
+	$row = mysql_fetch_array($result);
+	$amount += $row["Sum(Amount)"];
+	
+	$sql = "select Sum(Amount) from LimboTransactions";
+
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
+
+	$row = mysql_fetch_array($result);
+	$amount += $row["Sum(Amount)"];
+	
+	return $amount;
+}
+
+/* function truncate_limbo_table
+ * 
+ * Used to clear the limbo items table.
+ *  
+ * Returns: nothing.
+ */
+function truncate_limbo_table()
+{
+	$sql = "truncate table LimboTransactions";
+	 
+	$result = mysql_query($sql);	
+	if (!$result)
+		return display_mysql_error ('Cannot execute query', $sql);
 }
 
 ?>

@@ -2,7 +2,7 @@
 
 /* TicketAdmin.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 9/8/2013 by MDB
+ * Last Updated 1/7/2014/2013 by MDB
  *
  */
  
@@ -30,6 +30,7 @@ if (!user_has_priv(PRIV_REGISTRAR))
 	html_end ();
 	exit ();
 }
+
 /*
 echo "<br>this is my test spot.<br>";
 
@@ -511,6 +512,18 @@ function list_ticket_status()
 	printf("<br>The Ticket System was last synchronized with BPT at %s MST (Server Time).<br><br>",
 		get_bpt_last_poll_time());
 		
+	echo "<b>\n";
+	printf("Ticket Purchase Summary");
+	echo "</b><br><br>\n";
+	
+	printf("Total Number of Registered Users with Paid Tickets:  %d<br>\n", ticketed_user_count());
+	printf("Total Number of Unregistered Paid Users:  %d<br>\n", limbo_user_count());
+	printf("Total Ticket Sales (Regisered & Unregistered):  \$%0.2f<br><br>\n", total_ticket_sales());
+
+	echo "<b>\n";
+	printf("Ticket Purchase Breakdown");
+	echo "</b><br><br>\n";
+	
 	show_ticket_status_table();
 }
 
@@ -533,8 +546,18 @@ function list_ticket_payments()
 	echo "<b>\n";
 	printf("Ticket Purchase Status for Ticket Item %s:  %s", $ticket_item_id, $ticket_item->Title);
 	echo "</b><br><br>\n";
+	
+	echo "\n";
+	printf("Tickets Purchased by Registered Users:");
+	echo "<br><br>\n";
 		
 	show_trans_item_ticket_table($ticket_item_id);
+	
+	echo "\n";
+	printf("Tickets Purchased by Unregistered Users (Tickets in \"Limbo\"):");
+	echo "<br><br>\n";
+	
+	show_limbo_trans_item_ticket_table($ticket_item_id);
 }
 
 /* function show_ticket_receipt_form
