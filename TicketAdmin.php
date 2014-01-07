@@ -517,7 +517,7 @@ function list_ticket_status()
 	echo "</b><br><br>\n";
 	
 	printf("Total Number of Registered Users with Paid Tickets:  %d<br>\n", ticketed_user_count());
-	printf("Total Number of Unregistered Paid Users:  %d<br>\n", limbo_user_count());
+	printf("Total Number of Unregistered (Paid) Ticket Holders:  %d<br>\n", limbo_user_count());
 	printf("Total Ticket Sales (Regisered & Unregistered):  \$%0.2f<br><br>\n", total_ticket_sales());
 
 	echo "<b>\n";
