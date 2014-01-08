@@ -5,7 +5,7 @@ global $FILE_SIZES;
 $EXTENSIONS = array();
 $EXTENSIONS["picture"] = array("image/gif", "image/jpeg", "image/jpg", "image/png");
 $EXTENSIONS["video"] = array("video/x-m4v", "video/quicktime");
-$EXTENSIONS["music"] = array("audio/mpeg");
+$EXTENSIONS["music"] = array("audio/mpeg", "audio/mp3", "audio/m4a", "audio/alac", "audio/wav");
 
 $FILE_SIZES = array();
 $FILE_SIZES["picture"]= 1048576;
