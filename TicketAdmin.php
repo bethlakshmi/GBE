@@ -106,6 +106,10 @@ switch ($action)
 		list_ticket_payments();
 		break;
 	
+	case POS_EVENT_ATTENDANCE:
+		list_tickets_by_event();
+		break;
+	
 	default:
 		echo "Unknown action code: $action\n";
 }
@@ -450,7 +454,7 @@ function process_transaction_bpt_sync()
  */
 function list_users_for_pos()
 {
-	// There are no highlit users in this display, so just pass an empty array
+	// There are no highlited users in this display, so just pass an empty array
 
 	$highlight = array ();
 
@@ -461,8 +465,11 @@ function list_users_for_pos()
 	// Display the form to allow the user to include the alumni in the list
 	// of users to choose from and allow them to select one
 	
-	select_user('Select a User for Ticket Purchase or Modification<br>', $link, false, 
-		TRUE, $highlight);
+	//select_user('Select a User for Ticket Purchase or Modification<br>', $link, false, 
+		//TRUE, $highlight);
+		
+	echo "<h3>Select a User for Ticket Purchase or Modification</h3>\n";	
+	echo "Feature not implemented at this time.<br><br>\n";
 }
 
 /* function list_tickets_for_user
@@ -582,6 +589,21 @@ function show_ticket_receipt_form()
 	echo "</b><br>\n";
 	
 	echo "This feature has not been implemented yet.<br><br>\n";
+}
+
+/* function list_tickets_by_event
+ * 
+ * Used to show how many tickets have been purchased for an event.
+ *  
+ * Returns: nothing.
+ */
+function list_tickets_by_event()
+{
+	echo "<b>Number of Tickets Purchased by Event</b><br><br>\n";
+	echo "This table shows how many tickets have been purchased that allow entry ";
+	echo "into each event.  Events with no tickets associated with them are not listed.<br><br>\n";
+	
+	show_transactions_by_event();
 }
 
 html_end();

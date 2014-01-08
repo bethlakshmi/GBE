@@ -732,7 +732,6 @@ function get_valid_tickets_for_event($EventId, &$TicketItems)
 	} 
 }
 
-
 /* function get_user
  * 
  * Used to obtain information about a user.
@@ -899,15 +898,15 @@ function get_transactions_for_user($UserId, &$Transactions)
  * Used to obtain a list of the transactions (tickets) purchased by 
  * ticket item.
  *
- * $TickeItem - the ID of the ticket item in question.  
+ * $TickeItemId - the ID of the ticket item in question.  
  * $Transactions - an array of Transaction objects in the DB.
  * Returns: nothing.
  */
-function get_transactions_for_ticket_item($TickeItem, &$Transactions)
+function get_transactions_for_ticket_item($TickeItemId, &$Transactions)
 {
 	$sql = "select * from Transactions, Users ";
 	$sql .= "where Users.UserId = Transactions.UserId "; 
-	$sql .= sprintf("and Transactions.ItemId = '%s' ", mysql_real_escape_string($TickeItem));
+	$sql .= sprintf("and Transactions.ItemId = '%s' ", mysql_real_escape_string($TickeItemId));
     $sql .= "order by Transactions.UserId";
 	
 	$result = mysql_query($sql);
@@ -926,9 +925,9 @@ function get_transactions_for_ticket_item($TickeItem, &$Transactions)
 	} 
 }
 
-/* function get_transactions_for_ticket_item
+/* function get_limbo_trans_for_ticket_item
  * 
- * Used to obtain a list of the transactions (tickets) purchased by 
+ * Used to obtain a list of the limbo transactions (tickets) purchased by 
  * ticket item.
  *
  * $TickeItem - the ID of the ticket item in question.  
@@ -1251,7 +1250,7 @@ function show_user_simple_ticket_table($UserId)
 
 /* function show_ticket_status_table
  * 
- * Used to show the table with current status of ticket items.   Yeah, this is a long function.
+ * Used to show the table with current status of ticket items.  
  *  
  * Returns: nothing.
  */
@@ -1355,6 +1354,7 @@ function get_limbo_ticket_item_info($TicketItemId, &$Count, &$Amount)
 	$sql = "select TicketItems.ItemId, Count(LimboIndex), Sum(Amount) ";
 	$sql .= "from LimboTransactions, TicketItems ";
 	$sql .= "where LimboTransactions.ItemId = TicketItems.ItemId ";
+	$sql .= "and Status in ('Posted', 'Settled')";
 	$sql .= sprintf("and TicketItems.ItemId = '%s' ", mysql_real_escape_string($TicketItemId));
 
 	$result = mysql_query($sql);
@@ -1425,7 +1425,7 @@ function total_ticket_sales()
 	$row = mysql_fetch_array($result);
 	$amount += $row["Sum(Amount)"];
 	
-	$sql = "select Sum(Amount) from LimboTransactions";
+	$sql = "select Sum(Amount) from LimboTransactions where Status in ('Posted', 'Settled')";
 
 	$result = mysql_query($sql);	
 	if (!$result)
@@ -1450,6 +1450,93 @@ function truncate_limbo_table()
 	$result = mysql_query($sql);	
 	if (!$result)
 		return display_mysql_error ('Cannot execute query', $sql);
+}
+
+/* function get_valid_transactions_for_event
+ * 
+ * Used to obtain an array of Transaction objects in the system that allow
+ * the purchaser to attend the given event.  Limbo Transactions are transactions
+ * in the temporary table associated with an unregistered user.
+ *
+ * $EventId - the Event ID to query for
+ * $Transactions - array of Transaction records per above.
+ * $LimboTrans - array of LimboTransactions (unregistered trans.) per above.
+ * Returns: nothing.
+ */
+function get_valid_transactions_for_event($EventId, &$Transactions, &$LimboTrans)
+{
+	$Transactions = array();
+	$LimboTrans = array();
+	
+	get_valid_tickets_for_event($EventId, $TicketItems);
+	if (($TicketItems == null) or (sizeof($TicketItems) <= 0))
+		return;
+	
+	foreach ($TicketItems as $item)
+	{
+		get_transactions_for_ticket_item($item->ItemId, $TransList);
+		foreach ($TransList as $trans)
+		{
+			if (($trans->Status == 'Voided') || ($trans->Status == 'Error'))
+				continue;
+			array_push($Transactions, $trans);
+		}
+		
+		get_limbo_trans_for_ticket_item($item->ItemId, $LimboList);
+		foreach ($LimboList as $limbo)
+		{
+			if (($limbo->Status == 'Voided') || ($limbo->Status == 'Error'))
+				continue;
+			array_push($LimboTrans, $limbo);
+		}
+	}
+}
+
+/* function show_purchased_tickets_by_event
+ * 
+ * Used to show the table with events and tickets purchased for the event.
+ *  
+ * Returns: nothing.
+ */
+function show_transactions_by_event()
+{	
+	get_event_list($Events);
+	if (sizeof($Events) == 0)
+	{
+		echo "No events found in the database.  Please populate.";
+		return;
+	}
+	
+	echo "<table border=\"1\">\n";
+	echo "  <tr>\n";
+	echo "    <th>Event Id</th>\n";
+	echo "    <th>Event Title</th>\n";
+	echo "    <th>Event Type</th>\n";
+	echo "    <th>Total Registered</th>\n";
+	echo "    <th>Total Unregistered</th>\n";
+	echo "    <th>Total Purchased</th>\n";
+	echo "  </tr>\n";
+	
+	foreach ($Events as $eventid => $event)
+	{
+		get_valid_transactions_for_event($eventid, $Trans, $Limbo);
+		$trans_size = sizeof($Trans);
+		$limbo_size = sizeof($Limbo);
+		
+		if (($trans_size + $limbo_size) == 0)
+			continue;
+		
+		echo "<tr valign=\"top\">\n";
+		echo "  <td align=\"left\">$eventid</td>\n";
+		printf("  <td align=\"left\">%s</td>\n", $event['Title']);
+		printf("  <td align=\"left\">%s</td>\n", $event['GameType']);
+		echo "  <td align=\"left\">$trans_size</td>\n";
+		echo "  <td align=\"left\">$limbo_size</td>\n";
+		printf("  <td align=\"left\">%d</td>\n", $trans_size + $limbo_size);
+		echo "</tr>\n";	
+	
+	}
+	echo "</table><br>\n";
 }
 
 ?>

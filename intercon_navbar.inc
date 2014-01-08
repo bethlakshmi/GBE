@@ -338,6 +338,7 @@ function build_ticketing_subnavbar()
 	{
 		$ticketSection->push(NavBarItem::newAction("Ticket Status", "TicketAdmin.php", TRANSACTION_STATUS));
 		$ticketSection->push(NavBarItem::newAction("Receipt Tickets", "TicketAdmin.php", POS_LISTUSERS));
+		$ticketSection->push(NavBarItem::newAction("Attendance Report", "TicketAdmin.php", POS_EVENT_ATTENDANCE));
 		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
 		$ticketSection->push(NavBarItem::newAction("Synch Ticket Types", "TicketAdmin.php", TICKETITEM_SYNC));   
 		$ticketSection->push(NavBarItem::newAction("Synch Transactions", "TicketAdmin.php", TRANSACTION_SYNC)); 
