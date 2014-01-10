@@ -918,7 +918,7 @@ CREATE TABLE `Runs` (
 	"Thomas Paine A&B (Dance; dressing room)",
 	"Vendor Hall (Shows/Special Events)",
 	"William Dawes A (Lectures)",
-	"William Dawes B (Movement; Panels)") NOT NULL DEFAULT '',
+	"William Dawes B (Movement; Panels)", "Registration") NOT NULL DEFAULT '',
   `Viewable` enum('protect') DEFAULT NULL COMMENT 'Whether this should be viewable on everyone''s calendars or for only specialized cases',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
