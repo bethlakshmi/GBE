@@ -440,7 +440,7 @@ function build_participation_subnavbar() {
     $aboutSection->push(NavBarItem::newAction("Sit on a Panel", "Panels.php"));
     $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "Bids.php", BID_GAME."&GameType=Panel"));
   }
-  $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", LIST_GAMES,NULL,'Ops'));
+  $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", SCHEDULE_SHOW."&displayType=Volunteer"));    
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
   $aboutSection->push(NavBarItem::newStatic("Sell my Stuff", "VendorPackage"));
