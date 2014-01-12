@@ -86,11 +86,11 @@ function get_who_is_who ($type, &$bio_users)
 
    case "Conference":
     // The Confernce is all teachers, panelists and moderators
-    $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName ';
-    $sql .= ' FROM GMs, Users';
-    $sql .= ' WHERE Users.UserId=GMs.UserId and ';
-    $sql .= ' ( Role="teacher" or Role="panelist" or Role="moderator" ) ';
-    $sql .= ' ORDER BY Users.DisplayName ';
+    $sql = "SELECT DISTINCT Users.UserId, Users.DisplayName FROM GMs, Users, Events ";
+    $sql .= "WHERE Users.UserId=GMs.UserId and ( Role != \"performer\" ) and ";
+    $sql .= "GMs.EventId = Events.EventId and (Events.GameType = \"Class\" or ";
+    $sql .= "Events.GameType = \"Panel\" or Events.GameType = \"Drop-In\" ) ";
+    $sql .= "ORDER BY Users.DisplayName";
     break;
   case "Staff":
     // Now add the con staff.  Don't forget to skip Admin (UserId==1)
@@ -114,6 +114,7 @@ function get_who_is_who ($type, &$bio_users)
     return;
   }
 
+echo $sql."<br><br>";
 
   $result = mysql_query ($sql);
   if (! $result)
