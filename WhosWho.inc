@@ -114,7 +114,7 @@ function get_who_is_who ($type, &$bio_users)
     return;
   }
 
-echo $sql."<br><br>";
+//echo $sql."<br><br>";
 
   $result = mysql_query ($sql);
   if (! $result)
