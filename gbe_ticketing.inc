@@ -1217,11 +1217,12 @@ function show_limbo_trans_item_ticket_table($TicketItem)
 function show_user_simple_ticket_table($UserId)
 {
 	get_transactions_for_user($UserId, $Transactions);
-	if (sizeof($Transactions) == 0)
-	{
+	// Always show the picture
+	//if (sizeof($Transactions) == 0)
+	//{
 		echo "<a href=\"index.php?action=7\"><img src=\"notickets.jpg\"></a><br><br>\n";
-		return;
-	}
+	//	return;
+	//}
 
 	echo "<table border=\"1\">\n";
 	echo "  <tr>\n";
