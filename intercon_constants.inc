@@ -218,7 +218,8 @@ $ROOM_LIST = array("Crispus Attucks  (Master/Drop-in Classes)",
 	"Thomas Paine A&B (Dance; dressing room)",
 	"Vendor Hall (Shows/Special Events)",
 	"William Dawes A (Lectures)",
-	"William Dawes B (Movement; Panels)");
+	"William Dawes B (Movement; Panels)",
+	"Registration");
 
 //Items for Bids/Schedule
 global $CON_DAYS;

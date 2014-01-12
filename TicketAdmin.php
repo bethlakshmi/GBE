@@ -2,7 +2,7 @@
 
 /* TicketAdmin.php - contains GUI functions and interface for working with Ticketable Items.
  * 
- * Last Updated 9/8/2013 by MDB
+ * Last Updated 1/7/2014/2013 by MDB
  *
  */
  
@@ -30,6 +30,7 @@ if (!user_has_priv(PRIV_REGISTRAR))
 	html_end ();
 	exit ();
 }
+
 /*
 echo "<br>this is my test spot.<br>";
 
@@ -103,6 +104,10 @@ switch ($action)
 	
 	case TICKETITEM_LIST_PMTS:
 		list_ticket_payments();
+		break;
+	
+	case POS_EVENT_ATTENDANCE:
+		list_tickets_by_event();
 		break;
 	
 	default:
@@ -449,7 +454,7 @@ function process_transaction_bpt_sync()
  */
 function list_users_for_pos()
 {
-	// There are no highlit users in this display, so just pass an empty array
+	// There are no highlited users in this display, so just pass an empty array
 
 	$highlight = array ();
 
@@ -460,8 +465,11 @@ function list_users_for_pos()
 	// Display the form to allow the user to include the alumni in the list
 	// of users to choose from and allow them to select one
 	
-	select_user('Select a User for Ticket Purchase or Modification<br>', $link, false, 
-		TRUE, $highlight);
+	//select_user('Select a User for Ticket Purchase or Modification<br>', $link, false, 
+		//TRUE, $highlight);
+		
+	echo "<h3>Select a User for Ticket Purchase or Modification</h3>\n";	
+	echo "Feature not implemented at this time.<br><br>\n";
 }
 
 /* function list_tickets_for_user
@@ -511,6 +519,18 @@ function list_ticket_status()
 	printf("<br>The Ticket System was last synchronized with BPT at %s MST (Server Time).<br><br>",
 		get_bpt_last_poll_time());
 		
+	echo "<b>\n";
+	printf("Ticket Purchase Summary");
+	echo "</b><br><br>\n";
+	
+	printf("Total Number of Registered Users with Paid Tickets:  %d<br>\n", ticketed_user_count());
+	printf("Total Number of Unregistered (Paid) Ticket Holders:  %d<br>\n", limbo_user_count());
+	printf("Total Ticket Sales (Regisered & Unregistered):  \$%0.2f<br><br>\n", total_ticket_sales());
+
+	echo "<b>\n";
+	printf("Ticket Purchase Breakdown");
+	echo "</b><br><br>\n";
+	
 	show_ticket_status_table();
 }
 
@@ -533,8 +553,18 @@ function list_ticket_payments()
 	echo "<b>\n";
 	printf("Ticket Purchase Status for Ticket Item %s:  %s", $ticket_item_id, $ticket_item->Title);
 	echo "</b><br><br>\n";
+	
+	echo "\n";
+	printf("Tickets Purchased by Registered Users:");
+	echo "<br><br>\n";
 		
 	show_trans_item_ticket_table($ticket_item_id);
+	
+	echo "\n";
+	printf("Tickets Purchased by Unregistered Users (Tickets in \"Limbo\"):");
+	echo "<br><br>\n";
+	
+	show_limbo_trans_item_ticket_table($ticket_item_id);
 }
 
 /* function show_ticket_receipt_form
@@ -559,6 +589,21 @@ function show_ticket_receipt_form()
 	echo "</b><br>\n";
 	
 	echo "This feature has not been implemented yet.<br><br>\n";
+}
+
+/* function list_tickets_by_event
+ * 
+ * Used to show how many tickets have been purchased for an event.
+ *  
+ * Returns: nothing.
+ */
+function list_tickets_by_event()
+{
+	echo "<b>Number of Tickets Purchased by Event</b><br><br>\n";
+	echo "This table shows how many tickets have been purchased that allow entry ";
+	echo "into each event.  Events with no tickets associated with them are not listed.<br><br>\n";
+	
+	show_transactions_by_event();
 }
 
 html_end();

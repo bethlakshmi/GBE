@@ -338,6 +338,7 @@ function build_ticketing_subnavbar()
 	{
 		$ticketSection->push(NavBarItem::newAction("Ticket Status", "TicketAdmin.php", TRANSACTION_STATUS));
 		$ticketSection->push(NavBarItem::newAction("Receipt Tickets", "TicketAdmin.php", POS_LISTUSERS));
+		$ticketSection->push(NavBarItem::newAction("Attendance Report", "TicketAdmin.php", POS_EVENT_ATTENDANCE));
 		$ticketSection->push(NavBarItem::newAction("Edit Ticket Types", "TicketAdmin.php", TICKETITEM_LIST));
 		$ticketSection->push(NavBarItem::newAction("Synch Ticket Types", "TicketAdmin.php", TICKETITEM_SYNC));   
 		$ticketSection->push(NavBarItem::newAction("Synch Transactions", "TicketAdmin.php", TRANSACTION_SYNC)); 
@@ -440,6 +441,8 @@ function build_participation_subnavbar() {
     $aboutSection->push(NavBarItem::newAction("Suggest a Panel", "Bids.php", BID_GAME."&GameType=Panel"));
   }
   $aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", LIST_GAMES,NULL,'Ops'));
+  // removed until we have a multi-location booking capability in the Calendar.
+  //$aboutSection->push(NavBarItem::newAction("Volunteer", "Schedule.php", SCHEDULE_SHOW."&displayType=Volunteer"));    
   $aboutSection->push(NavBarItem::newExternal("Exhibit my Art", "https://burlesqueexpo.wufoo.com/forms/art-show-submission/"));
   $aboutSection->push(NavBarItem::newExternal("Display my Costume", "https://burlesqueexpo.wufoo.com/forms/2013-costume-submission/"));
   $aboutSection->push(NavBarItem::newStatic("Sell my Stuff", "VendorPackage"));

@@ -693,6 +693,29 @@ LOCK TABLES `IronGmTeam` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `LimboTransactions'
+--
+
+DROP TABLE IF EXISTS `LimboTransactions`;
+CREATE TABLE IF NOT EXISTS `LimboTransactions` (
+  `LimboIndex` int(11) NOT NULL AUTO_INCREMENT,
+  `FirstName` varchar(30) NOT NULL,
+  `LastName` varchar(30) NOT NULL,
+  `PaymentEmail` varchar(64) NOT NULL,
+  `Country` varchar(30) NOT NULL,
+  `Phone` varchar(30) NOT NULL,
+  `ItemId` varchar(30) NOT NULL,
+  `Amount` double(10,2) NOT NULL,
+  `PaymentDate` datetime NOT NULL,
+  `PaymentSource` varchar(30) NOT NULL,
+  `Status` enum('Posted','Settled','Voided','Error') NOT NULL,
+  `TenderType` enum('Cash','Check','Charge','Comp') NOT NULL,
+  `Reference` varchar(30) NOT NULL,
+  `TrackerId` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`LimboIndex`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+--
 -- Table structure for table `PanelBids'
 --
 
@@ -895,7 +918,7 @@ CREATE TABLE `Runs` (
 	"Thomas Paine A&B (Dance; dressing room)",
 	"Vendor Hall (Shows/Special Events)",
 	"William Dawes A (Lectures)",
-	"William Dawes B (Movement; Panels)") NOT NULL DEFAULT '',
+	"William Dawes B (Movement; Panels)", "Registration") NOT NULL DEFAULT '',
   `Viewable` enum('protect') DEFAULT NULL COMMENT 'Whether this should be viewable on everyone''s calendars or for only specialized cases',
   `UpdatedById` int(11) NOT NULL DEFAULT '0',
   `LastUpdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
