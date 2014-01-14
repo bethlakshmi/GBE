@@ -1927,15 +1927,15 @@ function list_games_alphabetically ($GameType="")
 
   if ($n > 0)
   {
-      if (file_exists(TEXT_DIR.'/betweencosts.html'))
-         include(TEXT_DIR.'/betweencosts.html');	     
+      if (file_exists(TEXT_DIR.'/betweenclasses.html'))
+         include(TEXT_DIR.'/betweenclasses.html');	     
 
  
     while ($row = mysql_fetch_object ($result))
     {
        list_this_game($row, $GameType);
-       if (file_exists(TEXT_DIR.'/betweencosts.html'))
-         include(TEXT_DIR.'/betweencosts.html');	  
+       if (file_exists(TEXT_DIR.'/betweenclasses.html'))
+         include(TEXT_DIR.'/betweenclasses.html');	  
 
     }
   }
@@ -1980,7 +1980,7 @@ function list_this_game($row, $GameType)
     echo "<br>\n$row->ShortBlurb\n";
   if ('' != $row->Fee)
     echo "<br>\n<i><font color=red>This event has a fee:  $row->Fee</font></i>\n";
-  echo "</p>\n";
+ // echo "</p>\n";
 }
 
 
