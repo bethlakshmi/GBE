@@ -33,9 +33,9 @@ function get_who_is_who_for_show ($showId)
     $sql .= ' UNION ';
     $sql .= "SELECT DISTINCT Acts.GroupName as Name, Bios.BioText , Bios.Title , Bios.Website, Bios.PhotoSource, Acts.isGroup FROM Acts\n"
     . "LEFT JOIN Bios on Acts.GroupBio = Bios.BioId\n"
-    . "WHERE Acts.ShowId = $showId AND Acts.isGroup = 1 ORDER BY Name LIMIT 0, 30 ";
+    . "WHERE Acts.ShowId = $showId AND Acts.isGroup = 1 ORDER BY Name ";
 
-// echo $sql."<br><br>";
+ echo $sql."<br><br>";
 
   $result = mysql_query ($sql);
   if (! $result)
