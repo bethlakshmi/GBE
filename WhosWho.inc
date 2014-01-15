@@ -35,7 +35,7 @@ function get_who_is_who_for_show ($showId)
     . "LEFT JOIN Bios on Acts.GroupBio = Bios.BioId\n"
     . "WHERE Acts.ShowId = $showId AND Acts.isGroup = 1 ORDER BY Name ";
 
- echo $sql."<br><br>";
+ //echo $sql."<br><br>";
 
   $result = mysql_query ($sql);
   if (! $result)
