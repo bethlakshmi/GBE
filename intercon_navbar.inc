@@ -382,13 +382,14 @@ function build_mail_subnavbar() {
 }
 
 function build_print_materials_subnavbar() {
-  $opsSection = new SubNavBar("Print Materials");
+  $opsSection = new SubNavBar("Reports");
   $opsSection->push(NavBarItem::newAction('Per Event Report', 'Reports.php', REPORT_PER_GAME));
   $opsSection->push(NavBarItem::newAction('Per User Report', 'Reports.php', REPORT_PER_USER));
   $opsSection->push(NavBarItem::newAction('Per Room Report', 'Reports.php', REPORT_PER_ROOM));
   $opsSection->push(NavBarItem::newAction('Ops Report', 'Reports.php', REPORT_OPS_TRACK));
   //$opsSection->push(NavBarItem::newAction('ConSuite Report', 'Reports.php', REPORT_CONSUITE_TRACK));
   $opsSection->push(NavBarItem::newAction('Events by Time', 'Reports.php', REPORT_GAMES_BY_TIME));
+  /*
   $opsSection->push(NavBarItem::newAction('Users CSV', 'Reports.php', REPORT_USERS_CSV));
   $opsSection->push(NavBarItem::newAction('Registration Report', 'Reports.php', REPORT_REGISTRATION));
   if (defined ('PROGRAM_PUB_PREFIX'))
@@ -401,7 +402,7 @@ function build_print_materials_subnavbar() {
     $opsSection->push(NavBarItem::newProgram("Program Cover", PROGRAM_PDF_PREFIX, "Cover.pdf"));
     $opsSection->push(NavBarItem::newProgram("Program Interior", PROGRAM_PDF_PREFIX, "Interior.pdf"));
   }
-  
+  */
   return $opsSection;
 }
 
