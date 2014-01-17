@@ -85,7 +85,9 @@ switch ($action)
    break;
 
  case PROCESS_ADD_OPS:
-   process_add_ops ();
+   $success = process_add_ops ();
+   if ($success)
+     add_ops();
    break;
  
 
