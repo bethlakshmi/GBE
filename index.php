@@ -2764,6 +2764,7 @@ function show_gm_games ($UserId, $name)
   $sql .= "  WHERE GMs.UserId=$UserId";
   $sql .= '    AND Events.EventId=GMs.EventId';
   $sql .= '    AND Runs.EventId=GMs.EventId';
+  $sql .= '    AND GMs.Role!="performer"';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3671,7 +3672,8 @@ function bio_report ()
   echo "    <th>Privs</th>\n";
   echo "    <th>Last Updated</th>\n";
   echo "    <th>Title(s)</th>\n";
-  echo "    <th>Games GM-ing For</th>\n";
+  echo "    <th>Classes</th>\n";
+  echo "    <th>Shows</th>\n";
   echo "    <th>Bio</th>\n";
   echo "  </tr>\n";
 
@@ -3736,12 +3738,42 @@ function bio_report ()
     echo "    <td>$updated</td>\n";
     echo "    <td>$title</td>\n";
 
-    // Show the games a user is GM for
+    // Show the classes or panels
 
-    $sql = 'SELECT Events.Title FROM GMs, Events';
-    $sql .= ' WHERE Events.EventId=GMs.EventId';
-    $sql .= "   AND GMs.UserId=$user_id";
+      $sql = 'SELECT Events.Title, Events.GameType FROM GMs, Events';
+      $sql .= ' WHERE Events.EventId=GMs.EventId';
+      $sql .= "   AND GMs.UserId=$user_id";
+      $sql .= '   AND GMs.DisplayAsGM="Y"';
+      $sql .= '   AND GMs.Role != "performer"';
+      $sql .= '   AND Events.IsConSuite="N"';
+      $sql .= '   AND Events.IsOps="N"';
 
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    $games = 0;
+    echo '    <td>';
+
+    while ($row = mysql_fetch_object ($result))
+    {
+      if ($games++ > 0)
+	echo ', ';
+      echo "<i>$row->GameType:  $row->Title</i>";
+    }
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+    echo "    </td>\n";
+   // Show the classes or panels
+
+      $sql = 'SELECT Events.Title FROM GMs, Events, Acts';
+      $sql .= ' WHERE Events.EventId=Acts.ShowId';
+      $sql .= "   AND GMs.UserId=$user_id";
+      $sql .= '   AND GMs.Role = "performer"';
+      $sql .= '   AND Acts.ActId = GMs.EventId';
+	// echo $sql."<br>";
     $result = mysql_query ($sql);
     if (! $result)
       display_mysql_error ('Query for events failed', $sql);

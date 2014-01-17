@@ -188,12 +188,13 @@ function display_who_is_who($type, &$bio_users)
 
     if ($type=="Conference")
     {
-      // Now add any games the user is a GM for
+      // Now add any classes the user is a GM for
 
       $sql = 'SELECT Events.Title FROM GMs, Events';
       $sql .= ' WHERE Events.EventId=GMs.EventId';
       $sql .= "   AND GMs.UserId=$user_id";
       $sql .= '   AND GMs.DisplayAsGM="Y"';
+      $sql .= '   AND GMs.Role != "performer"';
       $sql .= '   AND Events.IsConSuite="N"';
       $sql .= '   AND Events.IsOps="N"';
 
