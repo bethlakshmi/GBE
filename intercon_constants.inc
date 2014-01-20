@@ -210,7 +210,7 @@ define (PAGE_BANNER, 'PageBanner.png');
 
 // rooms at event - must match DB set in Runs  
 global $ROOM_LIST;
-$ROOM_LIST = array("Crispus Attucks  (Master/Drop-in Classes)",
+$ROOM_LIST = array("Crispus Attucks (Master/Drop-in Classes)",
 	"Haym Solomon (Food)",
 	"Molly Pitcher (Workshops)",
 	"Pool",
