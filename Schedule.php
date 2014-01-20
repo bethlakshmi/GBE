@@ -458,10 +458,10 @@ function schedule_day ($day, $signed_up_runs, $show_counts, $type)
   $signup_counts = get_signup_counts($runids);
 
 
-  $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks "=>1, 
+  $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Haym Solomon"=>1, "Pool"=>1);		      
 
-  $vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks "=>1, 
+  $vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Haym Solomon"=>1, "Registration"=>1);
 
   $conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
