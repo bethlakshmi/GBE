@@ -254,9 +254,6 @@ function show_away_schedule_form ($type)
 
   //
 
-  // Display the schedule footer
-  display_schedule_footer($logged_in);
-  
 }
 
 
@@ -277,29 +274,6 @@ function get_signed_up_runs()
 }
 
 
-function display_schedule_footer($logged_in) {
-
-  $spaces = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-
-  echo "<P>\n";
-  echo "<TABLE CELLSPACING=3>\n";
-  echo "  <TR>\n";
-  if ($logged_in)
-  {
-    echo "    <TD" . get_bgcolor ('Confirmed') . ">$spaces</TD>\n";
-    echo "    <TD>Scheduled for the event</TD>\n";
-    echo "    <TD" . get_bgcolor ('Waitlisted') . ">$spaces</TD>\n";
-    echo "    <TD>Waitlisted for the event</TD>\n";
-  }
-  echo "    <TD" . get_bgcolor ('Full') . ">$spaces</TD>\n";
-  echo "    <TD>Opportunity is full</TD>\n";
-  echo "    <TD" . get_bgcolor ('CanPlayConcurrently') . ">$spaces</TD>\n";
-  echo "    <TD>Does not require a schedule commitment</TD>\n";
-  echo "  </TR>\n";
-  echo "</TABLE>\n";
-
-  echo "</FORM>\n";
-}
 
 	/**
 	* Display an event.
