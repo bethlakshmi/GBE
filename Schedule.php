@@ -476,10 +476,10 @@ function schedule_day ($day, $signed_up_runs, $show_counts, $type)
     $conf_array = build_events_table($day, $bookings, $events_rooms );
     write_events_table($conf_array, $events_rooms, "Events", $day, $today_start, $today_end, $type);
 
-//    get_volunteer_bookings($bookings, $rooms,  $day);
-//    set_status($bookings, $signup_counts, $signed_up_runs);
-//    $vol_array = build_events_table($day, $bookings, $vol_rooms);
-//   write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end, $type);
+    get_volunteer_bookings($bookings, $rooms,  $day);
+    set_status($bookings, $signup_counts, $signed_up_runs);
+    $vol_array = build_events_table($day, $bookings, $vol_rooms);
+   write_events_table($vol_array, $vol_rooms, "Volunteer", $day, $today_start,$today_end, $type);
 
 
     get_conference_bookings($bookings, $rooms, $day);
@@ -506,12 +506,12 @@ function write_sched_selectors($type) {
 	 else {echo "<td id=\"Conference\">Conference</td>\n";
 	 }
 	 if ($type== "Volunteer") {
-//	 echo "<td id=\"Volunteer\" class=\"highlighted\">Volunteer</td>\n";
-	 echo "<td id=\"Volunteer\" class=\"highlighted\"></td>\n";
+	 echo "<td id=\"Volunteer\" class=\"highlighted\">Volunteer</td>\n";
+//	 echo "<td id=\"Volunteer\" class=\"highlighted\"></td>\n";
 	 }
 	 else {
-//	 echo "<td id=\"Volunteer\">Volunteer</td>\n";
-	 echo "<td id=\"Volunteer\"></td>\n";
+	 echo "<td id=\"Volunteer\">Volunteer</td>\n";
+//	 echo "<td id=\"Volunteer\"></td>\n";
 	 }
 	 	 echo "</tr></table>\n\n";
 }
