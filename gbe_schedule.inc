@@ -2,20 +2,25 @@
 
 function build_events_table($day, $bookings, $rooms)
 {
-	$events_array = array();
-	$events_array = array_pad($events_array, 48, array());
-	foreach ($bookings as $booking){
-	
-	    $start = $booking->StartHour;
-	    $room = strip_room($booking->Rooms);
-	    $raw_room = $booking->Rooms;
-  	    if (array_key_exists($room, $rooms)) {
-	      $events_array[$start][$room] = $booking;
-	      for ($i = 1; $i < $booking->Event->Hours; $i++)
-	      	  $events_array[$start+$i][$room] = 0;
-	    }
-	}
-	return $events_array;
+  $events_array = array();
+  $events_array = array_pad($events_array, 48, array());
+  foreach ($bookings as $booking){
+    $start = $booking->StartHour;
+    $room = strip_room($booking->Rooms);
+    $raw_room = $booking->Rooms;
+    if (array_key_exists($room, $rooms)) {
+//        $events_array[$start][$room] = $booking;
+      for ($i = 0; $i < $booking->Event->Hours; $i++) {
+        if ($events_array[$start + $i]) {
+          $events_array[$start+$i][$room][] = $booking ;
+        }
+        else {
+          $events_array[$start+$i][$room] = array($booking);               
+        }
+      }  
+    }
+  }
+  return $events_array;
 }
 
 function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end, $selected_type) {
@@ -39,41 +44,43 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
   echo "</thead>\n";
   echo "<tbody>";
   for ($i = $today_start; $i<$today_end; $i++) {
+      write_schedule_row($events_array, $i, $events_rooms); 
+}
+  echo "</tbody></table>\n\n";   
+}
+
+function write_schedule_row ($events_array, $i, $events_rooms){
     $start_time = start_hour_to_am_pm($i);
     $row_empty="class=empty";
     $row = $events_array[$i];
     $cells_html = "";
     foreach (array_keys($events_rooms) as $room){  
       if (array_key_exists($room, $row)){
-        $item = $row[$room];
-        if ($item === 0) {
-         $row_empty = "";
-               // don't write a cell here
-        } 
-        else {          
+        if ($row[$room]) {                 // if there's an entry for this room
 	  $row_empty = "";
-          $title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
-                                   SCHEDULE_SHOW_GAME,
-                                   $item->EventId,
-                                   $item->RunId,
-                                   $item->Event->Title);
-          $item_class = "event ".$item->Status;
-          if ($label=="Conference" && $item->Status != "Confirmed")
-            $item_class = "event";
-          $rows = $item->Event->Hours;  
-          $cells_html .=  "    <td rowspan=$rows class=\"$item_class\">$title_with_link</td>\n";
+          $cells_html .=  "    <td class=\"event\"> <ul>";
+	    foreach ($row[$room] as $item) {
+            $title_with_link  = sprintf ('<a href="Schedule.php?action=%d&EventId=%d&RunId=%d">%s</a>',
+                                     SCHEDULE_SHOW_GAME,
+                                     $item->EventId,
+                                     $item->RunId,
+                                     $item->Event->Title);
+            $cells_html .=  "    <li>$title_with_link</li>\n";
+          }
+	  $cells_html.= "</ul></td>";
         }
-      }
-      else {
-        $cells_html .=  "    <td class=\"none\"></td>\n";
-      }
+	}
+        else {                             // if there's no entry for this room write an empty cell
+          $cells_html .=  "    <td class=\"none\"></td>\n";
+        
+      }   
     }
-    echo "<tr $row_empty><td class=\"time\">$start_time</td>\n";
+    echo "<tr $row_empty><td class=\"time\">$start_time</td>\n";    
     echo $cells_html;
-  echo "</tr>\n";
-  }
-  echo "</tbody></table>\n\n";   
+    echo "</tr>\n";
+ 
 }
+
 
 function strip_room($room){
   $result =  ereg_replace(" \(.*\)", "", $room);
