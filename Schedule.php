@@ -1368,7 +1368,8 @@ function accept_players_from_waitlist ($EventId,
  */
  function is_signup_event ($GameType)
  {
-   return ($GameType != "Class" && $GameType != "Panel");
+   return ($GameType != "Class" && $GameType != "Panel" && $GameType != "Special" 
+              && $GameType != "Show" && $GameType != "MasterClass");
  }
 
 /*
