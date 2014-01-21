@@ -994,7 +994,8 @@ function show_game ()
 
         // if signing up is an option create the info related to availability
         // of both slot and user
-        if ( ($max_signups > 0 || $can_edit_game || $show_part) && is_signup_event($event->GameType) && $logged_in)
+        if ( ($max_signups > 0 || $can_edit_game || $show_part) && 
+             ($event->GameType != "Class" && $event->GameType != "Panel") && $logged_in)
         {
   		  $confirmed = array ();
 		  $waitlisted = array ();
@@ -1061,16 +1062,14 @@ function show_game ()
 		         $text .= "<P>${link}Withdraw</A>";
 	         }
 	      }
-	      else
+	      else 
 	      {
 	        // If we're logged in we can (attempt) to signup for this game
 	        // If the game's full, the user will be put on the waitlist
 
 	        $text = '<P>';
-
-
 	        
-				if ($can_signup && $max_signups > 0)
+				if ($can_signup && $max_signups > 0 && is_signup_event($event->GameType))
 				{
 				  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
 					   'EventId=%d&Seq=%d>',
@@ -1106,7 +1105,7 @@ function show_game ()
 
 	  echo "</TABLE>\n";
 
-	  if ($can_edit_game && is_signup_event($event->GameType) && $show_part)
+	  if ($can_edit_game && ($GameType != "Class" && $GameType != "Panel") && $show_part)
 	    echo "    <BR>Click on the counts to see signup list\n";
 
 	  if ('Y' == $event->CanPlayConcurrently)
