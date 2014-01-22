@@ -344,11 +344,11 @@ define ('GEN_BOOKINGS',3);
 define (THURS_MIN, 12);    // 12 noon
 define (THURS_MAX, 24);    // 7AM
 define (FRI_MIN, 24);    // 12 noon
-define (FRI_MAX, 48);    // Midnight
+define (FRI_MAX, 52);    // Midnight
 define (SAT_MIN, 16);     // 8AM
-define (SAT_MAX, 48);    // Midnight
+define (SAT_MAX, 52);    // Midnight
 define (SUN_MIN, 17);     // 8AM
-define (SUN_MAX, 48);    // Midnight
+define (SUN_MAX, 52);    // Midnight
 
 
 // 
@@ -1682,6 +1682,7 @@ function start_hour_to_am_pm ($t)
 
   $time_in_minutes = $t * EVENT_BLOCK;
   $hour = floor($time_in_minutes / 60);
+  $hour = $hour % 24;
   $minutes = $time_in_minutes % 60;
   $dt = new DateTime();
   $dt -> setTime($hour, $minutes);
