@@ -254,9 +254,6 @@ function show_away_schedule_form ($type)
 
   //
 
-  // Display the schedule footer
-  display_schedule_footer($logged_in);
-  
 }
 
 
@@ -277,29 +274,6 @@ function get_signed_up_runs()
 }
 
 
-function display_schedule_footer($logged_in) {
-
-  $spaces = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-
-  echo "<P>\n";
-  echo "<TABLE CELLSPACING=3>\n";
-  echo "  <TR>\n";
-  if ($logged_in)
-  {
-    echo "    <TD" . get_bgcolor ('Confirmed') . ">$spaces</TD>\n";
-    echo "    <TD>Scheduled for the event</TD>\n";
-    echo "    <TD" . get_bgcolor ('Waitlisted') . ">$spaces</TD>\n";
-    echo "    <TD>Waitlisted for the event</TD>\n";
-  }
-  echo "    <TD" . get_bgcolor ('Full') . ">$spaces</TD>\n";
-  echo "    <TD>Opportunity is full</TD>\n";
-  echo "    <TD" . get_bgcolor ('CanPlayConcurrently') . ">$spaces</TD>\n";
-  echo "    <TD>Does not require a schedule commitment</TD>\n";
-  echo "  </TR>\n";
-  echo "</TABLE>\n";
-
-  echo "</FORM>\n";
-}
 
 	/**
 	* Display an event.
@@ -458,10 +432,10 @@ function schedule_day ($day, $signed_up_runs, $show_counts, $type)
   $signup_counts = get_signup_counts($runids);
 
 
-  $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks "=>1, 
+  $events_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Haym Solomon"=>1, "Pool"=>1);		      
 
-  $vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks "=>1, 
+  $vol_rooms = array("Theater"=>1,"Vendor Hall"=>1, "Crispus Attucks"=>1, 
 		    "Haym Solomon"=>1, "Registration"=>1);
 
   $conf_rooms = array("Thomas Paine A&B"=>1,"William Dawes A"=>1, "William Dawes B"=>1, 
@@ -1020,7 +994,8 @@ function show_game ()
 
         // if signing up is an option create the info related to availability
         // of both slot and user
-        if ( ($max_signups > 0 || $can_edit_game || $show_part) && is_signup_event($event->GameType) && $logged_in)
+        if ( ($max_signups > 0 || $can_edit_game || $show_part) && 
+             ($event->GameType != "Class" && $event->GameType != "Panel") && $logged_in)
         {
   		  $confirmed = array ();
 		  $waitlisted = array ();
@@ -1087,16 +1062,14 @@ function show_game ()
 		         $text .= "<P>${link}Withdraw</A>";
 	         }
 	      }
-	      else
+	      else 
 	      {
 	        // If we're logged in we can (attempt) to signup for this game
 	        // If the game's full, the user will be put on the waitlist
 
 	        $text = '<P>';
-
-
 	        
-				if ($can_signup && $max_signups > 0)
+				if ($can_signup && $max_signups > 0 && is_signup_event($event->GameType))
 				{
 				  $link = sprintf ('<A HREF=Schedule.php?action=%d&RunId=%d&' .
 					   'EventId=%d&Seq=%d>',
@@ -1132,7 +1105,7 @@ function show_game ()
 
 	  echo "</TABLE>\n";
 
-	  if ($can_edit_game && is_signup_event($event->GameType) && $show_part)
+	  if ($can_edit_game && ($GameType != "Class" && $GameType != "Panel") && $show_part)
 	    echo "    <BR>Click on the counts to see signup list\n";
 
 	  if ('Y' == $event->CanPlayConcurrently)
@@ -1394,7 +1367,8 @@ function accept_players_from_waitlist ($EventId,
  */
  function is_signup_event ($GameType)
  {
-   return ($GameType != "Class" && $GameType != "Panel");
+   return ($GameType != "Class" && $GameType != "Panel" && $GameType != "Special" 
+              && $GameType != "Show" && $GameType != "MasterClass");
  }
 
 /*
