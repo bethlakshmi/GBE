@@ -6,18 +6,20 @@ function build_events_table($day, $bookings, $rooms)
   $events_array = array_pad($events_array, 48, array());
   foreach ($bookings as $booking){
     $start = $booking->StartHour;
-    $room = strip_room($booking->Rooms);
-    $raw_room = $booking->Rooms;
-    if (array_key_exists($room, $rooms)) {
-//        $events_array[$start][$room] = $booking;
-      for ($i = 0; $i < $booking->Event->Hours; $i++) {
-        if ($events_array[$start + $i]) {
-          $events_array[$start+$i][$room][] = $booking ;
-        }
-        else {
-          $events_array[$start+$i][$room] = array($booking);               
-        }
-      }  
+    $event_rooms = $booking->Rooms;
+    $event_rooms = explode(",", $event_rooms);
+    foreach ($event_rooms as $long_room) {
+      $room = strip_room($long_room);
+        if (array_key_exists($room, $rooms)) {
+          for ($i = 0; $i < $booking->Event->Hours; $i++) {
+            if ($events_array[$start + $i]) {
+              $events_array[$start+$i][$room][] = $booking ;
+          }
+          else {
+            $events_array[$start+$i][$room] = array($booking);               
+          }
+        }  
+      }
     }
   }
   return $events_array;
