@@ -609,7 +609,7 @@ function show_user_homepage_gm ($UserId)
 {
   $sql = 'SELECT Events.Title, Events.EventId FROM GMs, Events';
   $sql .= "  WHERE GMs.UserId=$UserId";
-  $sql .= '    AND Events.EventId=GMs.EventId';
+  $sql .= '    AND Events.EventId=GMs.EventId and GMs.Role != "performer"';
   $sql .= '  ORDER BY Events.Title';
 
   $result = mysql_query ($sql);

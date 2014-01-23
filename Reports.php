@@ -452,10 +452,10 @@ function write_user_report ($name, $user_id)
     echo "  <tr valign=top>\n";
     echo "  <td>$row->Day&nbsp;</td>\n";
     printf ("    <td align=right>%s</td>\n",
-	    start_hour_to_24_hour ($row->StartHour));
+	    start_hour_to_am_pm ($row->StartHour));
     echo "       <td>-</td>\n";
     printf ("    <td align=right>%s&nbsp;&nbsp;</td>\n",
-	    start_hour_to_24_hour ($row->StartHour + $row->Hours));
+	    start_hour_to_am_pm ($row->StartHour + $row->Hours));
 
     $rooms = pretty_rooms($row->Rooms);
     echo "    <td>$rooms</td>\n";
@@ -514,7 +514,7 @@ function report_per_game ()
 		       $row->TitleSuffix,
 		       pretty_rooms($row->Rooms),
 		       $row->Day,
-		       start_hour_to_24_hour ($row->StartHour),
+		       start_hour_to_am_pm ($row->StartHour),
 		       $row->MinPlayersMale,
 		       $row->MaxPlayersMale,
 		       $row->MinPlayersFemale,
@@ -786,7 +786,7 @@ function report_volunteer_track ($is_ops)
 
     printf ("<p><font size=\"+1\"><b>%s %s</b></font><br>\n",
 	    $row->Day,
-    	    start_hour_to_12_hour ($row->StartHour));
+    	    start_hour_to_am_pm ($row->StartHour));
     echo $row->Title."<br>";
     echo "<b>Head of Area:</b>".$row->Author."<br>";
 
@@ -1039,8 +1039,8 @@ function whos_not_playing_when ()
   {
     printf ("<b>%d Users are available during the whole period, %s - %s</b><br>\n",
 	    $fully_available,
-	    start_hour_to_12_hour ($StartHour),
-	    start_hour_to_12_hour ($StartHour + $Hours));
+	    start_hour_to_am_pm ($StartHour),
+	    start_hour_to_am_pm ($StartHour + $Hours));
 
     reset ($names);
     foreach ($names as $k => $v)
@@ -1091,7 +1091,7 @@ function whos_not_playing_when ()
   echo "  <th align=left>Name, EMail</th>\n";
   for ($i = 0; $i < $Hours; $i++)
   {
-    printf ("    <th>%s</th>\n", start_hour_to_12_hour ($i + $StartHour));
+    printf ("    <th>%s</th>\n", start_hour_to_am_pm ($i + $StartHour));
   }
   echo "  </tr>\n";
 
@@ -1192,7 +1192,7 @@ function report_games_by_time ($day)
 	echo "    <td>\n  </tr>\n";
       echo "  <tr valign=top>\n";
       printf ("    <td><b>%s</b></td>\n",
-	      start_hour_to_24_hour ($row->StartHour));
+	      start_hour_to_am_pm ($row->StartHour));
       echo "    <td>\n";
       $hour = $row->StartHour;
     }
