@@ -10,7 +10,6 @@
 
 <link href='print.css' rel='stylesheet' type='text/css' media='print'>
 <script src="ckeditor/ckeditor.js"></script>
-
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <STYLE>
@@ -34,12 +33,18 @@ $(document).ready(function()
 { 
 
         $("#acttech").tablesorter(); 
-
 } 
 
 ); 
 
 </script>    
+<script>
+    window.onload = function() {
+        CKEDITOR.replace( 'ckeditor', { 
+			allowedContent: true	
+	})};
+</script>
+
 <script type="text/javascript"  src="schedule.js"></script>
 </HEAD>
 
