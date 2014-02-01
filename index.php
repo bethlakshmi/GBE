@@ -3674,6 +3674,8 @@ function bio_report ()
   echo "    <th>Title(s)</th>\n";
   echo "    <th>Classes</th>\n";
   echo "    <th>Shows</th>\n";
+  echo "    <th width=300px>Signups</th>\n";
+  echo "    <th width=200px>Purchases</th>\n";
   echo "    <th>Bio</th>\n";
   echo "  </tr>\n";
 
@@ -3766,7 +3768,8 @@ function bio_report ()
       echo '&nbsp;';
 
     echo "    </td>\n";
-   // Show the classes or panels
+    
+   // Show the shows
 
       $sql = 'SELECT Events.Title FROM GMs, Events, Acts';
       $sql .= ' WHERE Events.EventId=Acts.ShowId';
@@ -3790,6 +3793,54 @@ function bio_report ()
 
     if (0 == $games)
       echo '&nbsp;';
+
+    echo "    </td>\n";
+    
+       // Show the volunteering
+
+      $sql = 'SELECT Events.Title, Runs.Day, Runs.StartHour FROM Signup, Runs, Events';
+      $sql .= ' WHERE Signup.State!="Withdrawn"';
+      $sql .= "   AND Signup.UserId=$user_id";
+      $sql .= '   AND Runs.RunId=Signup.RunId';
+      $sql .= '   AND Events.EventId=Runs.EventId';
+      $sql .= ' ORDER BY Runs.Day, Runs.StartHour';
+	// echo $sql."<br>";
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    $games = 0;
+    echo '    <td>';
+
+    while ($row = mysql_fetch_object ($result))
+    {
+      $games++;
+      echo "<i>$row->Title</i>, $row->Day, ".start_hour_to_am_pm ($row->StartHour)."<br><br>";
+    }
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+    // Show the tickets
+    get_transactions_for_user($user_id, $Transactions);
+    
+    echo '    <td>';
+    $games = 0;
+
+	foreach ($Transactions as $trans)
+	{
+		if (($trans->Status == 'Voided') || ($trans->Status == 'Error'))
+			continue;
+        if ($games++ > 0)
+          echo ", <br><br>";
+	
+		echo "  $trans->Title - $trans->PaymentDate\n";
+	}
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+
 
     echo "    </td>\n";
 
