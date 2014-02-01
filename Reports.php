@@ -172,10 +172,10 @@ function report_per_user ()
 {
   // Gather the list of all users who are able to signup
 
-  $sql = 'SELECT UserId, FirstName, LastName';
+  $sql = 'SELECT UserId, DisplayName';
   $sql .= ' FROM Users';
   $sql .= ' WHERE CanSignup!="Alumni"';
-  $sql .= ' ORDER BY LastName, FirstName';
+  $sql .= ' ORDER BY DisplayName';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -188,17 +188,12 @@ function report_per_user ()
     if ('Admin' == $row->LastName)
       continue;
 
-    echo "<div class=print_logo_break_before><img src=PageBanner.png></div>\n";
 
-    write_user_report (trim ("$row->LastName, $row->FirstName"),
+    write_user_report (trim ("$row->DisplayName"),
 		       $row->UserId);
 
-    echo "\n<div class=print_copyright>\n";
-    echo "<HR WIDTH=\"50%\" ALIGN=CENTER>\n";
-    echo "Copyright &copy; $y, New England Interactive Literature<BR>\n";
-    echo "All Rights Reserved\n";
-    echo "</div> <!-- copyright-->\n";
   }
+
 }
 
 function ampm_time($h)
@@ -368,72 +363,29 @@ function build_order_string ($n, $size, &$s, &$count, $type)
 
 function write_user_report ($name, $user_id)
 {
-  echo "<font size=\"+3\"><b>$name</b></font><p>\n";
   $gms = array();
 
-  // See if this user has ordered any shirts
 
-  $sql = "SELECT * FROM TShirts WHERE UserId=$user_id";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for shirts failed', $sql);
-
-  $row = mysql_fetch_object ($result);
-  if ($row)
-  {
-    $order = '';
-    $count = 0;
-
-    build_order_string ($row->Small,   'Small',   $order, $count, SHIRT_NAME);
-    build_order_string ($row->Medium,  'Medium',  $order, $count, SHIRT_NAME);
-    build_order_string ($row->Large,   'Large',   $order, $count, SHIRT_NAME);
-    build_order_string ($row->XLarge,  'XLarge',  $order, $count, SHIRT_NAME);
-    build_order_string ($row->XXLarge, 'XXLarge', $order, $count, SHIRT_NAME);
-    build_order_string ($row->X3Large, 'X3Large', $order, $count, SHIRT_NAME);
-    build_order_string ($row->X4Large, 'X4Large', $order, $count, SHIRT_NAME);
-    build_order_string ($row->X5Large, 'X5Large', $order, $count, SHIRT_NAME);
-
-    build_order_string ($row->Small_2,   'Small',   $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->Medium_2,  'Medium',  $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->Large_2,   'Large',   $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->XLarge_2,  'XLarge',  $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->XXLarge_2, 'XXLarge', $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X3Large_2, 'X3Large', $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X4Large_2, 'X4Large', $order, $count, SHIRT_2_NAME);
-    build_order_string ($row->X5Large_2, 'X5Large', $order, $count, SHIRT_2_NAME);
-
-    if (0 != $count)
-    {
-      if (1 == $count)
-	$item = 'shirt';
-      else
-	$item = 'shirts';
-
-      echo "<b>T-Shirts:</b> $order $item ordered<p>\n";
-    }
-  }
-
-  // Gather the list of any games this user is a GM for
-
-  $sql = "SELECT EventId FROM GMs WHERE UserId=$user_id";
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for GMs failed', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-    $gms[] = $row->EventId;
 
   // Now gather the list of games this user is signed up for
 
   $sql = 'SELECT Events.Title, Events.Hours, Events.EventId,';
-  $sql .= ' Runs.Day, Runs.StartHour, Runs.TitleSuffix, Runs.Rooms,';
-  $sql .= ' Signup.State';
+  $sql .= ' Runs.Day, Runs.StartHour, Runs.TitleSuffix, Runs.Rooms, Events.GameType';
   $sql .= ' FROM Signup, Runs, Users, Events';
   $sql .= ' WHERE Signup.State!="Withdrawn"';
   $sql .= "   AND Signup.UserId=$user_id";
   $sql .= '   AND Users.UserId=Signup.UserId';
   $sql .= '   AND Runs.RunId=Signup.RunId';
   $sql .= '   AND Events.EventId=Runs.EventId';
+  $sql .= ' UNION ';
+  $sql .= 'SELECT Events.Title, Events.Hours, Events.EventId, ';
+  $sql .= '    Runs.Day, Runs.StartHour, Runs.TitleSuffix, Runs.Rooms, Events.GameType';
+  $sql .= '  FROM Events, Runs, GMs';
+  $sql .= "  WHERE GMs.UserId=$user_id";
+  $sql .= '    AND Events.EventId=GMs.EventId';
+  $sql .= '    AND Runs.EventId=GMs.EventId';
+  $sql .= '    AND GMs.Role!="performer"';
+
   $sql .= ' ORDER BY Day, StartHour';
 
   $result = mysql_query ($sql);
@@ -444,33 +396,25 @@ function write_user_report ($name, $user_id)
     return true;
 
   // Go through each of the signup records and display them for this user
-
-  echo "<b>Games You've Signed Up For:</b>\n";
+  echo "<div class=print_logo_break_before><img src=PageBanner.png></div>";
+  echo "<br><font size=\"+1\"><b>$name</b></font><p>\n";
+  echo "<b>Events You've Signed Up For:</b>\n";
   echo "<table>\n";
   while ($row = mysql_fetch_object ($result))
   {
     echo "  <tr valign=top>\n";
     echo "  <td>$row->Day&nbsp;</td>\n";
-    printf ("    <td align=right>%s</td>\n",
-	    start_hour_to_am_pm ($row->StartHour));
-    echo "       <td>-</td>\n";
-    printf ("    <td align=right>%s&nbsp;&nbsp;</td>\n",
+    printf ("    <td align=left>%s - %s </td>\n",
+	    start_hour_to_am_pm ($row->StartHour), 
 	    start_hour_to_am_pm ($row->StartHour + $row->Hours));
 
-    $rooms = pretty_rooms($row->Rooms);
-    echo "    <td>$rooms</td>\n";
+    $rooms =   ereg_replace(" \(.*\)", "", pretty_rooms($row->Rooms));
 
-    echo "    <td>&nbsp;</td>\n";
+    echo "    <td><i>$rooms</i></td></tr>\n";
+    echo "<tr><td>&nbsp;</td>";
+    $title = trim ("<b>".$row->GameType."</b>: ".$row->Title);
+    echo "    <td colspan=2>$title</td>\n";
 
-    $title = trim ("$row->Title $row->TitleSuffix");
-    echo "    <td>$title</td>\n";
-
-    if (in_array ($row->EventId, $gms))
-      $status = 'GM';
-    else
-      $status = $row->State;
-
-    echo "    <td>&nbsp;&nbsp;$status</td>\n";
 
     echo "  </tr>\n";
   }
