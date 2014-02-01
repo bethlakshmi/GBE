@@ -2994,7 +2994,7 @@ function select_user_to_view ()
 {
 	// Make sure that only users with ConCom priv view this page
 
-	if (! user_has_priv (PRIV_CON_COM))
+	if (! (user_has_priv (PRIV_CON_COM) || user_has_priv(PRIV_REGISTRAR)))
 		return display_access_error ();
 		
 	// Get User Count
@@ -3247,7 +3247,7 @@ function view_user ()
 
   // Make sure that only privileged users get here
 
-  if (! user_has_priv (PRIV_CON_COM))
+  if (! (user_has_priv (PRIV_CON_COM) || user_has_priv(PRIV_REGISTRAR)))
     return display_access_error ();
 
   // Fetch the user information
