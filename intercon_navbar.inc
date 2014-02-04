@@ -359,8 +359,8 @@ function build_attendees_subnavbar() {
     $usersSection->push(NavBarItem::newAction('Bio Report', 'index.php', BIO_REPORT));
   }
 
-  //if (user_has_priv(PRIV_REGISTRAR))
-  //  $usersSection->push(NavBarItem::newAction('Users By Age', 'Reports.php', REPORT_BY_AGE));
+  if (user_has_priv(PRIV_REGISTRAR))
+    $usersSection->push(NavBarItem::newAction('Volunteer Only', 'Reports.php', REPORT_VOLUNTEERS));
     
   if (user_has_priv(PRIV_STAFF))
     $usersSection->push(NavBarItem::newAction('Become User', 'index.php', SELECT_USER_TO_BECOME));

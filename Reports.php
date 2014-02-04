@@ -98,9 +98,9 @@ switch ($action)
     registration_report ();
     break;
 
-  case REPORT_BY_AGE:
+  case REPORT_VOLUNTEERS:
     html_begin (true);
-    report_by_age ();
+    report_volunteers ();
     break;
 
   case REPORT_HOW_HEARD:
@@ -250,8 +250,9 @@ function write_room_report($room, $day, $day_title)
 	    ampm_time($row->StartHour),
 	    ampm_time($row->StartHour + $row->Hours));
     */
-    printf ("    <td>&nbsp;%02d:00 - %02d:00&nbsp;</th>\n",
-	    $row->StartHour, $row->StartHour + $row->Hours);
+    printf ("    <td>&nbsp;%s - %s;</th>\n",
+	   start_hour_to_am_pm( $row->StartHour), 
+	   start_hour_to_am_pm($row->StartHour + $row->Hours));
     echo "    <td>$row->Title";
     $rooms_array = explode(',', $row->Rooms);
     if (count($rooms_array) > 1)
@@ -1399,117 +1400,235 @@ function tshirts_ordered ($user_id, &$order, &$amt_due)
   }
 }
 
-function report_by_age ()
+function report_volunteers()
 {
-  $sql = 'SELECT FirstName, LastName, BirthYear, CanSignup';
-  $sql .= ' FROM Users';
-  $sql .= ' WHERE CanSignup<>"Alumni"';
-  $sql .= '   AND CanSignup<>"Unpaid"';
-  $sql .= '   AND LastName<>"Admin"';
+  $bio_users = array ();
+
+  echo 'This shows only those users who have volunteered for something<br>\n';
+  
+  // Start by gathering the list of GMs
+
+  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName, ';
+  $sql .= ' Users.EMail';
+  $sql .= ' FROM GMs, Users';
+  $sql .= ' WHERE Users.UserId=GMs.UserId';
 
   $result = mysql_query ($sql);
   if (! $result)
-    display_mysql_error ('Query for users by age failed', $sql);
-
-  $total_users = mysql_num_rows ($result);
-
-  $a = array();
-  $unspecified = 0;
-  $minors = 0;
-  $young = 0;
-  $adults = 0;
-  $unknown = 0;
+    return display_mysql_error ('Query for GMs failed', $sql);
 
   while ($row = mysql_fetch_object ($result))
   {
-    $age = birth_year_to_age ($row->BirthYear);
-
-    $age_range = 9;
-
-    if (0 == $age)     // Unspecified
-    {
-      $unspecified++;
-      $age_range = 1;
-    }
-    elseif ($age < 18) // Minors
-    {
-      $minors++;
-      $age_range = 2;
-    }
-    elseif ($age < 21) // Young Adults
-    {
-      $young++;
-      $age_range = 3;
-    }
-    else                    // Adults
-    {
-      $adults++;
-      $age_range = 4;
-    }
-
-    $a[] = "$age_range|$row->LastName, $row->FirstName|$age|$row->CanSignup";
+    $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
-  sort ($a);
+  // Now add the con staff.  Don't forget to skip Admin (UserId==1)
 
-  
-  $last_age_range = '';
-  echo "<table>\n";
-  foreach ($a as $v)
+  $sql = 'SELECT UserId, DisplayName, EMail';
+  $sql .= ' FROM Users';
+  $sql .= ' WHERE ""<>Priv';
+
+  $result = mysql_query ($sql);
+  if (! $result)
+    return display_mysql_error ('Query for con staff failed', $sql);
+
+  while ($row = mysql_fetch_object ($result))
   {
-    $info = explode ('|', $v);
+    if (1 != $row->UserId)
+      $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
+  }
 
-    if ($last_age_range != $info[0])
+  // Sort the array BY THE VALUE (as opposed to the key)
+
+  uasort ($bio_users, "strcasecmp");
+  reset ($bio_users);
+
+  // Build the table of whether folks have submitted bios
+
+  echo "<table border=\"1\">\n";
+  echo "  <tr align=\"left\">\n";
+  echo "    <th>Name</th>\n";
+  echo "    <th>Privs</th>\n";
+  echo "    <th>Last Updated</th>\n";
+  echo "    <th>Title(s)</th>\n";
+  echo "    <th>Classes</th>\n";
+  echo "    <th>Shows</th>\n";
+  echo "    <th width=300px>Signups</th>\n";
+  echo "    <th width=200px>Purchases</th>\n";
+  echo "    <th>Bio</th>\n";
+  echo "  </tr>\n";
+
+  foreach ($bio_users as $user_id => $v)
+  {
+    $tmp = explode ('|', $v);
+    $name = $tmp[0];
+    $email = $tmp[1];
+
+    echo "  <tr valign=\"top\">\n";
+    //    echo "<!-- $v -->\n";
+    echo "    <td><a href=\"mailto:$email\">$name</a></td>\n";
+
+    // If the user has privileges, show them
+
+    $sql = "SELECT Priv FROM Users WHERE UserId=$user_id";
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for privs failed', $sql);
+
+    echo '    <td>';
+    $row = mysql_fetch_object ($result);
+    if ('' != $row->Priv)
     {
-      switch ($info[0])
-      {
-	case 1:
-	  $age_range = 'Unspecified';
-	  $pct = ($unspecified * 100.0) / $total_users;
-	  break;
+      $privs = explode (',', $row->Priv);
+      echo $privs[0];
+      if (count ($privs) > 1)
+	for ($i = 1; $i < count($privs); $i++)
+	  echo ", $privs[$i]";
+    }
+    else
+      echo '&nbsp;';
+    echo '    </td>';
 
-        case 2:
-	  $age_range = 'Minor (< 18)';
-	  $pct = ($minors * 100.0) / $total_users;
-	  break;
-	break;
+    // Fetch bio information
 
-        case 3:
-	  $age_range = 'Young Adult (18 - 20)';
-	  $pct = ($young * 100.0) / $total_users;
-	  break;
+    $sql = 'SELECT BioId, Title, BioText,';
+    $sql .= ' DATE_FORMAT(LastUpdated, "%d-%b-%Y %H:%i") AS LastUpdated';
+    $sql .= ' FROM Bios';
+    $sql .= " WHERE UserId=$user_id";
+    $result = mysql_query ($sql);
+    if (! $result)
+      return display_mysql_error ('Query for bio failed', $sql);
 
-        case 4:
-	  $age_range = 'Adult (21 and up)';
-	  $pct = ($adults * 100.0) / $total_users;
-	  break;
-       
-        default:
-	  $age_range = 'Unknown';
-	  $pct = 0.0;
-	  break;
-      }
+    $row = mysql_fetch_object ($result);
 
-      echo "  <tr>\n";
-      printf ("    <td colspan=3><b>&nbsp;<br>%01.2f%% -- %s</b></td>\n",
-	      $pct,
-	      $age_range);
-      echo "  </tr>\n";
+    $title = '&nbsp;';
+    $have_bio = '<font color=\"red\">No</font>';
+    $updated = 'Never';
 
-      $last_age_range = $info[0];
+    if ($row)
+    {
+      if ('' != $row->Title)
+	$title = $row->Title;
+
+      if ('' != $row->BioText)
+	$have_bio = 'Yes';
+
+      $updated = $row->LastUpdated;
     }
 
-    if (0 == $age)
-      $age = 'Unspecified';
+    echo "    <td>$updated</td>\n";
+    echo "    <td>$title</td>\n";
 
-    echo "  <tr valign=top>\n";
-    printf ("    <td>%s</td>\n", $info[1]);
-    printf ("    <td>&nbsp;&nbsp;%s&nbsp;&nbsp;</td>\n", $info[2]);
-    printf ("    <td>%s</td>\n", $info[3]);
-    //    echo "    <td align=right>&nbsp;&nbsp;$age&nbsp;&nbsp;</td>\n";
-    echo "  </td>\n";
+    // Show the classes or panels
+
+      $sql = 'SELECT Events.Title, Events.GameType FROM GMs, Events';
+      $sql .= ' WHERE Events.EventId=GMs.EventId';
+      $sql .= "   AND GMs.UserId=$user_id";
+      $sql .= '   AND GMs.DisplayAsGM="Y"';
+      $sql .= '   AND GMs.Role != "performer"';
+      $sql .= '   AND Events.IsConSuite="N"';
+      $sql .= '   AND Events.IsOps="N"';
+
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    $games = 0;
+    echo '    <td>';
+
+    while ($row = mysql_fetch_object ($result))
+    {
+      if ($games++ > 0)
+	echo ', ';
+      echo "<i>$row->GameType:  $row->Title</i>";
+    }
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+    echo "    </td>\n";
+    
+   // Show the shows
+
+      $sql = 'SELECT Events.Title FROM GMs, Events, Acts';
+      $sql .= ' WHERE Events.EventId=Acts.ShowId';
+      $sql .= "   AND GMs.UserId=$user_id";
+      $sql .= '   AND GMs.Role = "performer"';
+      $sql .= '   AND Acts.ActId = GMs.EventId';
+	// echo $sql."<br>";
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    $games = 0;
+    echo '    <td>';
+
+    while ($row = mysql_fetch_object ($result))
+    {
+      if ($games++ > 0)
+	echo ', ';
+      echo "<i>$row->Title</i>";
+    }
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+    echo "    </td>\n";
+    
+       // Show the volunteering
+
+      $sql = 'SELECT Events.Title, Runs.Day, Runs.StartHour FROM Signup, Runs, Events';
+      $sql .= ' WHERE Signup.State!="Withdrawn"';
+      $sql .= "   AND Signup.UserId=$user_id";
+      $sql .= '   AND Runs.RunId=Signup.RunId';
+      $sql .= '   AND Events.EventId=Runs.EventId';
+      $sql .= ' ORDER BY Runs.Day, Runs.StartHour';
+	// echo $sql."<br>";
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    $games = 0;
+    echo '    <td>';
+
+    while ($row = mysql_fetch_object ($result))
+    {
+      $games++;
+      echo "<i>$row->Title</i>, $row->Day, ".start_hour_to_am_pm ($row->StartHour)."<br><br>";
+    }
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+    // Show the tickets
+    get_transactions_for_user($user_id, $Transactions);
+    
+    echo '    <td>';
+    $games = 0;
+
+	foreach ($Transactions as $trans)
+	{
+		if (($trans->Status == 'Voided') || ($trans->Status == 'Error'))
+			continue;
+        if ($games++ > 0)
+          echo ", <br><br>";
+	
+		echo "  $trans->Title - $trans->PaymentDate\n";
+	}
+
+    if (0 == $games)
+      echo '&nbsp;';
+
+
+
+    echo "    </td>\n";
+
+    echo "    <td>$have_bio</td>\n";
+    echo "  </tr>\n";
   }
   echo "</table>\n";
+}
+
 }
 
 ?>
