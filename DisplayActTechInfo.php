@@ -43,6 +43,8 @@ $show->load_from_eventid($ShowId);
 
 echo "<h2>Act Information for $show->Title</h2>";
 echo "This is all the known act information.<br><br>\n";
+$link = "DownloadActTechInfo.php?ShowId=$ShowId";
+echo "Click <a href = $link > here </a> to download this information as a csv file.<br><br>\n";
 echo "<form method=\"POST\" action=\"DisplayActTechInfo.php\">\n";
 echo "<input type=\"hidden\" name=\"ShowId\" value=\"".$ShowId."\">\n";
 
