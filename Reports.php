@@ -1629,6 +1629,6 @@ function report_volunteers()
   echo "</table>\n";
 }
 
-}
+
 
 ?>
