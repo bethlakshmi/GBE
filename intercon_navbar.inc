@@ -349,15 +349,15 @@ function build_ticketing_subnavbar()
 function build_attendees_subnavbar() {
   $usersSection = new SubNavBar("Attendees");
   $usersSection->push(NavBarItem::newAction("View User", "index.php", SELECT_USER_TO_VIEW));
-  if (user_has_priv(PRIV_REGISTRAR)) {
+  if (user_has_priv(PRIV_CON_COM)) {
     $usersSection->push(NavBarItem::newAction('Add or Edit a User', 'index.php', SELECT_USER_TO_EDIT));
     $usersSection->push(NavBarItem::newAction('Set User Password', 'index.php', SELECT_USER_TO_SET_PASSWORD));
     $usersSection->push(NavBarItem::newAction('Delete a User', 'index.php', SELECT_USER_TO_DELETE));
     $usersSection->push(NavBarItem::newAction('Merge a User', 'index.php', SELECT_USER_TO_MERGE));
+    $usersSection->push(NavBarItem::newAction("Comp'd Users", 'index.php', SHOW_COMPED_USERS));
+    $usersSection->push(NavBarItem::newAction('How Users Heard', 'Reports.php', REPORT_HOW_HEARD));
+    $usersSection->push(NavBarItem::newAction('Bio Report', 'index.php', BIO_REPORT));
   }
-  $usersSection->push(NavBarItem::newAction("Comp'd Users", 'index.php', SHOW_COMPED_USERS));
-  $usersSection->push(NavBarItem::newAction('How Users Heard', 'Reports.php', REPORT_HOW_HEARD));
-  $usersSection->push(NavBarItem::newAction('Bio Report', 'index.php', BIO_REPORT));
 
   //if (user_has_priv(PRIV_REGISTRAR))
   //  $usersSection->push(NavBarItem::newAction('Users By Age', 'Reports.php', REPORT_BY_AGE));
@@ -525,7 +525,7 @@ function display_admin_navbar() {
     $admin->push(build_myact_subnavbar());
 //  if (is_logged_in() || user_has_priv(PRIV_CON_COM))
 //    $navbar->push(build_shirts_subnavbar());
-  if (user_has_priv(PRIV_CON_COM))
+  if (user_has_priv(PRIV_CON_COM) || user_has_priv(PRIV_REGISTRAR))
     $admin->push(build_attendees_subnavbar());
   if (user_has_priv(PRIV_REGISTRAR))
     $admin->push(build_ticketing_subnavbar());
@@ -574,7 +574,7 @@ function display_navbar() {
   if (NAV_SHOW_LINKS)
     display_links_navbar();
   
-  if (user_is_gm() || user_has_priv(PRIV_CON_COM, true))
+  if (user_is_gm() || user_has_priv(PRIV_CON_COM, true) || user_has_priv(PRIV_REGISTRAR))
     display_admin_navbar();
   echo "</div> <!-- navbar -->\n\n";
 }
