@@ -3643,11 +3643,11 @@ function bio_report ()
     $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
   }
 
-  // Now add the con staff.  Don't forget to skip Admin (UserId==1)
+  // edited to add *everyone* so this is a broader report than just "who has a bio?"
 
   $sql = 'SELECT UserId, DisplayName, EMail';
   $sql .= ' FROM Users';
-  $sql .= ' WHERE ""<>Priv';
+  //$sql .= ' WHERE ""<>Priv';
 
   $result = mysql_query ($sql);
   if (! $result)

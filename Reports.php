@@ -3,6 +3,7 @@
 // Note:  This report functionality basically doesn't work at all, so leave it alone for now.  -MDB
 
 include ("intercon_db.inc");
+include ("gbe_ticketing.inc");
 
 // If the user's not logged in, send him to the entrypoint
 
@@ -1404,29 +1405,11 @@ function report_volunteers()
 {
   $bio_users = array ();
 
-  echo 'This shows only those users who have volunteered for something<br>\n';
+  echo 'This shows only those users who have volunteered for something<br>';
   
-  // Start by gathering the list of GMs
-
-  $sql = 'SELECT DISTINCT Users.UserId, Users.DisplayName, ';
-  $sql .= ' Users.EMail';
-  $sql .= ' FROM GMs, Users';
-  $sql .= ' WHERE Users.UserId=GMs.UserId';
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Query for GMs failed', $sql);
-
-  while ($row = mysql_fetch_object ($result))
-  {
-    $bio_users[$row->UserId] = "$row->DisplayName|$row->EMail";
-  }
-
-  // Now add the con staff.  Don't forget to skip Admin (UserId==1)
-
+  // get the users
   $sql = 'SELECT UserId, DisplayName, EMail';
   $sql .= ' FROM Users';
-  $sql .= ' WHERE ""<>Priv';
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -1443,23 +1426,32 @@ function report_volunteers()
   uasort ($bio_users, "strcasecmp");
   reset ($bio_users);
 
-  // Build the table of whether folks have submitted bios
+  // Build the table 
 
   echo "<table border=\"1\">\n";
   echo "  <tr align=\"left\">\n";
   echo "    <th>Name</th>\n";
-  echo "    <th>Privs</th>\n";
-  echo "    <th>Last Updated</th>\n";
-  echo "    <th>Title(s)</th>\n";
-  echo "    <th>Classes</th>\n";
-  echo "    <th>Shows</th>\n";
   echo "    <th width=300px>Signups</th>\n";
   echo "    <th width=200px>Purchases</th>\n";
-  echo "    <th>Bio</th>\n";
   echo "  </tr>\n";
 
   foreach ($bio_users as $user_id => $v)
   {
+     // Show the volunteering
+    $sql = 'SELECT Events.Title, Runs.Day, Runs.StartHour FROM Signup, Runs, Events';
+      $sql .= ' WHERE Signup.State!="Withdrawn"';
+      $sql .= "   AND Signup.UserId=$user_id";
+      $sql .= '   AND Runs.RunId=Signup.RunId';
+      $sql .= '   AND Events.EventId=Runs.EventId';
+      $sql .= ' ORDER BY Runs.Day, Runs.StartHour';
+
+	// echo $sql."<br>";
+    $result = mysql_query ($sql);
+    if (! $result)
+      display_mysql_error ('Query for events failed', $sql);
+
+    if ( mysql_num_rows($result) == 0)
+     continue;
     $tmp = explode ('|', $v);
     $name = $tmp[0];
     $email = $tmp[1];
@@ -1468,126 +1460,8 @@ function report_volunteers()
     //    echo "<!-- $v -->\n";
     echo "    <td><a href=\"mailto:$email\">$name</a></td>\n";
 
-    // If the user has privileges, show them
 
-    $sql = "SELECT Priv FROM Users WHERE UserId=$user_id";
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Query for privs failed', $sql);
-
-    echo '    <td>';
-    $row = mysql_fetch_object ($result);
-    if ('' != $row->Priv)
-    {
-      $privs = explode (',', $row->Priv);
-      echo $privs[0];
-      if (count ($privs) > 1)
-	for ($i = 1; $i < count($privs); $i++)
-	  echo ", $privs[$i]";
-    }
-    else
-      echo '&nbsp;';
-    echo '    </td>';
-
-    // Fetch bio information
-
-    $sql = 'SELECT BioId, Title, BioText,';
-    $sql .= ' DATE_FORMAT(LastUpdated, "%d-%b-%Y %H:%i") AS LastUpdated';
-    $sql .= ' FROM Bios';
-    $sql .= " WHERE UserId=$user_id";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ('Query for bio failed', $sql);
-
-    $row = mysql_fetch_object ($result);
-
-    $title = '&nbsp;';
-    $have_bio = '<font color=\"red\">No</font>';
-    $updated = 'Never';
-
-    if ($row)
-    {
-      if ('' != $row->Title)
-	$title = $row->Title;
-
-      if ('' != $row->BioText)
-	$have_bio = 'Yes';
-
-      $updated = $row->LastUpdated;
-    }
-
-    echo "    <td>$updated</td>\n";
-    echo "    <td>$title</td>\n";
-
-    // Show the classes or panels
-
-      $sql = 'SELECT Events.Title, Events.GameType FROM GMs, Events';
-      $sql .= ' WHERE Events.EventId=GMs.EventId';
-      $sql .= "   AND GMs.UserId=$user_id";
-      $sql .= '   AND GMs.DisplayAsGM="Y"';
-      $sql .= '   AND GMs.Role != "performer"';
-      $sql .= '   AND Events.IsConSuite="N"';
-      $sql .= '   AND Events.IsOps="N"';
-
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Query for events failed', $sql);
-
-    $games = 0;
-    echo '    <td>';
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      if ($games++ > 0)
-	echo ', ';
-      echo "<i>$row->GameType:  $row->Title</i>";
-    }
-
-    if (0 == $games)
-      echo '&nbsp;';
-
-    echo "    </td>\n";
     
-   // Show the shows
-
-      $sql = 'SELECT Events.Title FROM GMs, Events, Acts';
-      $sql .= ' WHERE Events.EventId=Acts.ShowId';
-      $sql .= "   AND GMs.UserId=$user_id";
-      $sql .= '   AND GMs.Role = "performer"';
-      $sql .= '   AND Acts.ActId = GMs.EventId';
-	// echo $sql."<br>";
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Query for events failed', $sql);
-
-    $games = 0;
-    echo '    <td>';
-
-    while ($row = mysql_fetch_object ($result))
-    {
-      if ($games++ > 0)
-	echo ', ';
-      echo "<i>$row->Title</i>";
-    }
-
-    if (0 == $games)
-      echo '&nbsp;';
-
-    echo "    </td>\n";
-    
-       // Show the volunteering
-
-      $sql = 'SELECT Events.Title, Runs.Day, Runs.StartHour FROM Signup, Runs, Events';
-      $sql .= ' WHERE Signup.State!="Withdrawn"';
-      $sql .= "   AND Signup.UserId=$user_id";
-      $sql .= '   AND Runs.RunId=Signup.RunId';
-      $sql .= '   AND Events.EventId=Runs.EventId';
-      $sql .= ' ORDER BY Runs.Day, Runs.StartHour';
-	// echo $sql."<br>";
-    $result = mysql_query ($sql);
-    if (! $result)
-      display_mysql_error ('Query for events failed', $sql);
-
     $games = 0;
     echo '    <td>';
 
@@ -1623,7 +1497,6 @@ function report_volunteers()
 
     echo "    </td>\n";
 
-    echo "    <td>$have_bio</td>\n";
     echo "  </tr>\n";
   }
   echo "</table>\n";
