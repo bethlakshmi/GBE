@@ -68,8 +68,8 @@ switch ($action)
   case LOGOUT_USER:
       
     // clear the Vanilla Forums SSO cookie if it exists
-    setcookie('Vanilla', ' ', time() - 3600, '/', '.interactiveliterature.org');
-    unset($_COOKIE['Vanilla']);
+    //setcookie('Vanilla', ' ', time() - 3600, '/', '.interactiveliterature.org');
+    //unset($_COOKIE['Vanilla']);
 
     session_unset ();
 
