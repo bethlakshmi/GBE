@@ -26,7 +26,7 @@ function display_acttechinfo($errors, $ShowId, $ActTechInfoId, $BidId=0, $UserId
     return display_error("Can't find any baseline information.");
     
   // get the display settings for this show
-  get_acttech_display_settings($ShowId, &$Settings);
+  get_acttech_display_settings($ShowId, $Settings);
 
   // if there's errors, this is a redo of a form, use the previous attempted data
   if (count($errors) > 0 )
@@ -196,7 +196,7 @@ function update_acttechinfo($values, &$Act)
   $errors = array();
 
   // make sure that all required fields are filled in
-  get_acttech_display_settings($Act->ShowId, &$Settings);
+  get_acttech_display_settings($Act->ShowId, $Settings);
   foreach ($Settings as $setting)
   {
     $error = check_field($setting, $values);
@@ -351,7 +351,7 @@ function edit_act_info($ActId, $ShowId, $errors)
       "emergency, please contact the stage manager or producer listed for the show.</font>";
   
   echo "<h3>Select Rehearsal Time</h3>\n";
-  get_act_rehearsals($ShowId, &$Rehearsals);
+  get_act_rehearsals($ShowId, $Rehearsals);
 
   echo "<form method=\"POST\" action=\"ProcessAct.php\" enctype=\"multipart/form-data\">\n"; 
   form_hidden_value("ActId",$ActId);
@@ -458,7 +458,7 @@ function process_rehearsal_choice($RunId, &$Act)
   }
   else
   {
-    get_users_for_act($Act->ActId, &$user_list);
+    get_users_for_act($Act->ActId, $user_list);
   
     // there was a previous, different slot, remove users
     if ($Act->RehearsalId > 0 )
