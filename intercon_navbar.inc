@@ -260,7 +260,7 @@ function build_show_subnavbar() {
 
   $larpSection->push(NavBarItem::newAction("Shows", "Schedule.php", LIST_GAMES,NULL,'Show'));
 
-  get_show_list(&$shows);
+  get_show_list($shows);
   foreach ($shows as $id => $show)
     $larpSection->push(NavBarItem::newAction($show['Title'], "Schedule.php",SCHEDULE_SHOW_GAME."&EventId=".$id));
 

@@ -1,4 +1,5 @@
 <?php
+
 include ("intercon_db.inc");
 
 // Connect to the database
@@ -17,9 +18,12 @@ if (! intercon_db_connect ())
   exit ();
 }
 
+
+
 // Display boilerplate
 
 html_begin ();
+
 
 $page = $_REQUEST['page'] . '.html';
 
@@ -36,6 +40,7 @@ else
   include ($page);
 
 html_end ();
+
 ?>
 
 
