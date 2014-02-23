@@ -22,16 +22,10 @@ if (array_key_exists ('action', $_REQUEST))
   $action=$_REQUEST['action'];
 
 if (empty ($action))
-  if (count($BID_TYPES) > 1)
-    $action = BID_CHOOSE_GAME_TYPE;
-  else
     $action = BID_GAME;
 
 switch ($action)
 {
-  case BID_CHOOSE_GAME_TYPE:
-    display_choose_form (TRUE);
-    break;
 
   case BID_GAME:
     display_bid_form (TRUE);
@@ -456,6 +450,7 @@ function display_bid_form ($first_try)
   echo ".  </big><br /><br />";
   echo CON_SHORT_NAME . " is " . DATE_RANGE . " at " . HOTEL_NAME . " in " . CON_CITY . ".  ";
   echo "<br /><br />";
+  $area = "";
 
   if (file_exists(TEXT_DIR.'/'.$area.'bidding1.html'))
 	include(TEXT_DIR.'/'.$area.'bidding1.html');	
