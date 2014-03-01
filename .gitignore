@@ -2,3 +2,9 @@
 db_constants.inc
 
 mamp.sql
+
+.DS_Store
+
+setup/deleteme.sql
+
+setup/schemanew.sql
