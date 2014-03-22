@@ -25,7 +25,8 @@ function build_events_table($day, $bookings, $rooms)
   return $events_array;
 }
 
-function write_events_table($events_array, $events_rooms, $label, $day, $today_start, $today_end, $selected_type) {
+function write_events_table($events_array, $events_rooms, $label, $day, $today_start, 
+                            $today_end, $selected_type) {
   if ($selected_type = $label) {
      $selected = "selected";
   }
@@ -33,7 +34,7 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
     $selected = "";
   }
   
-  echo "<table class=\"schedule $day $label\" $class = $highlighted>";
+  echo "<table class=\"schedule $day $label\" >";
   echo "<thead>";
   $column_count = count($events_rooms) +1;
   echo "<th colspan=$column_count >$day: $label</th>";
@@ -47,7 +48,7 @@ function write_events_table($events_array, $events_rooms, $label, $day, $today_s
   echo "<tbody>";
   for ($i = $today_start; $i<$today_end; $i++) {
       write_schedule_row($events_array, $i, $events_rooms); 
-}
+  }
   echo "</tbody></table>\n\n";   
 }
 
@@ -85,7 +86,7 @@ function write_schedule_row ($events_array, $i, $events_rooms){
 
 
 function strip_room($room){
-  $result =  ereg_replace(" \(.*\)", "", $room);
+  $result =  preg_replace("# \(.*\)#", "", $room);
 
   return $result;
 }

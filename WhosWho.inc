@@ -39,7 +39,7 @@ function get_who_is_who_for_show ($showId)
 
   $result = mysql_query ($sql);
   if (! $result)
-    return display_mysql_error ('Query for '.$type.' failed', $sql);
+    return display_mysql_error ('Query for '.$showId.' failed', $sql);
     
 
   echo "<table align=center border=1>\n";
@@ -240,7 +240,7 @@ function show_user_homepage_bio_info ($website="", $bio_text="", $photo="")
 
     // All GMs are expected to enter a bio, as are all privileged users
     $should_enter_bio = user_is_gm () ||
-                      (',,' != $_SESSION[SESSION_LOGIN_USER_PRIVS]);
+                      (',,' != $_SESSION['SESSION_LOGIN_USER_PRIVS']);
 
     // If this user isn't expected to enter a bio, return now
     if (! $should_enter_bio)
@@ -249,7 +249,7 @@ function show_user_homepage_bio_info ($website="", $bio_text="", $photo="")
     // If this user has NOT entered a bio, then issue a warning.
 
     $sql = 'SELECT Title, BioText, Website, PhotoSource FROM Bios WHERE UserId=';
-    $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= $_SESSION['SESSION_LOGIN_USER_ID'];
 
     $result = mysql_query ($sql);
     if (! $result)

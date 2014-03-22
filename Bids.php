@@ -400,7 +400,7 @@ function display_choose_form ()
   // Make sure that the user is logged in
   global $BID_TYPES;
   
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (! isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     return display_error ('You must login before submitting a bid');
   
   display_header ('Getting involved in ' . CON_NAME);
@@ -473,7 +473,7 @@ function display_bid_form ($first_try)
 
   // Make sure that the user is logged in
 
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (! isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     return display_error ('You must login before submitting a bid');
 
   // If we're updating a bid, grab the bid ID
@@ -564,7 +564,7 @@ function display_bid_form ($first_try)
     $can_update =
       user_has_priv (PRIV_BID_CHAIR) ||
       user_has_priv (PRIV_GM_LIAISON) ||
-      ($_SESSION[SESSION_LOGIN_USER_ID] == $_POST['UserId']);
+      ($_SESSION['SESSION_LOGIN_USER_ID'] == $_POST['UserId']);
 
     if (! $can_update)
       return display_access_error ();
@@ -576,8 +576,8 @@ function display_bid_form ($first_try)
   // Show the header - varies depending on update/submit and the nature of the submission
   if (0 == $BidId)
   {
-    $_POST['Author'] =   $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME];
-    $_POST['GameEMail'] = $_SESSION[SESSION_LOGIN_USER_EMAIL];
+    $_POST['Author'] =   $_SESSION['SESSION_LOGIN_USER_DISPLAY_NAME'];
+    $_POST['GameEMail'] = $_SESSION['SESSION_LOGIN_USER_EMAIL'];
 
   
     if ($gametype == 'Other')
@@ -981,7 +981,7 @@ function process_bid_form ()
 
   // Make sure that the user is logged in
 
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (! isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     return display_error ('You must login before submitting a class, panel or performance.');
 
   $BidId = intval (trim ($_REQUEST['BidId']));
@@ -1068,7 +1068,7 @@ function process_bid_form ()
   if ($new_bid)
   {
     $sql = 'INSERT Bids SET Created=NULL';
-    $sql .= build_sql_string ('UserId', $_SESSION[SESSION_LOGIN_USER_ID]);
+    $sql .= build_sql_string ('UserId', $_SESSION['SESSION_LOGIN_USER_ID']);
     
     // if this is a Draft, mark it as such
     if ($isDraft)
@@ -1205,7 +1205,7 @@ function process_bid_form ()
   // See who's doing this
 
   $sql = 'SELECT FirstName, LastName, EMail FROM Users WHERE UserId=';
-  $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= $_SESSION['SESSION_LOGIN_USER_ID'];
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Cannot query user information');
@@ -2110,11 +2110,12 @@ function show_bid_feedback_summary()
 			   $row->BidStatusId,
 			   $committee_users[$key]);
       }
-      else if (user_has_priv(PRIV_BID_COM) && $committee_users[$key] == $_SESSION[SESSION_LOGIN_USER_ID] )
+      else if (user_has_priv(PRIV_BID_COM) && 
+                $committee_users[$key] == $_SESSION['SESSION_LOGIN_USER_ID'] )
     $prefix = sprintf ('<a href="Bids.php?action=%d&BidStatusId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $row->BidStatusId,
-			   $_SESSION[SESSION_LOGIN_USER_ID]);
+			   $_SESSION['SESSION_LOGIN_USER_ID']);
  
       else 
         $prefix = "";
@@ -2150,12 +2151,13 @@ function show_bid_feedback_summary()
 			$suffix = '</a>';
 
 	  }
-      else if (user_has_priv(PRIV_BID_COM) && $committee_row->UserId == $_SESSION[SESSION_LOGIN_USER_ID] )
+      else if (user_has_priv(PRIV_BID_COM) && 
+                $committee_row->UserId == $_SESSION['SESSION_LOGIN_USER_ID'] )
       {
         $prefix = sprintf ('<a href="Bids.php?action=%d&FeedbackId=%d&UserId=%d">',
 			   BID_FEEDBACK_BY_ENTRY,
 			   $committee_row->FeedbackId,
-			   $_SESSION[SESSION_LOGIN_USER_ID]);
+			   $_SESSION['SESSION_LOGIN_USER_ID']);
         $suffix = '</a>';
       }
 
@@ -2320,7 +2322,7 @@ function add_event ($bid_row)
 
 /*  $sql .= build_sql_string ('IsSmallGameContestEntry'); */
 
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID']);
 
   //  echo "$sql<P>\n";
 
@@ -2423,7 +2425,7 @@ function drop_bid ($BidId, $EventId)
 //  printf ("    <td><A NAME=BidStatus%d>$title</A></td>\n", $row->BidStatusId);
 
   $sql .= build_sql_string ('ShortBlurb');
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID']);
 
   $sql .= ', EventId=0';
 

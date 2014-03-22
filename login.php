@@ -121,7 +121,7 @@ function process_login_form ()
 
   $EMail = trim ($_POST['EMail']);
   if (1 != get_magic_quotes_gpc())
-    $EMail = mysql_escape_string ($EMail);
+    $EMail = mysql_real_escape_string ($EMail);
 
   $Password = trim ($_POST['Password']);
   $HashedPassword = md5 ($Password);
@@ -141,7 +141,7 @@ function process_login_form ()
 
   // Query the database for the EMail address and password
 
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
+  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email, openid';
   $sql .= ' FROM Users';
   $sql .= " WHERE EMail='$EMail' AND HashedPassword='$HashedPassword'";
 
@@ -202,7 +202,7 @@ function login_with_data ($row, $EMail)
   if (array_key_exists (SESSION_REFERRER_ID, $_SESSION))
   {
     $sql = "UPDATE Referrers SET UserId=$UserId WHERE ReferrerId=" .
-           $_SESSION[SESSION_REFERRER_ID];
+           $_SESSION['SESSION_REFERRER_ID'];
 
     $result = mysql_query ($sql);
     if (! $result)
@@ -215,11 +215,11 @@ function login_with_data ($row, $EMail)
 
   // Create the session variables and set them
 
-  $_SESSION[SESSION_LOGIN_USER_ID] = $UserId;
-  $_SESSION[SESSION_LOGIN_USER_PRIVS] = ",$row->Priv,";
-  $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
-  $_SESSION[SESSION_LOGIN_USER_NAME] = $name;
-  $_SESSION[SESSION_LOGIN_USER_EMAIL] = $EMail;
+  $_SESSION['SESSION_LOGIN_USER_ID'] = $UserId;
+  $_SESSION['SESSION_LOGIN_USER_PRIVS'] = ",$row->Priv,";
+  $_SESSION['SESSION_LOGIN_USER_DISPLAY_NAME'] = $DisplayName;
+  $_SESSION['SESSION_LOGIN_USER_NAME'] = $name;
+  $_SESSION['SESSION_LOGIN_USER_EMAIL'] = $EMail;
   if (strlen($row->openid) > 0)
     $_SESSION[SESSION_LOGIN_OPENID] = $row->openid;
   $_SESSION['IncludeAlumni'] = 0;
@@ -239,35 +239,35 @@ function login_with_data ($row, $EMail)
 
   $is_gm = mysql_num_rows($result);
 
-  $_SESSION[SESSION_LOGIN_USER_PRESENTER] = 0;
-  $_SESSION[SESSION_LOGIN_USER_PERFORMER] = 0;
+  $_SESSION['SESSION_LOGIN_USER_PRESENTER'] = 0;
+  $_SESSION['SESSION_LOGIN_USER_PERFORMER'] = 0;
 
   if (0 == $is_gm)
-    $_SESSION[SESSION_LOGIN_USER_GM] = 0;
+    $_SESSION['SESSION_LOGIN_USER_GM'] = 0;
   else
   {
-    $_SESSION[SESSION_LOGIN_USER_GM] = 1;
+    $_SESSION['SESSION_LOGIN_USER_GM'] = 1;
     
     // GM now covers any special participant.  This is to specify what 
     // specific type we are talking about.
     while ($row = mysql_fetch_object ($result))
     {
       if ($row->Role == "teacher" || $row->Role == "panelist" || $row->Role == "moderator")
-        $_SESSION[SESSION_LOGIN_USER_PRESENTER] = 1;
+        $_SESSION['SESSION_LOGIN_USER_PRESENTER'] = 1;
 	  else if ($row->Role == "performer")
-        $_SESSION[SESSION_LOGIN_USER_PERFORMER] = 1;
+        $_SESSION['SESSION_LOGIN_USER_PERFORMER'] = 1;
     }
     
     // If the user is a GM, he may be able to see the schedule now...
 
-    if (0 == $_SESSION[SESSION_CON_SHOW_SCHEDULE])
+    if (0 == $_SESSION['SESSION_CON_SHOW_SCHEDULE'])
     {
       $result = mysql_query ('SELECT ShowSchedule FROM Con');
       if ($result)
       {
 	$row = mysql_fetch_object ($result);
 	if ('GMs' == $row->ShowSchedule)
-	  $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 1;
+	  $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 1;
       }
     }
   }

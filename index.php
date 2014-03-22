@@ -43,7 +43,7 @@ if (array_key_exists ('action', $_REQUEST))
   $action = $_REQUEST['action'];
 else
 {
-  if (isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     $action = SHOW_USER_HOMEPAGE;
   else
     $action = PROMPT_FOR_LOGIN;
@@ -95,7 +95,7 @@ switch ($action)
     if ($result < 0)
     {
       html_begin ();
-      $result = fill_post ($_SESSION[SESSION_LOGIN_USER_ID]);
+      $result = fill_post ($_SESSION['SESSION_LOGIN_USER_ID']);
       if (is_bool ($result))
 	display_user_form (true);
       else
@@ -132,7 +132,7 @@ switch ($action)
     }
     // if there's no user, get them to register
     $id = get_openid();
-    $_SESSION[SESSION_LOGIN_OPENID] = $id;    
+    $_SESSION['SESSION_LOGIN_OPENID'] = $id;    
 
     $registered = test_reg($id);
     
@@ -155,7 +155,7 @@ switch ($action)
     // else - assume registered = 1 and all is good
     
     // don't ask me why this is here twice, but it fixed a bug.
-    $_SESSION[SESSION_LOGIN_OPENID] = $id;    
+    $_SESSION['SESSION_LOGIN_OPENID'] = $id;    
 
     // See if we're supposed to go somewhere else after logging in
 
@@ -203,7 +203,7 @@ switch ($action)
 
   case UPDATE_USER:
     html_begin ();
-    $result = fill_post ($_SESSION[SESSION_LOGIN_USER_ID]);
+    $result = fill_post ($_SESSION['SESSION_LOGIN_USER_ID']);
     if (is_bool ($result))
       display_user_form (false);
     else
@@ -449,7 +449,7 @@ function log_referrer ()
 
   $referrer_id = mysql_insert_id();
 
-  $_SESSION[SESSION_REFERRER_ID] = $referrer_id;
+  $_SESSION['SESSION_REFERRER_ID'] = $referrer_id;
 
   return $referrer_id;
 }
@@ -691,171 +691,6 @@ function show_user_homepage_plugs ($UserId)
   return true;
 }
 
-/*
- * mark_user_paid
- *
- * If the user has just paid through PayPal, update his status
- 
- * This should be depreciated in replacement of Ticketing.  -MDB
- */
-/*
-function mark_user_paid ()
-{
-
-  //  dump_array ('POST - mark_user_paid', $_POST);
-  
-  // Flip the "Paid" bit in the user's record
-
-  $paid_by = 'Paid via PayPal ' . strftime ('%d-%b-%Y %H:%M');
-  if (array_key_exists ('txn_id', $_POST))
-    $paid_by .= ' TxnID: ' . $_POST['txn_id'];
-  if (array_key_exists ('last_name', $_POST))
-  {
-    $paid_by .= ' PaidBy: ' . $_POST['last_name'];
-    if (array_key_exists ('first_name', $_POST))
-      $paid_by .= ', ' . $_POST['first_name'];
-  }
-
-  $amount = 0;
-  if (array_key_exists ('payment_gross', $_POST))
-    $amount = intval ($_POST['payment_gross']) * 100;
-
-  // There are two types of payment that may come in here; con registration and
-  // shirt payments.  We can differentiate them by the "item_name" field.
-
-  if (! array_key_exists ('item_name', $_POST))
-    display_error ('PayPal message does not contain "item_name" field.  We can\'t tell what\'s being paid for!');
-
-  $user_id = 0;
-
-
-  $bConPayment = $_POST['item_name'] == PAYPAL_ITEM_CON;
-  $bShirtPayment = $_POST['item_name'] == PAYPAL_ITEM_SHIRT;
-  $bThursdayPayment = $_POST['item_name'] == PAYPAL_ITEM_THURSDAY;
-
-//  if ($bConPayment)
-//    echo "<!-- Con payment -->\n";
-//  if ($bShirtPayment)
-//    echo "<!-- Shirt payment -->\n";
-//  if ($bThursdayPayment)
-//    echo "<!-- Thursday payment -->\n";
-
-
-  if ($bConPayment)
-  {
-    // If this is a con payment, the custom field is the UserId.  Mark the
-    // user paid
-
-    if (array_key_exists ('custom', $_POST))
-      $user_id = intval ($_POST['custom']);
-
-    $sql = "UPDATE Users SET CanSignup='Paid'";
-    $sql .= ', CanSignupModified=NULL';
-    $sql .= ", CanSignupModifiedId=$user_id";
-    $sql .= " WHERE UserId=$user_id";
-    //  echo "$sql<p>\n";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to update user $user_id with notification from PayPal");
-
-    // If we've got session info, we're done
-
-    if (array_key_exists (SESSION_LOGIN_USER_ID, $_SESSION))
-      return TRUE;
-  }
-  elseif ($bShirtPayment)
-  {
-    // If this is a shirt payment, the custom field is the TShirtId.  Mark the
-    // shirt paid and fetch the UserId from the TShirt record
-
-    $TShirtID = 0;
- 
-    if (array_key_exists ('custom', $_POST))
-      $TShirtID = intval ($_POST['custom']);
-
-    $sql = 'UPDATE TShirts SET Status="Paid"';
-    $sql .= ", PaymentNote='$paid_by'";
-    $sql .= ", PaymentAmount=$amount";
-    $sql .= " WHERE TShirtID=$TShirtID";
-    //  echo "$sql<p>\n";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to update shirt record $TShirtID with notification from PayPal");
-
-    // If we've got session info, we're done
-
-    if (array_key_exists (SESSION_LOGIN_USER_ID, $_SESSION))
-      return TRUE;
-
-    // Otherwise, we're going to need the UserId so we can log him (or her)
-    // back in
-
-    $sql = "SELECT UserId FROM TShirts WHERE TShirtID=$TShirtID";
-    //  echo "$sql<p>\n";
-    $result = mysql_query ($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to fetch shirt record $TShirtID");
-
-    $num_rows = mysql_num_rows($result);
-    if (1 != mysql_num_rows($result))
-      return display_error ("$num_rows rows returned for shirt record $TShirtID");
-    $row = mysql_fetch_object($result);
-    $user_id = $row->UserId;
-  }
-  elseif ($bThursdayPayment)
-  {
-    // If this is a Thursday Thing payment, the custom field is the UserId.
-    // Add a Thursday record for the user
-
-    if (array_key_exists ('custom', $_POST))
-      $user_id = intval ($_POST['custom']);
-
-    $sql = "INSERT Thursday SET UserId=$user_id,";
-    $sql .= 'Status="Paid", ';
-    $sql .= "PaymentNote='$paid_by', ";
-    $sql .= "PaymentAmount=$amount";
-
-    $result = mysql_query($sql);
-    if (! $result)
-      return display_mysql_error ("Failed to insert Thursday record for $user_id", $sql);
-
-    // If we've got session info, we're done
-
-    if (array_key_exists (SESSION_LOGIN_USER_ID, $_SESSION))
-      return true;
-  }
-  else
-  {
-    printf ("<!-- Unknown payment type! \"%s\" -->\n",
-	    $_POST['item_name']);
-  }
-
-  // Refetch the user info & log them in again, since it's probably lost
-
-  $sql = 'SELECT FirstName, LastName, UserId, Priv, DisplayName, CanSignup, Email';
-  $sql .= ' FROM Users';
-  $sql .= " WHERE UserId=$user_id";
-
-  $result = mysql_query ($sql);
-  if (! $result)
-    return display_mysql_error ('Cannot execute query', $sql);
-
-  // Make sure we've gotten a single match
-
-  if (0 == mysql_num_rows ($result))
-    return 'Failed to find matching EMail address / password';
-
-  if (1 != mysql_num_rows ($result))
-    return 'Found more than one matching EMail address';
-
-  // Extract the UserId for the user being logged in and decode the privileges
-
-  $row = mysql_fetch_object ($result);
-
-  return login_with_data ($row, $EMail);
-}
-
-*/
 
 function display_signup_status ()
 {
@@ -931,7 +766,7 @@ function show_con_attendence()
 function show_user_homepage_status ()
 {
   $sql = 'SELECT DisplayName, CanSignup, CompEventId FROM Users';
-  $sql .= '  WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= '  WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
 
   //  echo "$sql<p>\n";
 
@@ -963,11 +798,11 @@ function show_user_homepage_status ()
 
   // Give the user the news, if any
 
-  if ('' != $_SESSION[SESSION_CON_NEWS])
+  if ('' != $_SESSION['SESSION_CON_NEWS'])
   {
     display_header (CON_NAME.' News - Last updated ' .
-		    $_SESSION[SESSION_CON_LAST_UPDATED]);
-    echo $_SESSION[SESSION_CON_NEWS] . "<P>\n";
+		    $_SESSION['SESSION_CON_LAST_UPDATED']);
+    echo $_SESSION['SESSION_CON_NEWS'] . "<P>\n";
   }
 
   display_header ('Scheduling Status');
@@ -975,7 +810,7 @@ function show_user_homepage_status ()
   // If the schedule's not yet available, direct users to the list of games
   // and exit
 
-  if (! $_SESSION[SESSION_CON_SHOW_SCHEDULE])
+  if (! $_SESSION['SESSION_CON_SHOW_SCHEDULE'])
   {
       echo "The schedule for " . CON_NAME . " is not yet available.  You \n";
       echo "can see the list of conference and other events being planned by clicking on \n";
@@ -1005,13 +840,13 @@ function show_user_homepage_status ()
     else
       $sequence_number = increment_sequence_number ();
 
-    show_games ($_SESSION[SESSION_LOGIN_USER_ID],
+    show_games ($_SESSION['SESSION_LOGIN_USER_ID'],
                 'You are',
                 'signed up',
                 'Confirmed',
                 $sequence_number);
 
-    show_games ($_SESSION[SESSION_LOGIN_USER_ID],
+    show_games ($_SESSION['SESSION_LOGIN_USER_ID'],
                 'You are',
                 'wait listed',
                 'Waitlisted',
@@ -1106,10 +941,10 @@ function status_unpaid ()
   echo "</div>";
 
   // Give the user the news, if any
-  if ('' != $_SESSION[SESSION_CON_NEWS])
+  if ('' != $_SESSION['SESSION_CON_NEWS'])
   {
     display_header (CON_NAME.' News');
-    echo '<p>' . $_SESSION[SESSION_CON_NEWS] . "</p>\n";
+    echo '<p>' . $_SESSION['SESSION_CON_NEWS'] . "</p>\n";
   }
 
   return $result;
@@ -1132,16 +967,16 @@ function show_user_homepage ()
   // If the user is a GM, provide a link to their game(s)
 
   if (user_is_gm())
-    show_user_homepage_gm ($_SESSION[SESSION_LOGIN_USER_ID]);
+    show_user_homepage_gm ($_SESSION['SESSION_LOGIN_USER_ID']);
 
 
   // See if the user has bid any games
 
-  show_user_homepage_bids ($_SESSION[SESSION_LOGIN_USER_ID]);
+  show_user_homepage_bids ($_SESSION['SESSION_LOGIN_USER_ID']);
 
   // See if the user owns any shameless plugs
 
-  show_user_homepage_plugs ($_SESSION[SESSION_LOGIN_USER_ID]);
+  show_user_homepage_plugs ($_SESSION['SESSION_LOGIN_USER_ID']);
 
     
   // Show the users what tickets he has purchased.
@@ -1149,7 +984,7 @@ function show_user_homepage ()
   display_header("<p>Tickets Purchased");
   echo "Please Note:  Tickets that were recently purchased may not show for several minutes.\n";
   echo "<br><br>\n";
-  show_user_simple_ticket_table($_SESSION[SESSION_LOGIN_USER_ID]);
+  show_user_simple_ticket_table($_SESSION['SESSION_LOGIN_USER_ID']);
 
   // Fetch whether the user is expected to submit a bio, and the text of that
   // bio, if one is available
@@ -1177,8 +1012,8 @@ function show_user_homepage ()
 
 function add_user()
 {
-  $update = isset ($_SESSION[SESSION_LOGIN_USER_ID]);
-  $isOpenId = isset ($_SESSION[SESSION_LOGIN_OPENID]); 
+  $update = isset ($_SESSION['SESSION_LOGIN_USER_ID']);
+  $isOpenId = isset ($_SESSION['SESSION_LOGIN_OPENID']); 
   
   // Assume user isn't auto-generated
   
@@ -1204,7 +1039,7 @@ function add_user()
   {
     if ($update)
     {
-      fill_post ($_SESSION[SESSION_LOGIN_USER_ID]);
+      fill_post ($_SESSION['SESSION_LOGIN_USER_ID']);
     }
     else
     {
@@ -1241,7 +1076,7 @@ function add_user()
     if (1 == mysql_num_rows ($result))
     {
       $row = mysql_fetch_object ($result);
-      $email_in_use = ($row->UserId != $_SESSION[SESSION_LOGIN_USER_ID]);
+      $email_in_use = ($row->UserId != $_SESSION['SESSION_LOGIN_USER_ID']);
     }
   }
 
@@ -1272,7 +1107,7 @@ function add_user()
     if ($update)
     {
       $sql = 'SELECT EMail FROM Users';
-      $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+      $sql .= ' WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
       $sql .= " AND HashedPassword='$HashedPassword'";
 
       $result = mysql_query ($sql);
@@ -1346,7 +1181,7 @@ function add_user()
   $sql .= build_sql_string ('PreferredContact');
   
   if ($update)
-    $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ', ModifiedBy=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   else
     $sql .= ', ModifiedBy=UserId';
   $sql .= ', Modified=NULL';
@@ -1354,18 +1189,18 @@ function add_user()
   // yes no
   if ($update && !$isOpenId)
   {
-    $sql .= ' WHERE UserId = ' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' WHERE UserId = ' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $sql .= " AND HashedPassword='$HashedPassword'";
   }
   // yes yes
   else if ($update && $isOpenId)
   {
-    $sql .= ' WHERE openid = "'.$_SESSION[SESSION_LOGIN_OPENID].'"';
+    $sql .= ' WHERE openid = "'.$_SESSION['SESSION_LOGIN_OPENID'].'"';
   }
   // no yes
   else if (!$update && $isOpenId)
   {
-    $sql .= build_sql_string ('openid',$_SESSION[SESSION_LOGIN_OPENID]);
+    $sql .= build_sql_string ('openid',$_SESSION['SESSION_LOGIN_OPENID']);
   }
   // no no
   else
@@ -1383,28 +1218,28 @@ function add_user()
 
   if ($update)
   {
-	$UserId = $_SESSION[SESSION_LOGIN_USER_ID];
+	$UserId = $_SESSION['SESSION_LOGIN_USER_ID'];
   }
   else
   {
     // Update the session variables
 
     $UserId = mysql_insert_id ();
-    $_SESSION[SESSION_LOGIN_USER_ID] = $UserId;
-    $_SESSION[SESSION_LOGIN_USER_PRIVS] = ',,';
-    $_SESSION[SESSION_LOGIN_USER_DISPLAY_NAME] = $DisplayName;
+    $_SESSION['SESSION_LOGIN_USER_ID'] = $UserId;
+    $_SESSION['SESSION_LOGIN_USER_PRIVS'] = ',,';
+    $_SESSION['SESSION_LOGIN_USER_DISPLAY_NAME'] = $DisplayName;
 
     $name = $_POST['FirstName'] . ' ' . $_POST['LastName'];
-    $_SESSION[SESSION_LOGIN_USER_NAME] = trim ($name);
-    $_SESSION[SESSION_LOGIN_USER_EMAIL] = $_POST['EMail'];
+    $_SESSION['SESSION_LOGIN_USER_NAME'] = trim ($name);
+    $_SESSION['SESSION_LOGIN_USER_EMAIL'] = $_POST['EMail'];
 
     // Users who've just registered can't have paid or be GMs
-    $_SESSION[SESSION_LOGIN_USER_GM] = 0;
+    $_SESSION['SESSION_LOGIN_USER_GM'] = 0;
 
     if (array_key_exists (SESSION_REFERRER_ID, $_SESSION))
     {
       $sql = "UPDATE Referrers SET UserId=$UserId, NewUser=1";
-      $sql .= ' WHERE ReferrerId=' . $_SESSION[SESSION_REFERRER_ID];
+      $sql .= ' WHERE ReferrerId=' . $_SESSION['SESSION_REFERRER_ID'];
 
       $result = mysql_query ($sql);
       if (! $result)
@@ -1515,8 +1350,8 @@ function display_user_form ($returning_alumni, $errors='')
   if ('' != $errors)
     display_error ($errors);
 
-  $update = isset ($_SESSION[SESSION_LOGIN_USER_ID]);
-  $isOpenId = isset ($_SESSION[SESSION_LOGIN_OPENID]);
+  $update = isset ($_SESSION['SESSION_LOGIN_USER_ID']);
+  $isOpenId = isset ($_SESSION['SESSION_LOGIN_OPENID']);
 
   if ($returning_alumni)
   {
@@ -2077,7 +1912,7 @@ function process_edit_user ()
   $sql .= build_sql_string ('PreferredContact');
   $sql .= build_sql_string ('Priv', $Priv);
   $sql .= build_sql_string ('CanSignup');
-  $sql .= ', ModifiedBy=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ', ModifiedBy=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= ', Modified=NULL';
 
   if ('Comp' != $_POST['CanSignup'])
@@ -2088,7 +1923,7 @@ function process_edit_user ()
   if (('' != $_POST['CanSignup']) && ($old_CanSignup != $_POST['CanSignup']))
   {
     $sql .= ', CanSignupModified=NULL';
-    $sql .= ', CanSignupModifiedId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ', CanSignupModifiedId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   }
 
   if (0 != $UserId)
@@ -2344,7 +2179,7 @@ function process_password_change_request ()
   // See if the password is correct for this user
 
   $sql = 'SELECT UserId FROM Users';
-  $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= " AND HashedPassword='$HashedPassword'";
 
   $result = mysql_query ($sql);
@@ -2360,7 +2195,7 @@ function process_password_change_request ()
 
   $sql = 'UPDATE Users SET ';
   $sql .= build_sql_string ('HashedPassword', $HashedPassword, FALSE);
-  $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3433,7 +3268,7 @@ function edit_bio ()
   if (! array_key_exists ('BioId', $_POST))
   {
     $sql = 'SELECT * FROM Bios';
-    $sql .= ' WHERE Bios.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' WHERE Bios.UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ('Query for bio failed');
@@ -3460,7 +3295,7 @@ function edit_bio ()
   }
 
     $sql = 'SELECT DisplayName FROM Users';
-    $sql .= ' WHERE Users.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' WHERE Users.UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ('Query for bio failed');
@@ -3494,7 +3329,7 @@ function edit_bio ()
     echo "    <TD>\n";
 
     $sql = 'SELECT Events.Title FROM Events, GMs';
-    $sql .= '  WHERE GMs.UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= '  WHERE GMs.UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $sql .= '    AND Events.EventId=GMs.EventId';
     $sql .= '  ORDER BY Events.Title';
 
@@ -3518,13 +3353,13 @@ function edit_bio ()
   printf ("<INPUT TYPE=HIDDEN NAME=BioId VALUE=%d>\n", $_POST['BioId']);
   form_hidden_value ('OrigPhoto', $_POST["PhotoSource"]);
 
-  if (',,' == $_SESSION[SESSION_LOGIN_USER_PRIVS])
+  if (',,' == $_SESSION['SESSION_LOGIN_USER_PRIVS'])
     echo "<INPUT TYPE=HIDDEN NAME=Title VALUE=\"\">\n";
   else
   {
     echo "Privileges: ";
     $count = 0;
-    $privs = explode (',', $_SESSION[SESSION_LOGIN_USER_PRIVS]);
+    $privs = explode (',', $_SESSION['SESSION_LOGIN_USER_PRIVS']);
 
     for ($i = 1; $i < count($privs); $i++)
     {
@@ -3541,7 +3376,7 @@ function edit_bio ()
   echo "<p><font color=red>*</font> indicates a required field\n<br><br>";
   echo "<TABLE BORDER=0>\n";
 
-  if (',,' != $_SESSION[SESSION_LOGIN_USER_PRIVS])
+  if (',,' != $_SESSION['SESSION_LOGIN_USER_PRIVS'])
     form_text (64, 'Title', 'Title', 128, FALSE);
 
   $text = "Biography.  This text will be seen on our website in association with any acts or shows you are participating in.<BR>\n";
@@ -3578,7 +3413,7 @@ function update_bio ()
 
   if (validate_file($file))
   {
-    $path = process_file($file, "picture", "User-".$_SESSION[SESSION_LOGIN_USER_ID] );
+    $path = process_file($file, "picture", "User-".$_SESSION['SESSION_LOGIN_USER_ID'] );
     if ( strpos($path,FILE_UPLOAD_LOC) === FALSE )
     {
       return display_error ("Error_uploading the photo file.");
@@ -3589,7 +3424,7 @@ function update_bio ()
 
   if (0 == $BioId)
   {
-    $sql = 'INSERT INTO Bios SET UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql = 'INSERT INTO Bios SET UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $sql .= build_sql_string ('BioText', '', true, true);
     $sql .= build_sql_string ('Title');
     $sql .= build_sql_string ('ShowNickname', $ShowNickname);
@@ -3605,7 +3440,7 @@ function update_bio ()
     $sql .= build_sql_string ('ShowNickname', $ShowNickname);
     $sql .= build_sql_string ('Website');
     $sql .= ', PhotoSource="'.$path.'"';
-    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   }
 
   //  echo "SQL: $sql<p>\n";
@@ -3909,7 +3744,7 @@ function paypal_test ()
   $url .= build_url_string ('no_note', '0');
   $url .= build_url_string ('cn', 'Any notes about your payment?');
   $url .= build_url_string ('no_shipping', '1');
-  //    $url .= build_url_string ('invoice', $_SESSION[SESSION_LOGIN_USER_ID].' '.$name);
+  //    $url .= build_url_string ('invoice', $_SESSION['SESSION_LOGIN_USER_ID'].' '.$name);
   $url .= build_url_string ('currency_code', 'USD');
   $url .= build_url_string ('amount', '0.05');
   $url .= build_url_string ('rm', '2');

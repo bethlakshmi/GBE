@@ -266,10 +266,10 @@ function get_signed_up_runs()
     $sql = 'SELECT Signup.RunId, Signup.State,';
     $sql .= ' Runs.Day, Runs.StartHour, Events.Hours';
     $sql .= ' FROM Signup, Runs, Events ';
-    $sql .= ' WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $sql .= '  AND Runs.RunId=Signup.RunId';
     $sql .= '  AND Events.EventId=Runs.EventId';
-    $sql .= '  AND Signup.State<>"Withdrawn"';
+    $sql .= '  AND Signup.State <> "Withdrawn"';
     return mysql_query ($sql);
 }
 
@@ -558,7 +558,7 @@ function get_user_status_for_run ($RunId, &$SignupId, &$is_confirmed)
   $sql = 'SELECT SignupId, State FROM Signup';
   $sql .= " WHERE State<>'Withdrawn'";
   $sql .= "  AND RunId=$RunId";
-  $sql .= '  AND UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= '  AND UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -684,13 +684,13 @@ function show_game ()
   $can_edit_game = false;
 
   if (user_has_priv (PRIV_SCHEDULING) || user_has_priv (PRIV_GM_LIAISON)
-       || user_is_moderator ($_SESSION[SESSION_LOGIN_USER_ID], $EventId)
-       || user_is_teacher ($_SESSION[SESSION_LOGIN_USER_ID], $EventId) )
+       || user_is_moderator ($_SESSION['SESSION_LOGIN_USER_ID'], $EventId)
+       || user_is_teacher ($_SESSION['SESSION_LOGIN_USER_ID'], $EventId) )
     $can_edit_game = true;
 
   
   $can_signup = can_signup();
-  $show_part = user_is_gm_for_game ($_SESSION[SESSION_LOGIN_USER_ID], $EventId);
+  $show_part = user_is_gm_for_game ($_SESSION['SESSION_LOGIN_USER_ID'], $EventId);
 
   // Create an Event object
 
@@ -813,6 +813,8 @@ function show_game ()
 	
 	    if ('Y' != $gm_row->DisplayEMail)
 	      $EMail = '';
+	    else
+	      $EMail = $gm_row->EMail;
 
    	    echo "          <TD>$name</TD>\n";
 	    echo "          <TD>$EMail</TD>\n";
@@ -827,8 +829,8 @@ function show_game ()
       }
     echo "      </TABLE>\n    </TD>\n  </TR>\n";
   
-    if (""  != $game_row->Organization)
-      display_one_col ('Organization', $game_row->Organization);
+//    if (""  != $game_row->Organization)
+//      display_one_col ('Organization', $game_row->Organization);
   }
 
 
@@ -1010,8 +1012,8 @@ function show_game ()
 
 	      //	$date = day_to_date ($run_row->Day);
 
-	      $game_full = game_full ($full_msg, $_SESSION[SESSION_LOGIN_USER_GENDER],
-				    $confirmed['Male'], $confirmed['Female'],
+	      $game_full = game_full ($full_msg, 'Male',
+				    $confirmed[''], $confirmed[''],
 				    0,
 				    0,
 				    $event->MaxPlayersNeutral,$confirmed['']);
@@ -1411,7 +1413,7 @@ function notify_about_event_changes ($EventId, $row)
 		   $_REQUEST['Title']);
 
   $sql = 'Select FirstName, LastName FROM Users';
-  $sql .= ' WHERE UserId=' .$_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' WHERE UserId=' .$_SESSION['SESSION_LOGIN_USER_ID'];
 
   $result = mysql_query ($sql);
   if ($result)
@@ -1564,7 +1566,7 @@ function add_game ()
   $sql .= build_sql_string ('Description', '', true, true);
   $sql .= build_sql_string ('ShortBlurb', '', true, true);
 
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID']);
 
   if ($update)
     $sql .= " WHERE EventId=$EventId";
@@ -1715,7 +1717,7 @@ function can_edit_game_info ()
 {
   // If the user isn't logged in then they can't edit anything!!!
 
-  if (empty ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (empty ($_SESSION['SESSION_LOGIN_USER_ID']))
     return false;
 
   // If the user is the Bid Chair (or Staff member) they can edit the game
@@ -1737,7 +1739,7 @@ function can_edit_game_info ()
 
   $sql = 'SELECT GMId FROM GMs';
   $sql .= "  WHERE EventId=$EventId AND GMs.Role != 'performer'";
-  $sql .= "    AND UserId=" . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= "    AND UserId=" . $_SESSION['SESSION_LOGIN_USER_ID'];
 
   $result = mysql_query ($sql);
   if (! $result)
@@ -3085,7 +3087,7 @@ function update_signup_locked ($SignupId, $Counted, $ForceUser)
   $sql = "UPDATE Signup SET Counted='$Counted',";
   if ($ForceUser)
     $sql .= ' PrevState=State, State="Confirmed",';
-  $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= " WHERE SignupId=$SignupId";
 
   //    echo $sql;
@@ -3358,8 +3360,8 @@ function comp_user_for_event_locked ($EventId, $UserId)
 
   $sql = "UPDATE Users SET CanSignup='Comp', CompEventId=$EventId,";
   $sql .= "  CanSignupModified=NULL, Modified=NULL,";
-  $sql .= "  CanSignupModifiedId=" . $_SESSION[SESSION_LOGIN_USER_ID] . ',';
-  $sql .= "  ModifiedBy=" . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= "  CanSignupModifiedId=" . $_SESSION['SESSION_LOGIN_USER_ID'] . ',';
+  $sql .= "  ModifiedBy=" . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= "  WHERE UserId=$UserId";
 
   //  echo "Comp: $sql<p>\n";
@@ -3532,7 +3534,7 @@ function process_add_gm ()
 
   $sql = "INSERT INTO GMs SET EventId=$EventId,";
   $sql .= " UserId=$UserId,";
-  $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= ', Role=\'' . $Role.'\'';
 
   $insert_result = mysql_query ($sql);
@@ -3725,7 +3727,7 @@ function check_if_away ($day, $start_hour, $hours)
 {
   // Get the user's away record
 
-  $sql = 'SELECT * FROM Away WHERE UserId=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql = 'SELECT * FROM Away WHERE UserId=' . $_SESSION['SESSION_LOGIN_USER_ID'];
 
   $result = mysql_query ($sql);
   if (! $result)

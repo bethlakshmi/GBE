@@ -1,7 +1,7 @@
 <?php
-define (SIGNUP_FAIL, 0);
-define (SIGNUP_OK, 1);
-define (SIGNUP_CONFIRM, 2);
+define ('SIGNUP_FAIL', 0);
+define ('SIGNUP_OK', 1);
+define ('SIGNUP_CONFIRM', 2);
 
 include ("intercon_db.inc");
 include ("intercon_schedule.inc");
@@ -107,14 +107,14 @@ function list_panels ()
 {
   // Make sure that the user is logged in
 
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (! isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     return display_error ('You must login before applying to sit on a panel.');
 
   // Always shill for games!
   if (accepting_bids())
   {
      if (file_exists(TEXT_DIR.'/acceptingbids.html'))
-	include(TEXT_DIR.'/acceptings.html');	
+	      include(TEXT_DIR.'/acceptingbids.html');	
   }
 
   $sql = 'SELECT BidId, Title, Description, ShortBlurb,';
@@ -292,7 +292,7 @@ function process_bid_panel_form ()
 
   // Make sure that the user is logged in
 
-  if (! isset ($_SESSION[SESSION_LOGIN_USER_ID]))
+  if (! isset ($_SESSION['SESSION_LOGIN_USER_ID']))
     return display_error ('You must <a href="index.php">login</a> or <a href="/index.php?action=5">register</a> before submitting a panel.');
 
 
@@ -321,7 +321,7 @@ function process_bid_panel_form ()
   if (! $form_ok)
     return FALSE;
 
-  $sql = "DELETE from PanelBids WHERE UserId=".$_SESSION[SESSION_LOGIN_USER_ID];
+  $sql = "DELETE from PanelBids WHERE UserId=".$_SESSION['SESSION_LOGIN_USER_ID'];
   // echo $sql;
   $result = mysql_query ($sql);
   if (! $result)
@@ -333,7 +333,7 @@ function process_bid_panel_form ()
     {
       $sql = "INSERT PanelBids SET ";
       $sql .= build_sql_string ('BidId', $_POST['BidId-'.$n],FALSE);
-      $sql .= build_sql_string ('UserId', $_SESSION[SESSION_LOGIN_USER_ID]);
+      $sql .= build_sql_string ('UserId', $_SESSION['SESSION_LOGIN_USER_ID']);
 
       if ( isset($_POST['Panelist-'.$n]) )
         $sql .= build_sql_string('Panelist',1);
@@ -351,7 +351,7 @@ function process_bid_panel_form ()
   }
 
 
-  $sql = "DELETE from BidTimes WHERE UserId=".$_SESSION[SESSION_LOGIN_USER_ID];
+  $sql = "DELETE from BidTimes WHERE UserId=".$_SESSION['SESSION_LOGIN_USER_ID'];
   // echo $sql;
   $result = mysql_query ($sql);
   if (! $result)
@@ -362,7 +362,7 @@ function process_bid_panel_form ()
   foreach ($CLASS_DAYS as $day)
   	foreach ($BID_SLOTS[$day] as $slot) {
 	  $sql = "INSERT into BidTimes (UserId, Day, Slot, Pref) values (";
-	  $sql .= "{$_SESSION[SESSION_LOGIN_USER_ID]}, ";
+	  $sql .= "{$_SESSION['SESSION_LOGIN_USER_ID']}, ";
 	  $sql .= "'{$day}', ";
 	  $sql .= "'{$slot}', ";
 	  $sql .= "'";
@@ -377,7 +377,7 @@ function process_bid_panel_form ()
 
 
   $sql = 'SELECT DisplayName, EMail FROM Users WHERE UserId=';
-  $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= $_SESSION['SESSION_LOGIN_USER_ID'];
   $result = mysql_query ($sql);
   if (! $result)
     return display_mysql_error ('Cannot query user information');
@@ -468,7 +468,7 @@ function set_panelists ()
       {
         $sql = "INSERT INTO GMs SET EventId=".$_REQUEST['EventId'].",";
         $sql .= " UserId=$user, Role='".$_REQUEST['User-'.$user]."',";
-        $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+        $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
 
         // echo $sql;
         $insert_result = mysql_query ($sql);

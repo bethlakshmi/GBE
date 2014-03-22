@@ -191,20 +191,20 @@ define ('LIST_OPS_BY_TIME', 72);
 
 // Action values in MailTo.php
 
-define (MAIL_SHOW_FORM, 70);
-define (MAIL_SEND, 71);
-define (MAIL_LISTS, 72);
-define (MAIL_GM_LISTS, 73);
-define (MAIL_BIO_LISTS, 74);
-define (MAIL_WAITLISTED, 75);
-define (MAIL_BID_SUBMITTERS, 76);
-define (MAIL_IRON_GM_LIST, 77);
-define (MAIL_SHOW_LISTS, 78);
+define ('MAIL_SHOW_FORM', 70);
+define ('MAIL_SEND', 71);
+define ('MAIL_LISTS', 72);
+define ('MAIL_GM_LISTS', 73);
+define ('MAIL_BIO_LISTS', 74);
+define ('MAIL_WAITLISTED', 75);
+define ('MAIL_BID_SUBMITTERS', 76);
+define ('MAIL_IRON_GM_LIST', 77);
+define ('MAIL_SHOW_LISTS', 78);
 
 // Action values in ConStatus.php
 
-define (SHOW_STATUS, 90);
-define (UPDATE_STATUS, 91);
+define ('SHOW_STATUS', 90);
+define ('UPDATE_STATUS', 91);
 
 // Action values in Reports.php
 
@@ -358,24 +358,24 @@ define (SUN_MAX, 52);    // Midnight
 define (EVENT_BLOCK, 30); 
 
 
-define (SESSION_LOGIN_USER_GM, 'LoginUserGM_' . CON_ID);
-define (SESSION_LOGIN_USER_PRESENTER, 'LoginUserPresent_' . CON_ID);
-define (SESSION_LOGIN_USER_PERFORMER, 'LoginUserPerf_' . CON_ID);
-define (SESSION_LOGIN_USER_SPECIAL, 'LoginUserSpecial_' . CON_ID);
-define (SESSION_LOGIN_USER_VENDOR, 'LoginUserVendor_' . CON_ID);
-define (SESSION_LOGIN_USER_ID, 'LoginUserId_' . CON_ID);
-define (SESSION_LOGIN_USER_PRIVS, 'LoginUserPrivs_' . CON_ID);
-define (SESSION_REFERRER_ID, 'ReferrerId_' . CON_ID);
-define (SESSION_LOGIN_USER_GENDER, 'LoginUserGender_' . CON_ID);
-define (SESSION_LOGIN_USER_NAME, 'LoginUserName_' . CON_ID);
-define (SESSION_LOGIN_USER_EMAIL, 'LoginUserEMail_' . CON_ID); 
-define (SESSION_CON_SHOW_SCHEDULE, 'ConShowSchedule_' . CON_ID);
-define (SESSION_CON_NEWS, 'ConNews_' . CON_ID);
-define (SESSION_ATTENDENCE_SHOWN, 'AttendenceShown_' . CON_ID);
-define (SESSION_CON_LAST_UPDATED, 'ConLastUpdated_' . CON_ID);
-define (SESSION_SEQUENCE_NUMBER, 'SequenceNumber_' . CON_ID);
-define (SESSION_TIMEOUT, 'Timeout_' . CON_ID);
-define (SESSION_LOGIN_OPENID, 'LoginOpenID_' . CON_ID);
+define ('SESSION_LOGIN_USER_GM', 'LoginUserGM_' . CON_ID);
+define ('SESSION_LOGIN_USER_PRESENTER', 'LoginUserPresent_' . CON_ID);
+define ('SESSION_LOGIN_USER_PERFORMER', 'LoginUserPerf_' . CON_ID);
+define ('SESSION_LOGIN_USER_SPECIAL', 'LoginUserSpecial_' . CON_ID);
+define ('SESSION_LOGIN_USER_VENDOR', 'LoginUserVendor_' . CON_ID);
+define ('SESSION_LOGIN_USER_ID', 'LoginUserId_' . CON_ID);
+define ('SESSION_LOGIN_USER_PRIVS', 'LoginUserPrivs_' . CON_ID);
+define ('SESSION_REFERRER_ID', 'ReferrerId_' . CON_ID);
+define ('SESSION_LOGIN_USER_GENDER', 'LoginUserGender_' . CON_ID);
+define ('SESSION_LOGIN_USER_NAME', 'LoginUserName_' . CON_ID);
+define ('SESSION_LOGIN_USER_EMAIL', 'LoginUserEMail_' . CON_ID); 
+define ('SESSION_CON_SHOW_SCHEDULE', 'ConShowSchedule_' . CON_ID);
+define ('SESSION_CON_NEWS', 'ConNews_' . CON_ID);
+define ('SESSION_ATTENDENCE_SHOWN', 'AttendenceShown_' . CON_ID);
+define ('SESSION_CON_LAST_UPDATED', 'ConLastUpdated_' . CON_ID);
+define ('SESSION_SEQUENCE_NUMBER', 'SequenceNumber_' . CON_ID);
+define ('SESSION_TIMEOUT', 'Timeout_' . CON_ID);
+define ('SESSION_LOGIN_OPENID', 'LoginOpenID_' . CON_ID);
 
 // Raise the level of error reporting
 
@@ -433,19 +433,19 @@ function user_has_priv ($priv, $accept_staff_priv=true)
 
   // See if the user has the privilege
 
-  if (is_string (stristr ($_SESSION[SESSION_LOGIN_USER_PRIVS], ",$priv,")))
+  if (is_string (stristr ($_SESSION['SESSION_LOGIN_USER_PRIVS'], ",$priv,")))
     return true;
 
   // OK, if that didn't work, and if Staff privilege is an acceptable
   // substitute, see if the user has that
 
   if ($accept_staff_priv)
-    if (is_string (stristr ($_SESSION[SESSION_LOGIN_USER_PRIVS], ',Staff,')))
+    if (is_string (stristr ($_SESSION['SESSION_LOGIN_USER_PRIVS'], ',Staff,')))
       return true;
 
   // Admin priv is ALWAYS an acceptable substitute
 
-  return is_string (stristr ($_SESSION[SESSION_LOGIN_USER_PRIVS], ',Admin'));
+  return is_string (stristr ($_SESSION['SESSION_LOGIN_USER_PRIVS'], ',Admin'));
 }
 
 function user_has_any_mail_priv ()
@@ -514,7 +514,7 @@ function day_to_date ($day)
 
 function is_logged_in ()
 {
-  return ! empty ($_SESSION[SESSION_LOGIN_USER_ID]);
+  return ! empty ($_SESSION['SESSION_LOGIN_USER_ID']);
 }
 
 /*
@@ -528,7 +528,7 @@ function is_user($user_id)
   if (! array_key_exists(SESSION_LOGIN_USER_ID, $_SESSION))
     return false;
 
-  return $user_id == $_SESSION[SESSION_LOGIN_USER_ID];
+  return $user_id == $_SESSION['SESSION_LOGIN_USER_ID'];
 }
 
 /*
@@ -1451,7 +1451,7 @@ function sql_string_updated_by ($field='', $user=0, $comma_prefix=true)
     $field = 'UpdatedById';
 
   if (0 == $user)
-    $user = $_SESSION[SESSION_LOGIN_USER_ID];
+    $user = $_SESSION['SESSION_LOGIN_USER_ID'];
 
   $prefix = '';
   if ($comma_prefix)
@@ -1746,7 +1746,7 @@ function validate_int ($key, $min, $max, $display=0)
 function validate_schedule_table_entry ($key, $display)
 {
   $key = str_replace ( ' ' , '_' , $key );
-  $value = trim ($_POST[$key]);
+  $value = trim ($_POST["'".$key."'"]);
 
   switch ($value)
   {
@@ -1843,12 +1843,12 @@ function can_signup () {
     
     if (!isset($GLOBALS['USER_CAN_SIGNUP'])) {
         $sql = 'SELECT CanSignup FROM Users WHERE UserId=';
-        $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+        $sql .= $_SESSION['SESSION_LOGIN_USER_ID'];
         $result = mysql_query ($sql);
         if (!$result)
             display_mysql_error ('Failed to get user information for signup check');
         if (0 == mysql_num_rows ($result))
-            display_error ('Failed to find UserId ' . $_SESSION[SESSION_LOGIN_USER_ID]);
+            display_error ('Failed to find UserId ' . $_SESSION['SESSION_LOGIN_USER_ID']);
 
         $GLOBALS['USER_CAN_SIGNUP'] = true;
     }
@@ -1869,16 +1869,16 @@ function can_show_schedule ()
 
   $now = time();
 
-  if (isset ($_SESSION[SESSION_CON_SHOW_SCHEDULE]))
+  if (isset ($_SESSION['SESSION_CON_SHOW_SCHEDULE']))
   {
-    if (isset ($_SESSION[SESSION_TIMEOUT]))
+    if (isset ($_SESSION['SESSION_TIMEOUT']))
     {
-      if ($_SESSION[SESSION_TIMEOUT] > $now)
+      if ($_SESSION['SESSION_TIMEOUT'] > $now)
       {
 	printf ("<!-- Within timeout - %d > %d -->\n",
-		$_SESSION[SESSION_TIMEOUT],
+		$_SESSION['SESSION_TIMEOUT'],
 		$now);
-	return $_SESSION[SESSION_CON_SHOW_SCHEDULE];
+	return $_SESSION['SESSION_CON_SHOW_SCHEDULE'];
       }
     }
   }
@@ -1905,22 +1905,22 @@ function can_show_schedule ()
     return FALSE;
   }
 
-  $_SESSION[SESSION_TIMEOUT] = $now + 180;
-  $_SESSION[SESSION_CON_LAST_UPDATED] = $row->LastUpdated;
-  $_SESSION[SESSION_CON_NEWS] = $row->News;
+  $_SESSION['SESSION_TIMEOUT'] = $now + 180;
+  $_SESSION['SESSION_CON_LAST_UPDATED'] = $row->LastUpdated;
+  $_SESSION['SESSION_CON_NEWS'] = $row->News;
 
   switch ($row->ShowSchedule)
   {
     // All users can see the schedule
 
     case 'Yes':
-      $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 1;
+      $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 1;
       break;
 
     // Only users with Scheduling or GM Liaison Privilege can see the schedule
 
     case 'Priv':
-      $_SESSION[SESSION_CON_SHOW_SCHEDULE] = user_has_priv (PRIV_SCHEDULING) ||
+      $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = user_has_priv (PRIV_SCHEDULING) ||
 									 user_has_priv (PRIV_GM_LIAISON);
       break;
 
@@ -1931,32 +1931,32 @@ function can_show_schedule ()
       if (user_has_priv (PRIV_SCHEDULING) ||
 	  user_has_priv (PRIV_GM_LIAISON) ||
 	  user_has_priv (PRIV_CON_COM))
-	$_SESSION[SESSION_CON_SHOW_SCHEDULE] = 1;
+	$_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 1;
       else
       {
 	if (user_is_gm())
-	  $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 1;
+	  $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 1;
 	else
-	  $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 0;
+	  $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 0;
       }
       break;
 
     // Nobody can see the schedule
 
     case 'No':
-      $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 0;
+      $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 0;
       break;
 
     // We should never get here!
 
     default:
       display_error ('Unexpected value for ShowSchedule');
-      $_SESSION[SESSION_CON_SHOW_SCHEDULE] = 0;
+      $_SESSION['SESSION_CON_SHOW_SCHEDULE'] = 0;
   }
 
   //  dump_array ("SESSION", $_SESSION);
 
-  return $_SESSION[SESSION_CON_SHOW_SCHEDULE];
+  return $_SESSION['SESSION_CON_SHOW_SCHEDULE'];
 }
 
 // Get the contents of the single row in Con.  If we already did this, return the cached copy.
@@ -2271,12 +2271,12 @@ function notify_gms ($EventId, $Title, $Day, $StartHour, $signup_result,
   // Fetch the user name and EMail address from the database
 
   $sql = 'SELECT FirstName, LastName, EMail FROM Users WHERE UserId=';
-  $sql .= $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= $_SESSION['SESSION_LOGIN_USER_ID'];
   $result = mysql_query ($sql);
   if (!$result)
     display_mysql_error ('Failed to get user information for GM notification');
   if (0 == mysql_num_rows ($result))
-    display_error ('Failed to find UserId ' . $_SESSION[SESSION_LOGIN_USER_ID]);
+    display_error ('Failed to find UserId ' . $_SESSION['SESSION_LOGIN_USER_ID']);
 
   $row = mysql_fetch_object ($result);
 
@@ -2473,7 +2473,7 @@ function confirm_waitlisted_user ($SignupId,
 
     $sql = 'UPDATE Signup SET PrevState=State,';
     $sql .= ' State="Withdrawn",';
-    $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $sql .= " WHERE SignupId=$row->SignupId";
 
     $withdraw_request = mysql_query ($sql);
@@ -2496,7 +2496,7 @@ function confirm_waitlisted_user ($SignupId,
   $sql = 'UPDATE Signup SET PrevState=State,';
   $sql .= ' State="Confirmed",';
   $sql .= " RunId=$RunId,";
-  $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= " WHERE SignupId=$SignupId";
 
   $request = mysql_query ($sql);
@@ -2553,7 +2553,7 @@ function withdraw_from_game_locked ($SignupId, $name, $email,
 
   $sql = 'UPDATE Signup SET PrevState=State,';
   $sql .= ' State="Withdrawn",';
-  $sql .= ' UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+  $sql .= ' UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
   $sql .= ' WHERE SignupId=' . $SignupId;
 
   //  echo $sql . "<p>\n";
@@ -2746,7 +2746,7 @@ function withdraw_from_game ($SignupId = 0)
 	if (! $row)
 	  return display_error ("Failed to find info for signup $SignupId");
 
-	if ($row->UserId != $_SESSION[SESSION_LOGIN_USER_ID])
+	if ($row->UserId != $_SESSION['SESSION_LOGIN_USER_ID'])
 	  return display_error ('You are not allowed to withdraw from a commitment for another user.');
     }
   }
@@ -3049,10 +3049,10 @@ function increment_sequence_number ()
 {
   if (! array_key_exists (SESSION_SEQUENCE_NUMBER, $_SESSION))
   {
-    $_SESSION[SESSION_SEQUENCE_NUMBER] = 0;
+    $_SESSION['SESSION_SEQUENCE_NUMBER'] = 0;
   }
 
-  return ++$_SESSION[SESSION_SEQUENCE_NUMBER];
+  return ++$_SESSION['SESSION_SEQUENCE_NUMBER'];
 }
 
 function form_add_sequence ($n = 0)
@@ -3062,7 +3062,7 @@ function form_add_sequence ($n = 0)
 
   form_hidden_value ('Seq', $n);
 
-  //  echo 'Hidden Seq: ' . $_SESSION[SESSION_SEQUENCE_NUMBER] . "<P>\n";
+  //  echo 'Hidden Seq: ' . $_SESSION['SESSION_SEQUENCE_NUMBER'] . "<P>\n";
 }
 
 function out_of_sequence ()
@@ -3071,15 +3071,15 @@ function out_of_sequence ()
   /*
   printf ("Form Sequence: %d, Session Sequence: %d<p>\n",
 	  $seq,
-	  $_SESSION[SESSION_SEQUENCE_NUMBER]);
+	  $_SESSION['SESSION_SEQUENCE_NUMBER']);
   */
-  return $seq != $_SESSION[SESSION_SEQUENCE_NUMBER]++;
+  return $seq != $_SESSION['SESSION_SEQUENCE_NUMBER']++;
 }
 
 function in_sequence ()
 {
   $seq = intval (trim ($_REQUEST['Seq']));
-  return $seq == $_SESSION[SESSION_SEQUENCE_NUMBER]++;
+  return $seq == $_SESSION['SESSION_SEQUENCE_NUMBER']++;
 }
 
 function display_sequence_error ($result)
@@ -3478,7 +3478,7 @@ function gender_to_pronoun ($gender)
 function user_is_gm ()
 {
   if (array_key_exists (SESSION_LOGIN_USER_GM, $_SESSION))
-    return $_SESSION[SESSION_LOGIN_USER_GM];
+    return $_SESSION['SESSION_LOGIN_USER_GM'];
   else
     return false;
 }
@@ -3493,7 +3493,7 @@ function user_is_gm ()
 function user_is_presenter ()
 {
   if (array_key_exists (SESSION_LOGIN_USER_PRESENTER, $_SESSION))
-    return $_SESSION[SESSION_LOGIN_USER_PRESENTER];
+    return $_SESSION['SESSION_LOGIN_USER_PRESENTER'];
   else
     return false;
 }
@@ -3508,7 +3508,7 @@ function user_is_presenter ()
 function user_is_performer ()
 {
   if (array_key_exists (SESSION_LOGIN_USER_PERFORMER, $_SESSION))
-    return $_SESSION[SESSION_LOGIN_USER_PERFORMER];
+    return $_SESSION['SESSION_LOGIN_USER_PERFORMER'];
   else
     return false;
 }
@@ -3976,7 +3976,7 @@ function add_gm($EventId, $UserId, $role=NULL)
     $sql .= '  Submitter="Y", ReceiveConEMail="Y",';
     if ( role != NULL )
       $sql .= ' Role="'.$role.'",';
-    $sql .= '  UpdatedById=' . $_SESSION[SESSION_LOGIN_USER_ID];
+    $sql .= '  UpdatedById=' . $_SESSION['SESSION_LOGIN_USER_ID'];
     $result = mysql_query ($sql);
     if (! $result)
       return display_mysql_error ("GM insertion failed");
@@ -4004,7 +4004,7 @@ function show_user_homepage_bids ($UserId,$Type=NULL)
     return true;
 
   if ($Type == NULL)
-    if ($UserId == $_SESSION[SESSION_LOGIN_USER_ID])
+    if ($UserId == $_SESSION['SESSION_LOGIN_USER_ID'])
        display_header ("<P>Status of Classes, Panels and Acts you've offered:");
     else 
        display_header ("<P>Status of Classes, Panels and Acts user has offered:");
@@ -4043,11 +4043,12 @@ function show_user_homepage_bids ($UserId,$Type=NULL)
         }
     }
     else
-      printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d>%s</A></TD>\n",
+      printf ("    <TD>%s - <A HREF=%s.php?action=%d&BidId=%d&GameType=%s>%s</A></TD>\n",
     	$row->GameType,
      	$type,
 	    BID_GAME,
 	    $row->BidId,
+	    $row->GameType,
 	    $row->Title);
     echo "  </TR>\n";
   }
