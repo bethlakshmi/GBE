@@ -3045,7 +3045,7 @@ function display_access_error ()
 
 function increment_sequence_number ()
 {
-  if (! array_key_exists (SESSION_SEQUENCE_NUMBER, $_SESSION))
+  if (! array_key_exists ('SESSION_SEQUENCE_NUMBER', $_SESSION))
   {
     $_SESSION['SESSION_SEQUENCE_NUMBER'] = 0;
   }
@@ -3475,7 +3475,7 @@ function gender_to_pronoun ($gender)
 
 function user_is_gm ()
 {
-  if (array_key_exists (SESSION_LOGIN_USER_GM, $_SESSION))
+  if (array_key_exists ('SESSION_LOGIN_USER_GM', $_SESSION))
     return $_SESSION['SESSION_LOGIN_USER_GM'];
   else
     return false;
@@ -3490,7 +3490,7 @@ function user_is_gm ()
 
 function user_is_presenter ()
 {
-  if (array_key_exists (SESSION_LOGIN_USER_PRESENTER, $_SESSION))
+  if (array_key_exists ('SESSION_LOGIN_USER_PRESENTER', $_SESSION))
     return $_SESSION['SESSION_LOGIN_USER_PRESENTER'];
   else
     return false;
@@ -3505,7 +3505,7 @@ function user_is_presenter ()
 
 function user_is_performer ()
 {
-  if (array_key_exists (SESSION_LOGIN_USER_PERFORMER, $_SESSION))
+  if (array_key_exists ('SESSION_LOGIN_USER_PERFORMER', $_SESSION))
     return $_SESSION['SESSION_LOGIN_USER_PERFORMER'];
   else
     return false;

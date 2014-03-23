@@ -28,7 +28,8 @@ if (! user_is_performer() )
   exit ();
 }
 
-if (isset($_REQUEST['ActId']) && !user_is_performer_for_act($_SESSION[SESSION_LOGIN_USER_ID],$_REQUEST['ActId']))
+if (isset($_REQUEST['ActId']) && 
+    !user_is_performer_for_act($_SESSION['SESSION_LOGIN_USER_ID'],$_REQUEST['ActId']))
 {
   display_access_error ();
   html_end ();
@@ -45,7 +46,7 @@ if (isset($_REQUEST['ActId']) && isset($_REQUEST['ShowId']))
 else 
 {
   $act_list = array();
-  get_acts_for_user($_SESSION[SESSION_LOGIN_USER_ID], $act_list);
+  get_acts_for_user($_SESSION['SESSION_LOGIN_USER_ID'], $act_list);
   if ( count($act_list) > 1)
   {
     show_user_act_list($act_list);
@@ -75,7 +76,7 @@ html_end ();
 function show_user_act_list(&$act_list)
 {
   $shows = array();
-  get_show_list(&$shows);
+  get_show_list($shows);
   
   echo "<table border=\"1\">\n";
   echo "  <tr valign=\"bottom\">\n";

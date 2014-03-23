@@ -367,7 +367,7 @@ function edit_act_info($ActId, $ShowId, $errors)
   }
 
   display_acttechinfo($errors, $Act->ShowId,$Act->ActInfoId,$Act->BidId, 
-                      $_SESSION[SESSION_LOGIN_USER_ID], $editable);
+                      $_SESSION['SESSION_LOGIN_USER_ID'], $editable);
   echo "<br><br><center>";
   if ($editable)
     form_submit("Submit Act Information",0);
@@ -520,7 +520,7 @@ function show_act_tech_reminder()
     
   $techInfoDone = TRUE;
 
-  get_acts_for_user($_SESSION[SESSION_LOGIN_USER_ID], $act_list);
+  get_acts_for_user($_SESSION['SESSION_LOGIN_USER_ID'], $act_list);
   if ( count($act_list) > 0)
   {
     foreach($act_list as $Act)
