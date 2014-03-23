@@ -1433,9 +1433,6 @@ function display_class_table ($order,$desc)
   printf ("    <th rowspan=\"3\" align=\"left\">" .
 	  "<a href=\"Bids.php?action=%d&order=Created\">Created</th>\n",
 	  BID_REVIEW_BIDS);
-  printf ("    <th rowspan=\"3\" align=\"left\">" .
-	  "<a href=\"Bids.php?action=%d&order=Type\">Class Type</th>\n",
-	  BID_REVIEW_BIDS);
   echo "  </tr>\n";
 
   echo "  <TR VALIGN=BOTTOM>\n";
@@ -1577,7 +1574,6 @@ function display_class_table ($order,$desc)
 
     echo "    <TD>$row->LastUpdatedFMT</TD>\n";
     echo "    <TD>$row->CreatedFMT</TD>\n";
-    echo "    <TD>$row->GameSystem</TD>\n";
     echo "  </tr>\n";
   } // end while rows in original select
 

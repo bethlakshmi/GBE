@@ -1,7 +1,4 @@
 <?php
-if (strstr($_SERVER["SERVER_NAME"], "interactiveliterature.org")) {
-    session_set_cookie_params(0, '/', '.interactiveliterature.org');
-}
 
 // Turn off PHP notices for all these define statements.  PHP for Win throws a Notice when you don't 
 // quote the global constants below.  Will turn on/off as needed.
@@ -428,9 +425,9 @@ function user_has_priv ($priv, $accept_staff_priv=true)
   // If the session hasn't been setup yet, then the user can't be
   // privileged
 
-  if (! array_key_exists (SESSION_LOGIN_USER_PRIVS, $_SESSION))
+  if (! array_key_exists ('SESSION_LOGIN_USER_PRIVS', $_SESSION))
     return false;
-
+    
   // See if the user has the privilege
 
   if (is_string (stristr ($_SESSION['SESSION_LOGIN_USER_PRIVS'], ",$priv,")))
@@ -442,6 +439,7 @@ function user_has_priv ($priv, $accept_staff_priv=true)
   if ($accept_staff_priv)
     if (is_string (stristr ($_SESSION['SESSION_LOGIN_USER_PRIVS'], ',Staff,')))
       return true;
+
 
   // Admin priv is ALWAYS an acceptable substitute
 

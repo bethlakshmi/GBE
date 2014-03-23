@@ -109,7 +109,7 @@ function list_games ($type = 0, $showOps=FALSE)
     $type = $_SESSION['ListType'];
   else
   {
-    session_register ('ListType');
+    //session_register ('ListType');
     $_SESSION['ListType'] = $type;
   }
 
@@ -701,7 +701,7 @@ function process_add_run ()
     while( $row = mysql_fetch_object ($result))
     {
       $status = check_for_conflicts($row->UserId, $start_hour, $end_hour, $day, 
-					&$waitlist_conflicts, $RunId, TRUE);
+					$waitlist_conflicts, $RunId, TRUE);
 	  if ($status == SIGNUP_FAIL)
 	    display_error("Scheduling problem was found for ".$row->DisplayName);
 	  if (sizeof($waitlist_conflicts) > 1)
@@ -739,7 +739,7 @@ function process_add_run ()
   $sql .= build_sql_string ('TitleSuffix');
   $sql .= build_sql_string ('ScheduleNote');
   $sql .= build_sql_string ('Rooms', $Rooms);
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID']);
 
   if ( $GameType == $OPS_TYPES[1] || $GameType == $OPS_TYPES[2] 
         || $GameType == $OPS_TYPES[3])
@@ -842,7 +842,7 @@ function process_add_ops ()
     $sqlend = ' WHERE EventId='.$EventId.';';
   }
   
-  $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID], false);
+  $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID'], false);
   $sql .= build_sql_string ('Title');
   $sql .= build_sql_string ('Author');
   $sql .= build_sql_string ('GameEMail');
@@ -896,7 +896,7 @@ function process_add_ops ()
           $sql .= build_sql_string ('Viewable','protect');
 
       $sql .= build_sql_string ('Rooms', $Rooms);
-      $sql .= build_sql_string ('UpdatedById', $_SESSION[SESSION_LOGIN_USER_ID]);
+      $sql .= build_sql_string ('UpdatedById', $_SESSION['SESSION_LOGIN_USER_ID']);
       echo "Created run of ".$_POST['Title']." at ".start_hour_to_am_pm($RunHour)." on ".$_POST['Day'].".<br>";
       $RunHour = $RunHour + $_POST['Hours'];
 

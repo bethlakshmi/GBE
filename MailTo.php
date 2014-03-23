@@ -1,14 +1,14 @@
 <?php
-define (MAIL_LIST_NONE, 0);
-define (MAIL_LIST_ALL, 1);
-define (MAIL_LIST_ATTENDEES, 2);
-define (MAIL_LIST_INTERESTED, 3);
-//define (MAIL_LIST_UNPAID, 4);
-define (MAIL_LIST_ALUMNI, 5);
-define (MAIL_LIST_GMS_BY_GAME, 6);
-define (MAIL_LIST_GMS_BY_NAME, 7);
-define (MAIL_LIST_SUBMITTORS, 8);
-define (MAIL_LIST_VENDORS, 9);
+define ('MAIL_LIST_NONE', 0);
+define ('MAIL_LIST_ALL', 1);
+define ('MAIL_LIST_ATTENDEES', 2);
+define ('MAIL_LIST_INTERESTED', 3);
+//define ('MAIL_LIST_UNPAID', 4);
+define ('MAIL_LIST_ALUMNI', 5);
+define ('MAIL_LIST_GMS_BY_GAME', 6);
+define ('MAIL_LIST_GMS_BY_NAME', 7);
+define ('MAIL_LIST_SUBMITTORS', 8);
+define ('MAIL_LIST_VENDORS', 9);
 
 include ("intercon_db.inc");
 

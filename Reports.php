@@ -5,13 +5,6 @@
 include ("intercon_db.inc");
 include ("gbe_ticketing.inc");
 
-// If the user's not logged in, send him to the entrypoint
-
-if (! array_key_exists (SESSION_LOGIN_USER_ID, $_SESSION))
-{
-  header ('Location: index.php');
-  exit ();
-}
 
 // Connect to the database
 
